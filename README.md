@@ -1,8 +1,3 @@
-好的，一个专业、清晰的 README 是项目的第一门面。
-
-这是为您准备的 `EquityCompass` 项目的 README 文件，采用了标准的开源项目格式。您可以直接复制以下所有内容，保存为 `README.md` 文件并上传到您的 GitHub 仓库。
-
------
 
 # 🧭 EquityCompass
 
