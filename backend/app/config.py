@@ -1,0 +1,133 @@
+"""
+智策股析 - 应用配置
+"""
+import os
+from datetime import timedelta
+
+
+class Config:
+    """基础配置"""
+    # 基本配置
+    SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+    
+    # 数据库配置
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # JWT配置
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-change-in-production')
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=30)
+    
+    # Redis配置
+    REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    
+    # Celery配置
+    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/1')
+    CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/1')
+    
+    # 邮件配置
+    MAIL_SERVER = os.getenv('MAIL_SERVER', 'localhost')
+    MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'noreply@equitycompass.com')
+    
+    # 文件存储配置
+    REPORTS_DIR = os.getenv('REPORTS_DIR', 'data/reports')
+    EXPORTS_DIR = os.getenv('EXPORTS_DIR', 'data/exports')
+    LOGS_DIR = os.getenv('LOGS_DIR', 'data/logs')
+    
+    # LLM API配置
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    QWEN_API_KEY = os.getenv('QWEN_API_KEY')
+    
+    # 支付网关配置
+    STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
+    STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+    STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
+    
+    # 金融数据API配置
+    ALPHA_VANTAGE_API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')
+    FINNHUB_API_KEY = os.getenv('FINNHUB_API_KEY')
+    
+    # 分页配置
+    DEFAULT_PAGE_SIZE = 20
+    MAX_PAGE_SIZE = 100
+    
+    # 业务配置
+    MAX_WATCHLIST_SIZE = 20
+    VERIFICATION_CODE_EXPIRE = 600  # 10分钟
+    RATE_LIMIT_PER_MINUTE = 60
+
+
+class DevelopmentConfig(Config):
+    """开发环境配置"""
+    DEBUG = True
+    TESTING = False
+    
+    # 开发环境数据库
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        'DATABASE_URL', 
+        'sqlite:///data/dev.db'
+    )
+    
+    # 开发环境邮件配置 - 控制台输出
+    MAIL_SUPPRESS_SEND = False
+    MAIL_DEBUG = True
+    
+    # 开发环境日志级别
+    LOG_LEVEL = 'DEBUG'
+    
+    # 开发环境允许的主机
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+
+class ProductionConfig(Config):
+    """生产环境配置"""
+    DEBUG = False
+    TESTING = False
+    
+    # 生产环境数据库
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        'DATABASE_URL',
+        'postgresql://user:password@localhost/equitycompass'
+    )
+    
+    # 生产环境日志级别
+    LOG_LEVEL = 'INFO'
+    
+    # 生产环境安全配置
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    
+    # 生产环境CORS配置
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', '').split(',')
+
+
+class TestingConfig(Config):
+    """测试环境配置"""
+    DEBUG = True
+    TESTING = True
+    
+    # 测试环境数据库
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    
+    # 测试环境不发送邮件
+    MAIL_SUPPRESS_SEND = True
+    
+    # 测试环境JWT配置
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
+    
+    # 测试环境Redis配置
+    REDIS_URL = 'redis://localhost:6379/15'  # 使用不同的数据库
+
+
+# 配置字典
+config = {
+    'development': DevelopmentConfig,
+    'production': ProductionConfig,
+    'testing': TestingConfig,
+    'default': DevelopmentConfig
+}
