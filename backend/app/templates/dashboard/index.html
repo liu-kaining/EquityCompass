@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}仪表板 - 智策股析{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="gradient-text mb-4">欢迎回来，{{ user.email }}</h1>
+        <p class="text-muted mb-4">这里是您的个人投资分析中心</p>
+    </div>
+</div>
+
+<!-- 用户计划状态 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">当前计划</h5>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge bg-primary fs-6">
+                                {% if user.plan_type == 'TRIAL' %}试用计划
+                                {% elif user.plan_type == 'FREE' %}免费计划
+                                {% elif user.plan_type == 'SUBSCRIPTION' %}订阅计划
+                                {% else %}按次付费{% endif %}
+                            </span>
+                            <small class="text-muted">剩余 {{ user.remaining_quota }} 次分析机会</small>
+                        </div>
+                    </div>
+                    <a href="#" class="btn btn-outline-primary">升级计划</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 统计卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card glass-effect card-hover">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-chart-line fa-2x text-primary"></i>
+                </div>
+                <h3 class="card-title">{{ user.watchlist_count }}</h3>
+                <p class="card-text text-muted">关注股票</p>
+                <a href="{{ url_for('stocks.watchlist') }}" class="btn btn-sm btn-primary">查看</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card glass-effect card-hover">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-file-alt fa-2x text-success"></i>
+                </div>
+                <h3 class="card-title">{{ user.reports_count }}</h3>
+                <p class="card-text text-muted">分析报告</p>
+                <a href="{{ url_for('reports.index') }}" class="btn btn-sm btn-success">查看</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card glass-effect card-hover">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-clock fa-2x text-warning"></i>
+                </div>
+                <h3 class="card-title">0</h3>
+                <p class="card-text text-muted">待处理任务</p>
+                <a href="{{ url_for('analysis.index') }}" class="btn btn-sm btn-warning">查看</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card glass-effect card-hover">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-wallet fa-2x text-info"></i>
+                </div>
+                <h3 class="card-title">{{ user.remaining_quota }}</h3>
+                <p class="card-text text-muted">剩余额度</p>
+                <a href="#" class="btn btn-sm btn-info">购买</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快速操作 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <h5 class="card-title mb-4">快速操作</h5>
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('stocks.index') }}" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>浏览股票池
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('stocks.watchlist') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-bookmark me-2"></i>管理关注列表
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('analysis.index') }}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-play me-2"></i>开始分析
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-chart-bar me-2"></i>查看报告
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}

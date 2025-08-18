@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}验证登录 - 智策股析{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card glass-effect">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <h1 class="gradient-text h2 mb-3">验证登录</h1>
+                    <p class="text-muted">验证码已发送至：<strong>{{ request.form.get('email') or email }}</strong></p>
+                </div>
+                
+                <form method="POST">
+                    <input type="hidden" name="email" value="{{ request.form.get('email') or email }}">
+                    
+                    <div class="mb-3">
+                        <label for="code" class="form-label">6位验证码</label>
+                        <input type="text" class="form-control bg-dark border-secondary text-light text-center" 
+                               id="code" name="code" maxlength="6" required placeholder="输入验证码"
+                               style="font-size: 1.2rem; letter-spacing: 0.2rem;">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 mb-3">
+                        验证登录
+                    </button>
+                    
+                    <div class="text-center">
+                        <a href="{{ url_for('auth.login') }}" class="text-decoration-none">
+                            返回上一步
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 自动聚焦验证码输入框
+document.getElementById('code').focus();
+
+// 验证码输入时自动格式化
+document.getElementById('code').addEventListener('input', function(e) {
+    // 只允许数字
+    this.value = this.value.replace(/[^0-9]/g, '');
+    
+    // 限制长度为6位
+    if (this.value.length > 6) {
+        this.value = this.value.slice(0, 6);
+    }
+});
+</script>
+{% endblock %}

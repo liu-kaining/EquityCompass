@@ -61,27 +61,30 @@ def create_app(config_name='development'):
     jwt.init_app(app)
     mail.init_app(app)
     
-    # 注册蓝图
-    from app.api.auth import auth_bp
-    from app.api.users import users_bp
-    from app.api.stocks import stocks_bp
-    from app.api.watchlist import watchlist_bp
-    from app.api.analysis import analysis_bp
-    from app.api.reports import reports_bp
-    from app.api.payment import payment_bp
-    from app.api.email import email_bp
-    from app.api.admin import admin_bp
+    # 注册Web页面蓝图
+    from app.views.main import main_bp
+    from app.views.auth import auth_bp
+    from app.views.dashboard import dashboard_bp
+    from app.views.stocks import stocks_bp
+    from app.views.analysis import analysis_bp
+    from app.views.reports import reports_bp
+    
+    # 注册API蓝图
+    from app.api.auth_api import auth_api_bp
+    from app.api.stocks_api import stocks_api_bp
     from app.api.health import health_bp
     
-    app.register_blueprint(auth_bp, url_prefix='/api/auth')
-    app.register_blueprint(users_bp, url_prefix='/api/users')
-    app.register_blueprint(stocks_bp, url_prefix='/api/stocks')
-    app.register_blueprint(watchlist_bp, url_prefix='/api/watchlist')
-    app.register_blueprint(analysis_bp, url_prefix='/api/analysis')
-    app.register_blueprint(reports_bp, url_prefix='/api/reports')
-    app.register_blueprint(payment_bp, url_prefix='/api/payment')
-    app.register_blueprint(email_bp, url_prefix='/api/email')
-    app.register_blueprint(admin_bp, url_prefix='/api/admin')
+    # Web页面路由
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+    app.register_blueprint(stocks_bp, url_prefix='/stocks')
+    app.register_blueprint(analysis_bp, url_prefix='/analysis')
+    app.register_blueprint(reports_bp, url_prefix='/reports')
+    
+    # API路由 (保留一些API供Ajax使用)
+    app.register_blueprint(auth_api_bp, url_prefix='/api/auth')
+    app.register_blueprint(stocks_api_bp, url_prefix='/api/stocks')
     app.register_blueprint(health_bp, url_prefix='/api/health')
     
     # 创建Celery实例

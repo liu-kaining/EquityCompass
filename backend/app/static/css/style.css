@@ -1,0 +1,164 @@
+/* 智策股析 - 自定义样式 */
+
+/* 全局样式 */
+body {
+    background: linear-gradient(135deg, #0A0E1A 0%, #1A1F2E 100%);
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* 渐变文字效果 */
+.gradient-text {
+    background: linear-gradient(135deg, #00D4FF 0%, #FF6B35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+/* 毛玻璃效果 */
+.glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(26, 31, 46, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 16px !important;
+}
+
+/* 卡片悬停效果 */
+.card-hover {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2);
+}
+
+/* 自定义按钮样式 */
+.btn-primary {
+    background: linear-gradient(135deg, #00D4FF 0%, #0099CC 100%);
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #4DE4FF 0%, #00D4FF 100%);
+    box-shadow: 0 6px 16px rgba(0, 212, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+/* 表单控件样式 */
+.form-control:focus {
+    background-color: rgba(26, 31, 46, 0.9);
+    border-color: #00D4FF;
+    box-shadow: 0 0 0 0.2rem rgba(0, 212, 255, 0.25);
+    color: #ffffff;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* 导航栏样式 */
+.navbar-brand {
+    font-size: 1.5rem;
+}
+
+/* Alert样式 */
+.alert {
+    border: none;
+    border-radius: 12px;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* 加载动画 */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #00D4FF;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none !important;
+    }
+    
+    .card-body {
+        padding: 1rem !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .show-mobile {
+        display: none !important;
+    }
+}
+
+/* 状态徽章 */
+.badge {
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+}
+
+/* 链接样式 */
+a {
+    color: #00D4FF;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #4DE4FF;
+}
+
+/* 下拉菜单 */
+.dropdown-menu-dark {
+    background-color: rgba(26, 31, 46, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 表格样式 */
+.table-dark {
+    background-color: rgba(26, 31, 46, 0.8);
+}
+
+.table-dark thead th {
+    border-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(0, 212, 255, 0.1);
+}
+
+/* 图标样式 */
+.fa-2x {
+    font-size: 2rem;
+}

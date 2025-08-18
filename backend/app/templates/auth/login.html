@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}登录 - 智策股析{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card glass-effect">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <h1 class="gradient-text h2 mb-3">智策股析</h1>
+                    <p class="text-muted">每日股价分析与决策平台</p>
+                </div>
+                
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">邮箱地址</label>
+                        <input type="email" class="form-control bg-dark border-secondary text-light" 
+                               id="email" name="email" required placeholder="输入您的邮箱地址">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 mb-3">
+                        发送验证码
+                    </button>
+                    
+                    <p class="text-muted text-center small">
+                        输入邮箱即可登录或注册
+                    </p>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                登录即表示您同意我们的服务条款和隐私政策
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}
