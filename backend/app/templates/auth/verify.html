@@ -1,55 +1,495 @@
 {% extends "base.html" %}
 
-{% block title %}验证登录 - 智策股析{% endblock %}
+{% block title %}验证码 - 智策股析{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card glass-effect">
-            <div class="card-body p-5">
-                <div class="text-center mb-4">
-                    <h1 class="gradient-text h2 mb-3">验证登录</h1>
-                    <p class="text-muted">验证码已发送至：<strong>{{ request.form.get('email') or email }}</strong></p>
-                </div>
-                
-                <form method="POST">
-                    <input type="hidden" name="email" value="{{ request.form.get('email') or email }}">
-                    
-                    <div class="mb-3">
-                        <label for="code" class="form-label">6位验证码</label>
-                        <input type="text" class="form-control bg-dark border-secondary text-light text-center" 
-                               id="code" name="code" maxlength="6" required placeholder="输入验证码"
-                               style="font-size: 1.2rem; letter-spacing: 0.2rem;">
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100 mb-3">
-                        验证登录
-                    </button>
-                    
-                    <div class="text-center">
-                        <a href="{{ url_for('auth.login') }}" class="text-decoration-none">
-                            返回上一步
-                        </a>
-                    </div>
-                </form>
+<div class="auth-container">
+    <div class="auth-card">
+        <!-- Header -->
+        <div class="auth-header">
+            <div class="auth-logo">
+                <i class="fas fa-shield-alt"></i>
             </div>
+            <h1 class="auth-title">输入验证码</h1>
+            <p class="auth-subtitle">
+                我们已发送验证码到<br>
+                <strong>{{ email }}</strong>
+            </p>
+        </div>
+
+        <!-- Verification Form -->
+        <form id="verifyForm" class="auth-form" method="POST">
+            <input type="hidden" name="email" value="{{ email }}">
+            
+            <div class="form-group">
+                <label for="code" class="form-label">
+                    <i class="fas fa-key"></i>
+                    6位数字验证码
+                </label>
+                <div class="code-input-container">
+                    <input 
+                        type="text" 
+                        id="code" 
+                        name="code" 
+                        class="form-control code-input" 
+                        placeholder="000000"
+                        maxlength="6"
+                        pattern="[0-9]{6}"
+                        required
+                        autocomplete="one-time-code"
+                        autofocus
+                    >
+                </div>
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100" id="verifyBtn">
+                <span class="btn-text">
+                    <i class="fas fa-check"></i>
+                    验证登录
+                </span>
+                <span class="btn-spinner d-none">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    验证中...
+                </span>
+            </button>
+        </form>
+
+        <!-- Resend Code -->
+        <div class="resend-section">
+            <p class="text-muted">没有收到验证码？</p>
+            <button type="button" class="btn btn-link resend-btn" id="resendBtn">
+                <span class="resend-text">重新发送</span>
+                <span class="resend-countdown d-none">(<span id="countdown">60</span>s)</span>
+            </button>
+        </div>
+
+        <!-- Back to Login -->
+        <div class="auth-footer">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i>
+                返回登录
+            </a>
         </div>
     </div>
 </div>
 
-<script>
-// 自动聚焦验证码输入框
-document.getElementById('code').focus();
+<!-- Custom CSS -->
+<style>
+.auth-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
 
-// 验证码输入时自动格式化
-document.getElementById('code').addEventListener('input', function(e) {
-    // 只允许数字
-    this.value = this.value.replace(/[^0-9]/g, '');
-    
-    // 限制长度为6位
-    if (this.value.length > 6) {
-        this.value = this.value.slice(0, 6);
+.auth-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    padding: 40px;
+    max-width: 460px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+.auth-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 10px;
+}
+
+.auth-subtitle {
+    color: #718096;
+    margin-bottom: 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.auth-form {
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.code-input-container {
+    position: relative;
+}
+
+.code-input {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background-color: #f7fafc;
+    font-family: 'Courier New', monospace;
+}
+
+.code-input:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    background-color: white;
+}
+
+.code-input.is-invalid {
+    border-color: #e53e3e;
+}
+
+.code-input::placeholder {
+    color: #cbd5e0;
+    letter-spacing: 4px;
+}
+
+.invalid-feedback {
+    font-size: 12px;
+    margin-top: 5px;
+    color: #e53e3e;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.resend-section {
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f7fafc;
+    border-radius: 12px;
+}
+
+.resend-section p {
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.resend-btn {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0;
+    border: none;
+    font-size: 14px;
+}
+
+.resend-btn:hover {
+    color: #764ba2;
+}
+
+.resend-btn:disabled {
+    color: #a0aec0;
+    cursor: not-allowed;
+}
+
+.resend-countdown {
+    color: #a0aec0;
+}
+
+.auth-footer {
+    text-align: center;
+}
+
+.btn-outline-secondary {
+    border: 2px solid #e2e8f0;
+    color: #4a5568;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f7fafc;
+    border-color: #cbd5e0;
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 30px 20px;
+        margin: 10px;
     }
+    
+    .auth-title {
+        font-size: 24px;
+    }
+    
+    .code-input {
+        font-size: 20px;
+        letter-spacing: 6px;
+    }
+}
+</style>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const verifyForm = document.getElementById('verifyForm');
+    const codeInput = document.getElementById('code');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const btnText = verifyBtn.querySelector('.btn-text');
+    const btnSpinner = verifyBtn.querySelector('.btn-spinner');
+    const resendBtn = document.getElementById('resendBtn');
+    const resendText = resendBtn.querySelector('.resend-text');
+    const resendCountdown = resendBtn.querySelector('.resend-countdown');
+    const countdownSpan = document.getElementById('countdown');
+    
+    let countdownTimer = null;
+    
+    // Auto-format code input
+    codeInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Only digits
+        if (value.length > 6) {
+            value = value.slice(0, 6);
+        }
+        e.target.value = value;
+        
+        // Clear errors when user starts typing
+        clearError(codeInput);
+        
+        // Auto-submit when 6 digits entered
+        if (value.length === 6) {
+            setTimeout(() => {
+                verifyForm.dispatchEvent(new Event('submit'));
+            }, 500);
+        }
+    });
+    
+    // Prevent non-digit input
+    codeInput.addEventListener('keypress', function(e) {
+        if (!/\d/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter'].includes(e.key)) {
+            e.preventDefault();
+        }
+    });
+    
+    // Form submission
+    verifyForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const email = document.querySelector('input[name="email"]').value;
+        const code = codeInput.value.trim();
+        
+        // Validate code
+        if (!code) {
+            showError(codeInput, '请输入验证码');
+            return;
+        }
+        
+        if (code.length !== 6) {
+            showError(codeInput, '验证码必须是6位数字');
+            return;
+        }
+        
+        if (!/^\d{6}$/.test(code)) {
+            showError(codeInput, '验证码只能包含数字');
+            return;
+        }
+        
+        // Clear any previous errors
+        clearError(codeInput);
+        
+        // Show loading state
+        setLoadingState(true);
+        
+        // Verify code via AJAX
+        verifyCode(email, code);
+    });
+    
+    // Resend code
+    resendBtn.addEventListener('click', function() {
+        if (this.disabled) return;
+        
+        const email = document.querySelector('input[name="email"]').value;
+        resendVerificationCode(email);
+    });
+    
+    function verifyCode(email, code) {
+        fetch('/api/auth/verify-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email, code: code })
+        })
+        .then(response => response.json())
+        .then(data => {
+            setLoadingState(false);
+            
+            if (data.success) {
+                // Store token if provided
+                if (data.data && data.data.access_token) {
+                    localStorage.setItem('access_token', data.data.access_token);
+                    localStorage.setItem('refresh_token', data.data.refresh_token);
+                }
+                
+                // Show success and redirect
+                showSuccess('登录成功！正在跳转...');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            } else {
+                showError(codeInput, data.message || '验证码错误，请重试');
+                codeInput.select();
+            }
+        })
+        .catch(error => {
+            setLoadingState(false);
+            console.error('Error:', error);
+            showError(codeInput, '网络错误，请检查您的网络连接');
+        });
+    }
+    
+    function resendVerificationCode(email) {
+        resendBtn.disabled = true;
+        
+        fetch('/api/auth/send-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess('验证码已重新发送');
+                startCountdown();
+            } else {
+                showError(codeInput, data.message || '重新发送失败，请稍后重试');
+                resendBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError(codeInput, '网络错误，请稍后重试');
+            resendBtn.disabled = false;
+        });
+    }
+    
+    function startCountdown() {
+        let seconds = 60;
+        
+        resendText.classList.add('d-none');
+        resendCountdown.classList.remove('d-none');
+        
+        countdownTimer = setInterval(() => {
+            seconds--;
+            countdownSpan.textContent = seconds;
+            
+            if (seconds <= 0) {
+                clearInterval(countdownTimer);
+                resendText.classList.remove('d-none');
+                resendCountdown.classList.add('d-none');
+                resendBtn.disabled = false;
+            }
+        }, 1000);
+    }
+    
+    function setLoadingState(loading) {
+        if (loading) {
+            verifyBtn.disabled = true;
+            btnText.classList.add('d-none');
+            btnSpinner.classList.remove('d-none');
+        } else {
+            verifyBtn.disabled = false;
+            btnText.classList.remove('d-none');
+            btnSpinner.classList.add('d-none');
+        }
+    }
+    
+    function showError(input, message) {
+        input.classList.add('is-invalid');
+        const feedback = input.parentNode.parentNode.querySelector('.invalid-feedback');
+        feedback.textContent = message;
+    }
+    
+    function clearError(input) {
+        input.classList.remove('is-invalid');
+        const feedback = input.parentNode.parentNode.querySelector('.invalid-feedback');
+        feedback.textContent = '';
+    }
+    
+    function showSuccess(message) {
+        // You can implement a toast notification here
+        // For now, we'll use a simple alert-like feedback
+        const feedback = document.querySelector('.invalid-feedback');
+        feedback.style.color = '#28a745';
+        feedback.textContent = message;
+    }
+    
+    // Start countdown immediately (user just got a code)
+    startCountdown();
 });
 </script>
 {% endblock %}

@@ -3,45 +3,422 @@
 {% block title %}登录 - 智策股析{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card glass-effect">
-            <div class="card-body p-5">
-                <div class="text-center mb-4">
-                    <h1 class="gradient-text h2 mb-3">智策股析</h1>
-                    <p class="text-muted">每日股价分析与决策平台</p>
+<div class="auth-container">
+    <div class="auth-card">
+        <!-- Logo and Title -->
+        <div class="auth-header">
+            <div class="auth-logo">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h1 class="auth-title">智策股析</h1>
+            <p class="auth-subtitle">AI驱动的股票分析平台</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form" method="POST">
+            <div class="form-group">
+                <label for="email" class="form-label">
+                    <i class="fas fa-envelope"></i>
+                    邮箱地址
+                </label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    class="form-control" 
+                    placeholder="请输入您的邮箱地址"
+                    required
+                    autocomplete="email"
+                    value="{{ request.form.get('email', '') }}"
+                >
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100" id="sendCodeBtn">
+                <span class="btn-text">获取验证码</span>
+                <span class="btn-spinner d-none">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    发送中...
+                </span>
+            </button>
+        </form>
+
+        <!-- Development Mode -->
+        <div class="dev-mode">
+            <div class="dev-toggle">
+                <button class="btn btn-link btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#devAccounts">
+                    <i class="fas fa-code"></i> 开发模式
+                </button>
+            </div>
+            <div class="collapse" id="devAccounts">
+                <div class="dev-accounts">
+                    <p class="text-muted mb-2">快速登录测试账号：</p>
+                    <div class="dev-account-list">
+                        <button type="button" class="btn btn-outline-secondary btn-sm dev-login-btn" data-email="admin@dev.com">
+                            <i class="fas fa-user-shield"></i> 管理员账户
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm dev-login-btn" data-email="user@dev.com">
+                            <i class="fas fa-user"></i> 普通用户
+                        </button>
+                    </div>
                 </div>
-                
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="email" class="form-label">邮箱地址</label>
-                        <input type="email" class="form-control bg-dark border-secondary text-light" 
-                               id="email" name="email" required placeholder="输入您的邮箱地址">
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100 mb-3">
-                        发送验证码
-                    </button>
-                    
-                    <p class="text-muted text-center small">
-                        输入邮箱即可登录或注册
-                    </p>
-                    
-                    <!-- 开发阶段提示 -->
-                    <div class="alert alert-info mt-3">
-                        <small><strong>开发阶段测试账号：</strong></small><br>
-                        <small>管理员：<code>admin@dev.com</code></small><br>
-                        <small>普通用户：<code>user@dev.com</code></small>
-                    </div>
-                </form>
             </div>
         </div>
-        
-        <div class="text-center mt-3">
-            <small class="text-muted">
-                登录即表示您同意我们的服务条款和隐私政策
-            </small>
+
+        <!-- Features -->
+        <div class="auth-features">
+            <div class="feature-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>安全无密码登录</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-robot"></i>
+                <span>AI智能分析</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>专业投资洞察</span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+            <p class="text-muted">
+                登录即表示您同意我们的
+                <a href="#" class="text-decoration-none">服务条款</a>
+                和
+                <a href="#" class="text-decoration-none">隐私政策</a>
+            </p>
         </div>
     </div>
 </div>
+
+<!-- Custom CSS -->
+<style>
+.auth-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    padding: 40px;
+    max-width: 460px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+.auth-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 5px;
+}
+
+.auth-subtitle {
+    color: #718096;
+    margin-bottom: 0;
+    font-size: 14px;
+}
+
+.auth-form {
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-control {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background-color: #f7fafc;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background-color: white;
+}
+
+.form-control.is-invalid {
+    border-color: #e53e3e;
+}
+
+.invalid-feedback {
+    font-size: 12px;
+    margin-top: 5px;
+    color: #e53e3e;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.dev-mode {
+    margin-bottom: 25px;
+}
+
+.dev-toggle {
+    text-align: center;
+}
+
+.dev-accounts {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 10px;
+}
+
+.dev-account-list {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.dev-login-btn {
+    border-radius: 8px;
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+.auth-features {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f7fafc;
+    border-radius: 12px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #4a5568;
+    font-size: 14px;
+}
+
+.feature-item i {
+    color: #667eea;
+    width: 16px;
+}
+
+.auth-footer {
+    text-align: center;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+}
+
+.auth-footer p {
+    font-size: 12px;
+    margin: 0;
+}
+
+.auth-footer a {
+    color: #667eea;
+}
+
+.auth-footer a:hover {
+    color: #764ba2;
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 30px 20px;
+        margin: 10px;
+    }
+    
+    .auth-title {
+        font-size: 24px;
+    }
+    
+    .feature-item {
+        font-size: 13px;
+    }
+}
+</style>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const sendCodeBtn = document.getElementById('sendCodeBtn');
+    const btnText = sendCodeBtn.querySelector('.btn-text');
+    const btnSpinner = sendCodeBtn.querySelector('.btn-spinner');
+    
+    // Dev login buttons
+    const devLoginBtns = document.querySelectorAll('.dev-login-btn');
+    devLoginBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const email = this.dataset.email;
+            emailInput.value = email;
+            loginForm.submit();
+        });
+    });
+    
+    // Form submission
+    loginForm.addEventListener('submit', function(e) {
+        const email = emailInput.value.trim();
+        
+        // For dev emails, submit directly
+        if (email === 'admin@dev.com' || email === 'user@dev.com') {
+            return; // Let form submit normally
+        }
+        
+        // Prevent default for normal emails to use AJAX
+        e.preventDefault();
+        
+        // Validate email
+        if (!email) {
+            showError(emailInput, '请输入邮箱地址');
+            return;
+        }
+        
+        if (!isValidEmail(email)) {
+            showError(emailInput, '请输入有效的邮箱地址');
+            return;
+        }
+        
+        // Clear any previous errors
+        clearError(emailInput);
+        
+        // Show loading state
+        setLoadingState(true);
+        
+        // Send verification code via AJAX
+        sendVerificationCode(email);
+    });
+    
+    function sendVerificationCode(email) {
+        fetch('/api/auth/send-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email })
+        })
+        .then(response => response.json())
+        .then(data => {
+            setLoadingState(false);
+            
+            if (data.success) {
+                // Redirect to verification page
+                window.location.href = `/auth/verify?email=${encodeURIComponent(email)}`;
+            } else {
+                showError(emailInput, data.message || '发送验证码失败，请稍后重试');
+            }
+        })
+        .catch(error => {
+            setLoadingState(false);
+            console.error('Error:', error);
+            showError(emailInput, '网络错误，请检查您的网络连接');
+        });
+    }
+    
+    function setLoadingState(loading) {
+        if (loading) {
+            sendCodeBtn.disabled = true;
+            btnText.classList.add('d-none');
+            btnSpinner.classList.remove('d-none');
+        } else {
+            sendCodeBtn.disabled = false;
+            btnText.classList.remove('d-none');
+            btnSpinner.classList.add('d-none');
+        }
+    }
+    
+    function showError(input, message) {
+        input.classList.add('is-invalid');
+        const feedback = input.parentNode.querySelector('.invalid-feedback');
+        feedback.textContent = message;
+    }
+    
+    function clearError(input) {
+        input.classList.remove('is-invalid');
+        const feedback = input.parentNode.querySelector('.invalid-feedback');
+        feedback.textContent = '';
+    }
+    
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+});
+</script>
 {% endblock %}

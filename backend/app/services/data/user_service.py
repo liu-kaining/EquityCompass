@@ -42,14 +42,46 @@ class UserDataService:
             'last_login': user.last_login.isoformat() if user.last_login else None
         }
     
-    def update_user_profile(self, user_id: int, **updates) -> Optional[User]:
+    def update_user_profile(self, user_id: int, **updates) -> Dict[str, Any]:
         """更新用户资料"""
-        allowed_fields = ['nickname']
-        update_data = {k: v for k, v in updates.items() if k in allowed_fields}
-        
-        if update_data:
-            return self.user_repo.update(user_id, update_data)
-        return None
+        try:
+            allowed_fields = ['nickname']
+            update_data = {k: v for k, v in updates.items() if k in allowed_fields}
+            
+            if not update_data:
+                return {
+                    'success': False,
+                    'error': 'NO_UPDATES',
+                    'message': '没有需要更新的字段'
+                }
+            
+            user = self.user_repo.update(user_id, update_data)
+            if not user:
+                return {
+                    'success': False,
+                    'error': 'USER_NOT_FOUND',
+                    'message': '用户不存在'
+                }
+            
+            return {
+                'success': True,
+                'data': {
+                    'id': user.id,
+                    'email': user.email,
+                    'nickname': user.nickname,
+                    'plan_type': user.plan_type,
+                    'remaining_quota': user.remaining_quota,
+                    'updated_at': user.updated_at.isoformat() if user.updated_at else None
+                },
+                'message': '用户资料更新成功'
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': 'UPDATE_FAILED',
+                'message': f'更新用户资料失败: {str(e)}'
+            }
     
     def consume_quota(self, user_id: int, amount: int = 1) -> bool:
         """消费用户额度"""

@@ -10,45 +10,61 @@ auth_bp = Blueprint('auth', __name__)
 def login():
     """登录页面"""
     if request.method == 'POST':
-        email = request.form.get('email')
+        email = request.form.get('email', '').strip().lower()
+        
+        # 邮箱格式验证
+        if not email:
+            flash('请输入邮箱地址', 'error')
+            return render_template('auth/login.html')
         
         # 开发阶段：管理员后门登录
         if email == 'admin@dev.com':
             session['user_id'] = 999
             session['user_email'] = email
             session['is_admin'] = True
+            session['access_token'] = 'dev_admin_token'
             flash('管理员开发模式登录成功！', 'success')
             return redirect(url_for('dashboard.index'))
-        
+
         # 开发阶段：普通用户后门登录
         if email == 'user@dev.com':
             session['user_id'] = 1
             session['user_email'] = email
             session['is_admin'] = False
+            session['access_token'] = 'dev_user_token'
             flash('开发模式登录成功！', 'success')
             return redirect(url_for('dashboard.index'))
-        
-        # 正常流程：发送验证码（暂时跳过实际发送）
-        flash('验证码已发送到您的邮箱（开发阶段暂未实现邮件发送）', 'info')
-        return render_template('auth/verify.html', email=email)
-    
+
+        # 正常流程：使用AJAX发送验证码，这里直接跳转到验证页面
+        return redirect(url_for('auth.verify', email=email))
+
     return render_template('auth/login.html')
 
 @auth_bp.route('/verify', methods=['GET', 'POST'])
 def verify():
     """验证码验证页面"""
+    email = request.args.get('email') or request.form.get('email')
+    
+    if not email:
+        flash('请先输入邮箱地址', 'error')
+        return redirect(url_for('auth.login'))
+    
     if request.method == 'POST':
-        email = request.form.get('email')
-        code = request.form.get('code')
-        # TODO: 实现验证码验证逻辑
+        code = request.form.get('code', '').strip()
         
-        # 模拟登录成功
+        if not code:
+            flash('请输入验证码', 'error')
+            return render_template('auth/verify.html', email=email)
+        
+        # 这里将使用AJAX与后端API交互
+        # 暂时模拟验证成功
         session['user_id'] = 1
         session['user_email'] = email
+        session['is_admin'] = False
         flash('登录成功！', 'success')
         return redirect(url_for('dashboard.index'))
     
-    return render_template('auth/verify.html')
+    return render_template('auth/verify.html', email=email)
 
 @auth_bp.route('/logout')
 def logout():
