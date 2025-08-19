@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}报告详情 - 智策股析{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">仪表板</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('reports.index') }}">分析报告</a></li>
+                <li class="breadcrumb-item active" aria-current="page">报告详情</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- 报告头部信息 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="gradient-text mb-2">AAPL - 苹果公司</h1>
+                        <p class="text-muted mb-0">分析时间：2024-08-08 09:15 | 分析模型：ChatGPT-4</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-download me-2"></i>导出PDF
+                        </button>
+                        <button class="btn btn-outline-info me-2">
+                            <i class="fas fa-share me-2"></i>分享
+                        </button>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-redo me-2"></i>重新分析
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分析内容 -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card glass-effect mb-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-line text-primary me-2"></i>技术分析
+                </h5>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    以下为示例分析内容，实际数据将来自LLM API生成
+                </div>
+                
+                <div class="markdown-content">
+                    <h6>关键技术指标</h6>
+                    <ul>
+                        <li><strong>支撑位：</strong>$185.00</li>
+                        <li><strong>阻力位：</strong>$195.00</li>
+                        <li><strong>RSI：</strong>58.5（中性偏强）</li>
+                        <li><strong>MACD：</strong>金叉形态，多头信号</li>
+                    </ul>
+                    
+                    <h6>K线形态分析</h6>
+                    <p>近期股价突破20日均线，呈现上升三角形整理形态。成交量配合良好，显示多头力量增强。</p>
+                    
+                    <h6>移动平均线</h6>
+                    <p>5日、10日、20日均线呈多头排列，短期趋势向好。50日均线提供重要支撑。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card glass-effect mb-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-building text-success me-2"></i>基本面分析
+                </h5>
+                
+                <div class="markdown-content">
+                    <h6>财务亮点</h6>
+                    <ul>
+                        <li>Q3营收超预期增长8.5%</li>
+                        <li>iPhone销量同比增长12%</li>
+                        <li>服务业务营收创历史新高</li>
+                        <li>现金流充裕，资产负债表健康</li>
+                    </ul>
+                    
+                    <h6>行业地位</h6>
+                    <p>苹果在智能手机市场保持领先地位，生态系统优势显著。AI技术整合加速，为未来增长提供动力。</p>
+                    
+                    <h6>风险因素</h6>
+                    <ul>
+                        <li>中国市场销量波动</li>
+                        <li>供应链成本上升</li>
+                        <li>监管政策不确定性</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card glass-effect">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-lightbulb text-warning me-2"></i>投资建议
+                </h5>
+                
+                <div class="alert alert-success">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-thumbs-up me-2"></i>建议：买入
+                    </h6>
+                    <p class="mb-0">基于技术面和基本面分析，建议在当前价位买入并持有。</p>
+                </div>
+                
+                <div class="markdown-content">
+                    <h6>操作策略</h6>
+                    <ul>
+                        <li><strong>买入价位：</strong>$187-$190</li>
+                        <li><strong>目标价位：</strong>$200-$210</li>
+                        <li><strong>止损价位：</strong>$182</li>
+                        <li><strong>持有期限：</strong>3-6个月</li>
+                    </ul>
+                    
+                    <h6>关注要点</h6>
+                    <p>密切关注Q4财报预期，特别是iPhone 15系列销量数据。同时关注美联储政策对科技股的影响。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 侧边栏 -->
+    <div class="col-lg-4">
+        <div class="card glass-effect mb-4">
+            <div class="card-body">
+                <h6 class="card-title">快速信息</h6>
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <td class="text-muted">当前价格</td>
+                        <td class="text-end">$189.25</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">日涨跌</td>
+                        <td class="text-end text-success">+2.45 (+1.31%)</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">52周高点</td>
+                        <td class="text-end">$199.62</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">52周低点</td>
+                        <td class="text-end">$164.08</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">市值</td>
+                        <td class="text-end">$2.95T</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">P/E比率</td>
+                        <td class="text-end">28.5</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card glass-effect mb-4">
+            <div class="card-body">
+                <h6 class="card-title">相关报告</h6>
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-dark">
+                        <small class="text-muted">2024-08-07</small><br>
+                        AAPL 技术分析更新
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-dark">
+                        <small class="text-muted">2024-08-06</small><br>
+                        科技板块周报
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-dark">
+                        <small class="text-muted">2024-08-05</small><br>
+                        AAPL Q3财报解读
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card glass-effect">
+            <div class="card-body">
+                <h6 class="card-title">分析师观点</h6>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>买入</span>
+                        <span class="text-success">12</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: 60%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>持有</span>
+                        <span class="text-warning">6</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" style="width: 30%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>卖出</span>
+                        <span class="text-danger">2</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-danger" style="width: 10%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+.markdown-content h6 {
+    color: #00D4FF;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.markdown-content ul {
+    margin-bottom: 1rem;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    color: #00D4FF;
+    text-decoration: none;
+}
+
+.breadcrumb-item.active {
+    color: #6c757d;
+}
+</style>
+{% endblock %}

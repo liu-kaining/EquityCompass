@@ -69,7 +69,7 @@ class DevelopmentConfig(Config):
     # 开发环境数据库
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'DATABASE_URL', 
-        'sqlite:///data/dev.db'
+        'sqlite:///dev.db'  # 直接在backend目录下
     )
     
     # 开发环境邮件配置 - 控制台输出

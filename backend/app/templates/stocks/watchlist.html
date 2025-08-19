@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}关注列表 - 智策股析{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="gradient-text mb-4">我的关注列表</h1>
+        <p class="text-muted mb-4">管理您关注的股票（最多20支）</p>
+    </div>
+</div>
+
+<!-- 统计信息 -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card glass-effect">
+            <div class="card-body text-center">
+                <h3 class="text-primary">5</h3>
+                <p class="text-muted mb-0">已关注股票</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card glass-effect">
+            <div class="card-body text-center">
+                <h3 class="text-warning">15</h3>
+                <p class="text-muted mb-0">剩余名额</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card glass-effect">
+            <div class="card-body text-center">
+                <h3 class="text-success">3</h3>
+                <p class="text-muted mb-0">今日分析</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 关注列表 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="card-title mb-0">关注的股票</h5>
+                    <a href="{{ url_for('stocks.index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>添加股票
+                    </a>
+                </div>
+                
+                {% if watchlist %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>股票代码</th>
+                                    <th>公司名称</th>
+                                    <th>市场</th>
+                                    <th>添加时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stock in watchlist %}
+                                <tr>
+                                    <td><code>{{ stock.code }}</code></td>
+                                    <td>{{ stock.name }}</td>
+                                    <td><span class="badge bg-primary">{{ stock.market }}</span></td>
+                                    <td>{{ stock.created_at }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash me-1"></i>移除
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-chart-line me-1"></i>分析
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">暂无关注的股票</h5>
+                        <p class="text-muted">从股票池中添加您感兴趣的股票</p>
+                        <a href="{{ url_for('stocks.index') }}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>浏览股票池
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}

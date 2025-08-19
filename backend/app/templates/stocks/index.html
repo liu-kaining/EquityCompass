@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}股票池 - 智策股析{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="gradient-text mb-4">股票池</h1>
+        <p class="text-muted mb-4">浏览和搜索美股、港股池中的股票</p>
+    </div>
+</div>
+
+<!-- 搜索框 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control bg-dark border-secondary text-light" 
+                               placeholder="搜索股票代码或公司名称..." id="stockSearch">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select bg-dark border-secondary text-light" id="marketFilter">
+                            <option value="">全部市场</option>
+                            <option value="US">美股</option>
+                            <option value="HK">港股</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>搜索
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 股票列表 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <h5 class="card-title mb-4">美股市值 TOP 100</h5>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    股票数据接口尚未集成，以下为示例数据
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>股票代码</th>
+                                <th>公司名称</th>
+                                <th>市场</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>AAPL</code></td>
+                                <td>苹果公司</td>
+                                <td><span class="badge bg-primary">美股</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-bookmark me-1"></i>关注
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code>MSFT</code></td>
+                                <td>微软公司</td>
+                                <td><span class="badge bg-primary">美股</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-bookmark me-1"></i>关注
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code>GOOGL</code></td>
+                                <td>谷歌</td>
+                                <td><span class="badge bg-primary">美股</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-bookmark me-1"></i>关注
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}

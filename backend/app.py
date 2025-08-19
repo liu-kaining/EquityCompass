@@ -35,19 +35,40 @@ def make_shell_context():
 @app.cli.command()
 def init_db():
     """初始化数据库"""
-    print("正在创建数据库表...")
-    db.create_all()
+    from app.services.data.database_service import DatabaseService
+    
+    with app.app_context():
+        db_service = DatabaseService(db.session)
+        db_service.initialize_database()
+    
     print("数据库初始化完成!")
 
 @app.cli.command() 
 def seed_db():
     """填充初始数据"""
-    print("正在填充初始数据...")
+    from app.services.data.database_service import DatabaseService
     
-    # 这里添加初始数据填充逻辑
-    # 例如：内置股票池数据
+    with app.app_context():
+        db_service = DatabaseService(db.session)
+        db_service.populate_stock_pools()
     
     print("初始数据填充完成!")
+
+@app.cli.command()
+def reset_db():
+    """重置数据库（危险操作）"""
+    import click
+    
+    if click.confirm('确定要重置数据库吗？这将删除所有数据！'):
+        from app.services.data.database_service import DatabaseService
+        
+        with app.app_context():
+            db_service = DatabaseService(db.session)
+            db_service.reset_database()
+        
+        print("数据库重置完成!")
+    else:
+        print("操作已取消")
 
 if __name__ == '__main__':
     # 开发环境启动

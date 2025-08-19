@@ -18,12 +18,16 @@ def login_required(f):
 @login_required
 def index():
     """仪表板首页"""
-    # TODO: 获取用户数据
+    # 获取用户数据
+    user_email = session.get('user_email', '')
+    is_admin = session.get('is_admin', False)
+    
     user_data = {
-        'email': session.get('user_email', ''),
-        'watchlist_count': 0,
-        'reports_count': 0,
-        'plan_type': 'TRIAL',
-        'remaining_quota': 1
+        'email': user_email,
+        'watchlist_count': 5 if not is_admin else 15,  # 模拟数据
+        'reports_count': 3 if not is_admin else 8,     # 模拟数据
+        'plan_type': 'ADMIN' if is_admin else 'TRIAL',
+        'remaining_quota': 999 if is_admin else 1,
+        'is_admin': is_admin
     }
     return render_template('dashboard/index.html', user=user_data)

@@ -9,14 +9,15 @@ class Stock(db.Model):
     """股票表"""
     __tablename__ = 'stocks'
     
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     code = db.Column(db.String(20), unique=True, nullable=False, comment='股票代码，如AAPL或00700.HK')
     name = db.Column(db.String(200), nullable=False, comment='公司名称')
     market = db.Column(db.String(10), nullable=False, comment='US/HK')
     exchange = db.Column(db.String(50), comment='NASDAQ/HKEX等')
     industry = db.Column(db.String(100), comment='行业分类')
     stock_type = db.Column(db.String(20), default='BUILT_IN', comment='BUILT_IN/USER_CUSTOM')
-    created_by_user_id = db.Column(db.BigInteger, db.ForeignKey('users.id'), comment='自定义股票的创建者')
+    market_cap = db.Column(db.BigInteger, comment='市值（单位：美元/港币）')
+    created_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), comment='自定义股票的创建者')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -46,9 +47,9 @@ class UserWatchlist(db.Model):
     """用户关注列表"""
     __tablename__ = 'user_watchlists'
     
-    id = db.Column(db.BigInteger, primary_key=True)
-    user_id = db.Column(db.BigInteger, db.ForeignKey('users.id'), nullable=False)
-    stock_id = db.Column(db.BigInteger, db.ForeignKey('stocks.id'), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'), nullable=False)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # 唐一约束

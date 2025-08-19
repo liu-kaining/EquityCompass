@@ -19,8 +19,9 @@
                     <div>
                         <h5 class="card-title">当前计划</h5>
                         <div class="d-flex align-items-center gap-3">
-                            <span class="badge bg-primary fs-6">
-                                {% if user.plan_type == 'TRIAL' %}试用计划
+                            <span class="badge bg-{% if user.plan_type == 'ADMIN' %}danger{% else %}primary{% endif %} fs-6">
+                                {% if user.plan_type == 'ADMIN' %}管理员账户
+                                {% elif user.plan_type == 'TRIAL' %}试用计划
                                 {% elif user.plan_type == 'FREE' %}免费计划
                                 {% elif user.plan_type == 'SUBSCRIPTION' %}订阅计划
                                 {% else %}按次付费{% endif %}

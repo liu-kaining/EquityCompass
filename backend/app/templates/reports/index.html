@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}分析报告 - 智策股析{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="gradient-text mb-4">分析报告</h1>
+        <p class="text-muted mb-4">查看AI生成的股票分析报告</p>
+    </div>
+</div>
+
+<!-- 筛选器 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <select class="form-select bg-dark border-secondary text-light">
+                            <option value="">全部股票</option>
+                            <option value="AAPL">AAPL - 苹果</option>
+                            <option value="MSFT">MSFT - 微软</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select bg-dark border-secondary text-light">
+                            <option value="">全部日期</option>
+                            <option value="today">今天</option>
+                            <option value="week">本周</option>
+                            <option value="month">本月</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select bg-dark border-secondary text-light">
+                            <option value="">全部模型</option>
+                            <option value="gpt">ChatGPT</option>
+                            <option value="gemini">Gemini</option>
+                            <option value="qwen">Qwen</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-2"></i>筛选
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 报告列表 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="card-title mb-0">报告列表</h5>
+                    <div>
+                        <button class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-download me-2"></i>批量导出
+                        </button>
+                        <a href="{{ url_for('analysis.index') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>新建分析
+                        </a>
+                    </div>
+                </div>
+                
+                {% if reports %}
+                    <div class="row">
+                        {% for report in reports %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card glass-effect card-hover h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h6 class="card-title mb-0">{{ report.stock_code }}</h6>
+                                        <span class="badge bg-success">{{ report.model }}</span>
+                                    </div>
+                                    <p class="text-muted small">{{ report.company_name }}</p>
+                                    <p class="card-text small">{{ report.summary[:100] }}...</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">{{ report.created_at }}</small>
+                                        <a href="{{ url_for('reports.detail', report_id=report.id) }}" 
+                                           class="btn btn-sm btn-primary">查看详情</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        报告数据将从JSON文件读取，目前为示例展示
+                    </div>
+                    
+                    <!-- 示例报告卡片 -->
+                    <div class="row">
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card glass-effect card-hover h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h6 class="card-title mb-0">AAPL</h6>
+                                        <span class="badge bg-success">ChatGPT</span>
+                                    </div>
+                                    <p class="text-muted small">苹果公司</p>
+                                    <p class="card-text small">苹果公司Q3财报超预期，iPhone销量增长显著。技术面上突破关键阻力位...</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">2024-08-08 09:15</small>
+                                        <a href="{{ url_for('reports.detail', report_id=1) }}" 
+                                           class="btn btn-sm btn-primary">查看详情</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card glass-effect card-hover h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h6 class="card-title mb-0">MSFT</h6>
+                                        <span class="badge bg-info">Gemini</span>
+                                    </div>
+                                    <p class="text-muted small">微软公司</p>
+                                    <p class="card-text small">微软云业务持续增长，AI布局领先行业。短期内股价可能测试新高...</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">2024-08-08 09:10</small>
+                                        <a href="{{ url_for('reports.detail', report_id=2) }}" 
+                                           class="btn btn-sm btn-primary">查看详情</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card glass-effect card-hover h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h6 class="card-title mb-0">GOOGL</h6>
+                                        <span class="badge bg-warning">Qwen</span>
+                                    </div>
+                                    <p class="text-muted small">谷歌</p>
+                                    <p class="card-text small">广告业务复苏明显，搜索算法优化提升用户体验。建议逢低买入...</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">2024-08-08 09:05</small>
+                                        <a href="{{ url_for('reports.detail', report_id=3) }}" 
+                                           class="btn btn-sm btn-primary">查看详情</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}

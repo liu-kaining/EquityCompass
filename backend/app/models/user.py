@@ -10,9 +10,12 @@ class User(db.Model):
     """用户表"""
     __tablename__ = 'users'
     
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(255), unique=True, nullable=False, comment='邮箱地址，唯一标识')
     nickname = db.Column(db.String(100), comment='用户昵称')
+    plan_type = db.Column(db.String(50), default='TRIAL', comment='TRIAL/FREE/SUBSCRIPTION/PAY_PER_USE')
+    remaining_quota = db.Column(db.Integer, default=1, comment='剩余分析次数')
+    last_login = db.Column(db.DateTime, comment='最后登录时间')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True, comment='账户是否激活')
@@ -43,8 +46,8 @@ class UserPlan(db.Model):
     """用户计划表"""
     __tablename__ = 'user_plans'
     
-    id = db.Column(db.BigInteger, primary_key=True)
-    user_id = db.Column(db.BigInteger, db.ForeignKey('users.id'), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     plan_type = db.Column(db.String(50), nullable=False, comment='TRIAL/FREE/SUBSCRIPTION/PAY_PER_USE')
     plan_start_date = db.Column(db.DateTime)
     plan_end_date = db.Column(db.DateTime)

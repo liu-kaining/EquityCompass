@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}分析任务 - 智策股析{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="gradient-text mb-4">分析任务</h1>
+        <p class="text-muted mb-4">查看和管理您的AI股票分析任务</p>
+    </div>
+</div>
+
+<!-- 快速操作 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <h5 class="card-title mb-3">快速分析</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <button class="btn btn-primary w-100">
+                            <i class="fas fa-play me-2"></i>分析关注列表 (5支股票)
+                        </button>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <button class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-clock me-2"></i>定时分析设置
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    剩余分析次数：<strong>{{ user.remaining_quota if user else 1 }}</strong> 次
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 任务列表 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <h5 class="card-title mb-4">任务历史</h5>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    异步任务队列尚未实现，以下为示例数据
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>任务ID</th>
+                                <th>股票范围</th>
+                                <th>状态</th>
+                                <th>开始时间</th>
+                                <th>完成时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>#2024080801</code></td>
+                                <td>关注列表 (5支)</td>
+                                <td><span class="badge bg-success">已完成</span></td>
+                                <td>2024-08-08 09:00</td>
+                                <td>2024-08-08 09:15</td>
+                                <td>
+                                    <a href="{{ url_for('reports.index') }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-file-alt me-1"></i>查看报告
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code>#2024080701</code></td>
+                                <td>关注列表 (3支)</td>
+                                <td><span class="badge bg-warning">进行中</span></td>
+                                <td>2024-08-07 09:00</td>
+                                <td>-</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        <i class="fas fa-spinner fa-spin me-1"></i>处理中
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code>#2024080601</code></td>
+                                <td>单股票 (AAPL)</td>
+                                <td><span class="badge bg-danger">失败</span></td>
+                                <td>2024-08-06 09:00</td>
+                                <td>-</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-redo me-1"></i>重试
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
