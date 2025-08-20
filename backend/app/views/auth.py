@@ -9,13 +9,19 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """登录页面"""
+    from flask import make_response
+    
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         
         # 邮箱格式验证
         if not email:
             flash('请输入邮箱地址', 'error')
-            return render_template('auth/login.html')
+            response = make_response(render_template('auth/login.html'))
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+            return response
         
         # 开发阶段：管理员后门登录
         if email == 'admin@dev.com':
@@ -38,7 +44,11 @@ def login():
         # 正常流程：使用AJAX发送验证码，这里直接跳转到验证页面
         return redirect(url_for('auth.verify', email=email))
 
-    return render_template('auth/login.html')
+    response = make_response(render_template('auth/login.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @auth_bp.route('/verify', methods=['GET', 'POST'])
 def verify():
@@ -69,6 +79,13 @@ def verify():
 @auth_bp.route('/logout')
 def logout():
     """登出"""
+    from flask import make_response
+    
+    # 创建响应并设置cookie过期
+    response = make_response(redirect(url_for('main.index')))
+    response.delete_cookie('session')
+    
+    # 完全清理session（包括Flash消息）
     session.clear()
-    flash('您已成功登出', 'info')
-    return redirect(url_for('auth.login'))
+    
+    return response

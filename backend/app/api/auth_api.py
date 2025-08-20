@@ -183,6 +183,13 @@ def verify_code():
             except Exception as e:
                 current_app.logger.warning(f"发送欢迎邮件失败: {e}")
         
+        # 设置session（用于传统页面访问）
+        from flask import session
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session['is_admin'] = user.is_admin if hasattr(user, 'is_admin') else False
+        session['access_token'] = token_result['data']['access_token']
+        
         return jsonify({
             'success': True,
             'data': token_result['data'],

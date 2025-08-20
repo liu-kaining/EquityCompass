@@ -8,11 +8,18 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     """首页"""
+    from flask import make_response
+    
     # 如果用户已登录，重定向到仪表板
     if 'user_id' in session:
         return redirect(url_for('dashboard.index'))
-    # 否则显示登录页面
-    return redirect(url_for('auth.login'))
+    
+    # 否则显示首页介绍
+    response = make_response(render_template('index.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @main_bp.route('/about')
 def about():

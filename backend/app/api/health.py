@@ -3,7 +3,7 @@
 """
 from flask import Blueprint
 from app.utils.response import success_response
-from app import db, redis_client
+from app import db
 import time
 
 health_bp = Blueprint('health', __name__)
@@ -18,21 +18,13 @@ def health_check():
     except Exception:
         db_status = 'unhealthy'
     
-    try:
-        # Redis连接检查
-        redis_client.ping()
-        redis_status = 'healthy'
-    except Exception:
-        redis_status = 'unhealthy'
+    # Redis状态（已移除依赖）
+    redis_status = 'not_configured'
     
-    # TODO: Celery检查
-    celery_status = 'healthy'
+    # Celery状态（已移除依赖）
+    celery_status = 'not_configured'
     
-    overall_status = 'healthy' if all([
-        db_status == 'healthy',
-        redis_status == 'healthy',
-        celery_status == 'healthy'
-    ]) else 'unhealthy'
+    overall_status = 'healthy' if db_status == 'healthy' else 'unhealthy'
     
     return success_response(data={
         'status': overall_status,

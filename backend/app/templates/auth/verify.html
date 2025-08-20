@@ -43,7 +43,7 @@
                 <div class="invalid-feedback"></div>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg w-100" id="verifyBtn">
+            <button type="submit" class="btn btn-secondary btn-lg w-100" id="verifyBtn" disabled>
                 <span class="btn-text">
                     <i class="fas fa-check"></i>
                     验证登录
@@ -76,6 +76,12 @@
 
 <!-- Custom CSS -->
 <style>
+/* 覆盖base.html的深色主题 */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #2d3748 !important;
+}
+
 .auth-container {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -169,7 +175,8 @@
     letter-spacing: 8px;
     text-align: center;
     transition: all 0.3s ease;
-    background-color: #f7fafc;
+    background-color: white !important;
+    color: #2d3748 !important;
     font-family: 'Courier New', monospace;
 }
 
@@ -213,6 +220,43 @@
 
 .btn-primary:active {
     transform: translateY(0);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-secondary:hover {
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    color: white;
 }
 
 .btn-spinner {
@@ -290,6 +334,19 @@
         letter-spacing: 6px;
     }
 }
+
+/* 成功动画 - 简化版 */
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* 按钮成功动画 - 轻微效果 */
+@keyframes gentleSuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
 </style>
 
 <!-- JavaScript -->
@@ -306,6 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const countdownSpan = document.getElementById('countdown');
     
     let countdownTimer = null;
+    let isVerifying = false; // 防止重复提交
     
     // Auto-format code input
     codeInput.addEventListener('input', function(e) {
@@ -318,11 +376,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear errors when user starts typing
         clearError(codeInput);
         
-        // Auto-submit when 6 digits entered
+        // 当输入6位数字时，启用提交按钮
         if (value.length === 6) {
-            setTimeout(() => {
-                verifyForm.dispatchEvent(new Event('submit'));
-            }, 500);
+            verifyBtn.disabled = false;
+            verifyBtn.classList.remove('btn-secondary');
+            verifyBtn.classList.add('btn-primary');
+        } else {
+            verifyBtn.disabled = true;
+            verifyBtn.classList.remove('btn-primary');
+            verifyBtn.classList.add('btn-secondary');
         }
     });
     
@@ -359,8 +421,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear any previous errors
         clearError(codeInput);
         
+        // 防止重复提交
+        if (isVerifying) {
+            return;
+        }
+        
         // Show loading state
         setLoadingState(true);
+        isVerifying = true;
         
         // Verify code via AJAX
         verifyCode(email, code);
@@ -385,6 +453,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             setLoadingState(false);
+            isVerifying = false;
             
             if (data.success) {
                 // Store token if provided
@@ -395,16 +464,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Show success and redirect
                 showSuccess('登录成功！正在跳转...');
+                
+                // 显示成功状态
+                verifyBtn.classList.remove('btn-primary');
+                verifyBtn.classList.add('btn-success');
+                btnText.innerHTML = '<i class="fas fa-check"></i> 登录成功！';
+                
+                // 轻微的成功动画
+                verifyBtn.style.animation = 'gentleSuccess 0.4s ease-out';
+                
+                // 延迟跳转，让用户看到成功消息
                 setTimeout(() => {
                     window.location.href = '/dashboard';
-                }, 1500);
+                }, 2000);
             } else {
-                showError(codeInput, data.message || '验证码错误，请重试');
+                let errorMessage = data.message || '验证码错误，请重试';
+                
+                // 根据错误类型提供更具体的提示
+                if (data.error === 'CODE_NOT_FOUND') {
+                    errorMessage = '验证码不存在或已过期，请重新发送';
+                } else if (data.error === 'CODE_EXPIRED') {
+                    errorMessage = '验证码已过期，请重新发送';
+                } else if (data.error === 'CODE_INVALID') {
+                    errorMessage = '验证码错误，请检查后重试';
+                }
+                
+                showError(codeInput, errorMessage);
                 codeInput.select();
             }
         })
         .catch(error => {
             setLoadingState(false);
+            isVerifying = false;
             console.error('Error:', error);
             showError(codeInput, '网络错误，请检查您的网络连接');
         });
@@ -481,11 +572,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function showSuccess(message) {
-        // You can implement a toast notification here
-        // For now, we'll use a simple alert-like feedback
+        // 显示成功消息
         const feedback = document.querySelector('.invalid-feedback');
         feedback.style.color = '#28a745';
+        feedback.style.fontWeight = '600';
         feedback.textContent = message;
+        
+        // 简单的淡入效果
+        feedback.style.animation = 'fadeIn 0.3s ease-out';
+        
+        // 添加成功图标
+        feedback.innerHTML = '<i class="fas fa-check me-2"></i>' + message;
     }
     
     // Start countdown immediately (user just got a code)

@@ -2,6 +2,229 @@
 
 {% block title %}登录 - 智策股析{% endblock %}
 
+{% block extra_css %}
+<style>
+/* 覆盖base.html的深色主题，为登录页面使用浅色主题 */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #333 !important;
+}
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    padding: 40px;
+    max-width: 460px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+.auth-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 5px;
+}
+
+.auth-subtitle {
+    color: #718096;
+    margin-bottom: 0;
+    font-size: 14px;
+}
+
+.auth-form {
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-control {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background-color: #f7fafc;
+    color: #2d3748 !important;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background-color: white;
+    color: #2d3748 !important;
+}
+
+.form-control::placeholder {
+    color: #a0aec0 !important;
+}
+
+.form-control.is-invalid {
+    border-color: #e53e3e;
+}
+
+.invalid-feedback {
+    font-size: 12px;
+    margin-top: 5px;
+    color: #e53e3e;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.dev-mode {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: #f7fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.dev-toggle .btn-link {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.dev-accounts {
+    margin-top: 10px;
+}
+
+.dev-account-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dev-login-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+.auth-features {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 25px;
+    padding: 20px 0;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.feature-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #718096;
+}
+
+.feature-item i {
+    font-size: 16px;
+    color: #667eea;
+}
+
+.auth-footer {
+    text-align: center;
+}
+
+.auth-footer a {
+    color: #667eea;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* 响应式设计 */
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 30px 20px;
+        margin: 10px;
+    }
+    
+    .auth-title {
+        font-size: 24px;
+    }
+    
+    .auth-features {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .feature-item {
+        flex-direction: row;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="auth-container">
     <div class="auth-card">
@@ -93,97 +316,7 @@
     </div>
 </div>
 
-<!-- Custom CSS -->
-<style>
-.auth-container {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
 
-.auth-card {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-    padding: 40px;
-    max-width: 460px;
-    width: 100%;
-    position: relative;
-    overflow: hidden;
-}
-
-.auth-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-}
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.auth-logo {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 50%;
-    color: white;
-    font-size: 24px;
-    margin-bottom: 15px;
-}
-
-.auth-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #2d3748;
-    margin-bottom: 5px;
-}
-
-.auth-subtitle {
-    color: #718096;
-    margin-bottom: 0;
-    font-size: 14px;
-}
-
-.auth-form {
-    margin-bottom: 25px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
-    color: #4a5568;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.form-control {
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 12px 16px;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    background-color: #f7fafc;
-}
-
-.form-control:focus {
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     background-color: white;

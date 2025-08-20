@@ -10,6 +10,11 @@ class Config:
     # 基本配置
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     
+    # Session配置
+    SESSION_TYPE = 'filesystem'
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
+    SESSION_COOKIE_NAME = 'equitycompass_session'
+    
     # 数据库配置
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
@@ -17,20 +22,8 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-change-in-production')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=30)
     
-    # Redis配置
-    REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-    
-    # Celery配置
-    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/1')
-    CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/1')
-    
     # JWT配置
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-jwt-secret-key-change-in-production')
-    
-    # Redis配置
-    REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-    REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
-    REDIS_DB = int(os.getenv('REDIS_DB', 0))
     
     # 邮件配置
     SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
@@ -40,14 +33,6 @@ class Config:
     FROM_EMAIL = os.getenv('FROM_EMAIL', 'noreply@equitycompass.com')
     FROM_NAME = os.getenv('FROM_NAME', '智策股析')
     SEND_EMAIL = os.getenv('SEND_EMAIL', 'True').lower() == 'true'
-    
-    # 邮件配置
-    MAIL_SERVER = os.getenv('MAIL_SERVER', 'localhost')
-    MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
-    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
-    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'noreply@equitycompass.com')
     
     # 文件存储配置
     REPORTS_DIR = os.getenv('REPORTS_DIR', 'data/reports')
