@@ -1,8 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}{{ stock.code }} - {{ stock.name }} - 智策股析{% endblock %}
+{% block title %}{% if stock %}{{ stock.code }} - {{ stock.name }}{% else %}{{ stock_code }}{% endif %} - 智策股析{% endblock %}
 
 {% block content %}
+{% if error %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ error }}
+        </div>
+        <a href="{{ url_for('stocks.index') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left me-2"></i>返回股票池
+        </a>
+    </div>
+</div>
+{% elif stock %}
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -40,7 +53,7 @@
                 
                 <div class="row">
                     <div class="col-md-6">
-                        <table class="table table-borderless text-light">
+                        <table class="table table-borderless">
                             <tr>
                                 <td class="text-muted">股票代码:</td>
                                 <td><code class="text-primary fs-5">{{ stock.code }}</code></td>
@@ -66,7 +79,7 @@
                         </table>
                     </div>
                     <div class="col-md-6">
-                        <table class="table table-borderless text-light">
+                        <table class="table table-borderless">
                             <tr>
                                 <td class="text-muted">行业:</td>
                                 <td>{{ stock.industry or '未知' }}</td>
@@ -227,6 +240,19 @@
         </div>
     </div>
 </div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            股票信息不存在
+        </div>
+        <a href="{{ url_for('stocks.index') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left me-2"></i>返回股票池
+        </a>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_css %}
@@ -291,14 +317,22 @@ $(document).ready(function() {
         const btn = $(this);
         const stockCode = btn.data('stock-code');
         
-        // 使用自定义确认弹窗
-        confirmAction(
-            '取消关注',
-            `确定要取消关注 ${stockCode} 吗？`,
-            function() {
+        // 检查confirmAction函数是否存在
+        if (typeof confirmAction === 'undefined') {
+            // 使用原生confirm作为备选
+            if (confirm(`确定要取消关注 ${stockCode} 吗？`)) {
                 performRemoveAction(btn, stockCode);
             }
-        );
+        } else {
+            // 使用自定义确认弹窗
+            confirmAction(
+                '取消关注',
+                `确定要取消关注 ${stockCode} 吗？`,
+                function() {
+                    performRemoveAction(btn, stockCode);
+                }
+            );
+        }
     });
     
     // 执行移除操作

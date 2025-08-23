@@ -49,14 +49,14 @@
                 <form method="GET" action="{{ url_for('stocks.index') }}" id="searchForm">
                     <div class="row">
                         <div class="col-md-6">
-                            <input type="text" class="form-control bg-dark border-secondary text-light" 
+                            <input type="text" class="form-control" 
                                    placeholder="搜索股票代码或公司名称..." 
                                    name="search" 
                                    value="{{ pagination.search or '' }}"
                                    id="stockSearch">
                         </div>
                         <div class="col-md-3">
-                            <select class="form-select bg-dark border-secondary text-light" name="market" id="marketFilter">
+                            <select class="form-select" name="market" id="marketFilter">
                                 <option value="">全部市场</option>
                                 <option value="US" {% if pagination.market == 'US' %}selected{% endif %}>美股</option>
                                 <option value="HK" {% if pagination.market == 'HK' %}selected{% endif %}>港股</option>
@@ -74,17 +74,29 @@
     </div>
 </div>
 
-<!-- 操作按钮 -->
+<!-- 操作按钮和分页信息 -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <a href="{{ url_for('stocks.add_custom_stock') }}" class="btn btn-success">
+                <a href="{{ url_for('stocks.add_custom') }}" class="btn btn-success">
                     <i class="fas fa-plus me-2"></i>添加自定义股票
                 </a>
             </div>
+            <div class="text-center">
+                <div class="pagination-info">
+                    <i class="fas fa-chart-line me-2"></i>
+                    共找到 <strong>{{ pagination.total }}</strong> 支股票
+                    {% if pagination.pages > 1 %}
+                        · 第 <strong>{{ pagination.page }}</strong> 页，共 <strong>{{ pagination.pages }}</strong> 页
+                    {% endif %}
+                </div>
+            </div>
             <div>
-                <span class="text-muted">共找到 {{ pagination.total }} 支股票</span>
+                <span class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    每页显示 {{ pagination.per_page }} 支
+                </span>
             </div>
         </div>
     </div>
@@ -97,7 +109,7 @@
             <div class="card-body">
                 {% if stocks %}
                     <div class="table-responsive">
-                        <table class="table table-dark table-hover">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>股票代码</th>
@@ -112,7 +124,7 @@
                                 {% for stock in stocks %}
                                 <tr>
                                     <td>
-                                        <a href="{{ url_for('stocks.stock_detail', code=stock.code) }}" 
+                                        <a href="{{ url_for('stocks.detail', code=stock.code) }}" 
                                            class="text-decoration-none">
                                             <code class="text-primary">{{ stock.code }}</code>
                                         </a>
@@ -158,41 +170,73 @@
                     
                     <!-- 分页 -->
                     {% if pagination.pages > 1 %}
-                    <nav aria-label="股票列表分页">
+                    <nav aria-label="股票列表分页" class="mt-4">
                         <ul class="pagination justify-content-center">
+                            <!-- 上一页 -->
                             {% if pagination.page > 1 %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('stocks.index', page=pagination.page-1, market=pagination.market, search=pagination.search) }}">
+                                    <a class="page-link" href="{{ url_for('stocks.index', page=pagination.page-1, market=pagination.market, search=pagination.search) }}" title="上一页">
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </span>
+                                </li>
                             {% endif %}
                             
-                            {% for p in range(1, pagination.pages + 1) %}
-                                {% if p == pagination.page %}
-                                    <li class="page-item active">
-                                        <span class="page-link">{{ p }}</span>
-                                    </li>
-                                {% elif p <= 3 or p > pagination.pages - 3 or (pagination.page - 2 <= p <= pagination.page + 2) %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('stocks.index', page=p, market=pagination.market, search=pagination.search) }}">{{ p }}</a>
-                                    </li>
-                                {% elif p == 4 and pagination.page > 6 %}
-                                    <li class="page-item disabled">
-                                        <span class="page-link">...</span>
-                                    </li>
-                                {% elif p == pagination.pages - 3 and pagination.page < pagination.pages - 5 %}
+                            <!-- 页码 -->
+                            {% set start_page = [1, pagination.page - 2] | max %}
+                            {% set end_page = [pagination.pages, pagination.page + 2] | min %}
+                            
+                            {% if start_page > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('stocks.index', page=1, market=pagination.market, search=pagination.search) }}">1</a>
+                                </li>
+                                {% if start_page > 2 %}
                                     <li class="page-item disabled">
                                         <span class="page-link">...</span>
                                     </li>
                                 {% endif %}
+                            {% endif %}
+                            
+                            {% for p in range(start_page, end_page + 1) %}
+                                {% if p == pagination.page %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ p }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('stocks.index', page=p, market=pagination.market, search=pagination.search) }}">{{ p }}</a>
+                                    </li>
+                                {% endif %}
                             {% endfor %}
                             
+                            {% if end_page < pagination.pages %}
+                                {% if end_page < pagination.pages - 1 %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('stocks.index', page=pagination.pages, market=pagination.market, search=pagination.search) }}">{{ pagination.pages }}</a>
+                                </li>
+                            {% endif %}
+                            
+                            <!-- 下一页 -->
                             {% if pagination.page < pagination.pages %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('stocks.index', page=pagination.page+1, market=pagination.market, search=pagination.search) }}">
+                                    <a class="page-link" href="{{ url_for('stocks.index', page=pagination.page+1, market=pagination.market, search=pagination.search) }}" title="下一页">
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </span>
                                 </li>
                             {% endif %}
                         </ul>

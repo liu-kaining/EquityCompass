@@ -17,14 +17,14 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-3">
-                        <select class="form-select bg-dark border-secondary text-light">
+                        <select class="form-select">
                             <option value="">全部股票</option>
                             <option value="AAPL">AAPL - 苹果</option>
                             <option value="MSFT">MSFT - 微软</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <select class="form-select bg-dark border-secondary text-light">
+                        <select class="form-select">
                             <option value="">全部日期</option>
                             <option value="today">今天</option>
                             <option value="week">本周</option>
@@ -32,7 +32,7 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <select class="form-select bg-dark border-secondary text-light">
+                        <select class="form-select">
                             <option value="">全部模型</option>
                             <option value="gpt">ChatGPT</option>
                             <option value="gemini">Gemini</option>
@@ -90,66 +90,13 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        报告数据将从JSON文件读取，目前为示例展示
-                    </div>
-                    
-                    <!-- 示例报告卡片 -->
-                    <div class="row">
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card glass-effect card-hover h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <h6 class="card-title mb-0">AAPL</h6>
-                                        <span class="badge bg-success">ChatGPT</span>
-                                    </div>
-                                    <p class="text-muted small">苹果公司</p>
-                                    <p class="card-text small">苹果公司Q3财报超预期，iPhone销量增长显著。技术面上突破关键阻力位...</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">2024-08-08 09:15</small>
-                                        <a href="{{ url_for('reports.detail', report_id=1) }}" 
-                                           class="btn btn-sm btn-primary">查看详情</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card glass-effect card-hover h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <h6 class="card-title mb-0">MSFT</h6>
-                                        <span class="badge bg-info">Gemini</span>
-                                    </div>
-                                    <p class="text-muted small">微软公司</p>
-                                    <p class="card-text small">微软云业务持续增长，AI布局领先行业。短期内股价可能测试新高...</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">2024-08-08 09:10</small>
-                                        <a href="{{ url_for('reports.detail', report_id=2) }}" 
-                                           class="btn btn-sm btn-primary">查看详情</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card glass-effect card-hover h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <h6 class="card-title mb-0">GOOGL</h6>
-                                        <span class="badge bg-warning">Qwen</span>
-                                    </div>
-                                    <p class="text-muted small">谷歌</p>
-                                    <p class="card-text small">广告业务复苏明显，搜索算法优化提升用户体验。建议逢低买入...</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">2024-08-08 09:05</small>
-                                        <a href="{{ url_for('reports.detail', report_id=3) }}" 
-                                           class="btn btn-sm btn-primary">查看详情</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="text-center py-5">
+                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">暂无分析报告</h5>
+                        <p class="text-muted">您还没有生成任何分析报告</p>
+                        <a href="{{ url_for('analysis.index') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>开始分析
+                        </a>
                     </div>
                 {% endif %}
             </div>

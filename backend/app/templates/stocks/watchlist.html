@@ -28,7 +28,7 @@
                 <div class="col-md-3">
                     <div class="card glass-effect">
                         <div class="card-body text-center">
-                            <h3 class="text-success mb-1" id="remainingSlots">{{ 50 - watchlist|length }}</h3>
+                            <h3 class="text-success mb-1" id="remainingSlots">{{ 20 - watchlist|length }}</h3>
                             <p class="text-muted mb-0">剩余名额</p>
                         </div>
                     </div>
@@ -36,7 +36,7 @@
                 <div class="col-md-3">
                     <div class="card glass-effect">
                         <div class="card-body text-center">
-                            <h3 class="text-info mb-1">50</h3>
+                            <h3 class="text-info mb-1">20</h3>
                             <p class="text-muted mb-0">最大关注数</p>
                         </div>
                     </div>
@@ -262,7 +262,7 @@ function performClearAction(btn) {
 // 更新关注列表统计信息
 function updateWatchlistSummary() {
     const currentCount = $('tbody tr').length;
-    const maxCount = 50; // 假设最大关注数量为50
+    const maxCount = 20; // 最大关注数量为20
     const remaining = maxCount - currentCount;
     
     // 更新统计显示

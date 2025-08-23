@@ -17,19 +17,19 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title">当前计划</h5>
+                        <h5 class="card-title mb-2">当前计划</h5>
                         <div class="d-flex align-items-center gap-3">
-                            <span class="badge bg-{% if user.plan_type == 'ADMIN' %}danger{% else %}primary{% endif %} fs-6">
+                            <span class="badge bg-{% if user.plan_type == 'ADMIN' %}danger{% else %}primary{% endif %} fs-6 px-3 py-2">
                                 {% if user.plan_type == 'ADMIN' %}管理员账户
                                 {% elif user.plan_type == 'TRIAL' %}试用计划
                                 {% elif user.plan_type == 'FREE' %}免费计划
                                 {% elif user.plan_type == 'SUBSCRIPTION' %}订阅计划
                                 {% else %}按次付费{% endif %}
                             </span>
-                            <small class="text-muted">剩余 {{ user.remaining_quota }} 次分析机会</small>
+                            <span class="text-muted">剩余 <strong class="text-primary">{{ user.remaining_quota }}</strong> 次分析机会</span>
                         </div>
                     </div>
-                    <a href="#" class="btn btn-outline-primary">升级计划</a>
+                    <a href="#" class="btn btn-outline-primary px-4">升级计划</a>
                 </div>
             </div>
         </div>
@@ -46,7 +46,7 @@
                 </div>
                 <h3 class="card-title">{{ user.watchlist_count }}</h3>
                 <p class="card-text text-muted">关注股票</p>
-                <a href="{{ url_for('stocks.watchlist') }}" class="btn btn-sm btn-primary">查看</a>
+                <a href="{{ url_for('analysis.index') }}" class="btn btn-sm btn-primary">查看</a>
             </div>
         </div>
     </div>
@@ -98,23 +98,23 @@
             <div class="card-body">
                 <h5 class="card-title mb-4">快速操作</h5>
                 <div class="row">
-                    <div class="col-md-3 mb-2">
-                        <a href="{{ url_for('stocks.index') }}" class="btn btn-primary w-100">
-                            <i class="fas fa-search me-2"></i>浏览股票池
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('analysis.index') }}" class="btn btn-primary w-100 py-3">
+                            <i class="fas fa-search me-2"></i>AI分析
                         </a>
                     </div>
-                    <div class="col-md-3 mb-2">
-                        <a href="{{ url_for('stocks.watchlist') }}" class="btn btn-outline-primary w-100">
-                            <i class="fas fa-bookmark me-2"></i>管理关注列表
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-primary w-100 py-3">
+                            <i class="fas fa-file-alt me-2"></i>分析报告
                         </a>
                     </div>
-                    <div class="col-md-3 mb-2">
-                        <a href="{{ url_for('analysis.index') }}" class="btn btn-outline-secondary w-100">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('analysis.index') }}" class="btn btn-outline-success w-100 py-3">
                             <i class="fas fa-play me-2"></i>开始分析
                         </a>
                     </div>
-                    <div class="col-md-3 mb-2">
-                        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-info w-100">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-info w-100 py-3">
                             <i class="fas fa-chart-bar me-2"></i>查看报告
                         </a>
                     </div>

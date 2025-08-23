@@ -16,10 +16,10 @@
     
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-dark text-light">
+<body>
     <!-- 导航栏 -->
     {% if session.user_id %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}">
                 <span class="gradient-text">智策股析</span>
@@ -41,7 +41,7 @@
                         <a class="nav-link" href="{{ url_for('stocks.watchlist') }}">关注列表</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('analysis.index') }}">分析任务</a>
+                        <a class="nav-link" href="{{ url_for('analysis.index') }}">AI分析</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('reports.index') }}">分析报告</a>
@@ -53,7 +53,7 @@
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
                             {{ session.user_email }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-dark">
+                        <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="#">设置</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">登出</a></li>

@@ -1,0 +1,1882 @@
+[
+    {
+      "code": "AAPL",
+      "name": "苹果公司",
+      "market": "US",
+      "industry": "消费电子",
+      "exchange": "NASDAQ",
+      "description": "设计、制造和销售智能手机、个人电脑、平板电脑、可穿戴设备和配件，并销售一系列相关服务。",
+      "website": "https://www.apple.com",
+      "is_builtin": true
+    },
+    {
+      "code": "MSFT",
+      "name": "微软公司",
+      "market": "US",
+      "industry": "软件和信息技术服务",
+      "exchange": "NASDAQ",
+      "description": "开发和支持软件、服务、设备和解决方案，其部门包括生产力和业务流程、智能云和更多个人计算。",
+      "website": "https://www.microsoft.com",
+      "is_builtin": true
+    },
+    {
+      "code": "GOOGL",
+      "name": "Alphabet (谷歌)",
+      "market": "US",
+      "industry": "互动媒体与服务",
+      "exchange": "NASDAQ",
+      "description": "一家控股公司，业务范围涵盖谷歌服务（例如广告、安卓、Chrome、硬件、谷歌云、谷歌地图、搜索等）以及其他赌注（例如Access、Calico、CapitalG等）。",
+      "website": "https://abc.xyz",
+      "is_builtin": true
+    },
+    {
+      "code": "AMZN",
+      "name": "亚马逊公司",
+      "market": "US",
+      "industry": "综合零售",
+      "exchange": "NASDAQ",
+      "description": "从事消费品的在线零售和广告服务，同时也是全球领先的云计算服务提供商。",
+      "website": "https://www.amazon.com",
+      "is_builtin": true
+    },
+    {
+      "code": "NVDA",
+      "name": "英伟达",
+      "market": "US",
+      "industry": "半导体",
+      "exchange": "NASDAQ",
+      "description": "为游戏、专业可视化、数据中心和汽车市场设计和开发图形处理器（GPU）和相关软件。",
+      "website": "https://www.nvidia.com",
+      "is_builtin": true
+    },
+    {
+      "code": "META",
+      "name": "Meta Platforms",
+      "market": "US",
+      "industry": "互动媒体与服务",
+      "exchange": "NASDAQ",
+      "description": "开发连接人们并帮助他们寻找社区和发展业务的产品。旗下拥有Facebook、Instagram、Messenger、WhatsApp和Reality Labs等。",
+      "website": "https://meta.com",
+      "is_builtin": true
+    },
+    {
+      "code": "TSLA",
+      "name": "特斯拉",
+      "market": "US",
+      "industry": "汽车",
+      "exchange": "NASDAQ",
+      "description": "设计、开发、制造、销售和租赁全电动汽车以及能源生成和存储系统，并提供与产品相关的服务。",
+      "website": "https://www.tesla.com",
+      "is_builtin": true
+    },
+    {
+      "code": "LLY",
+      "name": "礼来公司",
+      "market": "US",
+      "industry": "制药",
+      "exchange": "NYSE",
+      "description": "一家全球性的医疗保健公司，在药品开发、制造和销售领域拥有悠久的历史。",
+      "website": "https://www.lilly.com",
+      "is_builtin": true
+    },
+    {
+      "code": "AVGO",
+      "name": "博通公司",
+      "market": "US",
+      "industry": "半导体",
+      "exchange": "NASDAQ",
+      "description": "一家全球性的技术公司，设计、开发和供应广泛的半导体和基础设施软件解决方案。",
+      "website": "https://www.broadcom.com",
+      "is_builtin": true
+    },
+    {
+      "code": "JPM",
+      "name": "摩根大通",
+      "market": "US",
+      "industry": "银行",
+      "exchange": "NYSE",
+      "description": "一家全球领先的金融服务公司，为消费者、小型企业、公司、政府和机构提供投资银行、金融服务、资产管理和财富管理等服务。",
+      "website": "https://www.jpmorganchase.com",
+      "is_builtin": true
+    },
+    {
+      "code": "V",
+      "name": "Visa Inc.",
+      "market": "US",
+      "industry": "金融服务",
+      "exchange": "NYSE",
+      "description": "一家全球支付技术公司，连接消费者、商家、金融机构、企业、战略合作伙伴和政府实体进行电子支付。",
+      "website": "https://usa.visa.com",
+      "is_builtin": true
+    },
+    {
+      "code": "WMT",
+      "name": "沃尔玛",
+      "market": "US",
+      "industry": "综合零售",
+      "exchange": "NYSE",
+      "description": "经营零售、批发和其他单位以及电子商务网站，业务遍及全球。",
+      "website": "https://www.walmart.com",
+      "is_builtin": true
+    },
+    {
+      "code": "UNH",
+      "name": "联合健康集团",
+      "market": "US",
+      "industry": "健康护理",
+      "exchange": "NYSE",
+      "description": "一家多元化的医疗保健公司，通过四个部门提供广泛的医疗保健产品和服务：UnitedHealthcare、Optum Health、Optum Insight和Optum Rx。",
+      "website": "https://www.unitedhealthgroup.com",
+      "is_builtin": true
+    },
+    {
+      "code": "XOM",
+      "name": "埃克森美孚",
+      "market": "US",
+      "industry": "石油和天然气",
+      "exchange": "NYSE",
+      "description": "从事能源业务，勘探和生产原油和天然气，制造和销售石油产品、商品化学品和特种产品。",
+      "website": "https://corporate.exxonmobil.com",
+      "is_builtin": true
+    },
+    {
+      "code": "MA",
+      "name": "万事达卡",
+      "market": "US",
+      "industry": "金融服务",
+      "exchange": "NYSE",
+      "description": "一家技术公司，通过提供交易处理和其他支付相关产品和服务，连接全球的消费者、金融机构、商家、政府和企业。",
+      "website": "https://www.mastercard.com",
+      "is_builtin": true
+    },
+    {
+      "code": "HD",
+      "name": "家得宝",
+      "market": "US",
+      "industry": "家居装修零售",
+      "exchange": "NYSE",
+      "description": "全球最大的家居装修零售商，提供各种建筑材料、家居装修产品、草坪和花园产品以及装饰产品。",
+      "website": "https://www.homedepot.com",
+      "is_builtin": true
+    },
+    {
+      "code": "PG",
+      "name": "宝洁公司",
+      "market": "US",
+      "industry": "家庭用品",
+      "exchange": "NYSE",
+      "description": "提供品牌消费品的全球性公司，业务分为五个部门：美容；梳洗；保健；织物与家居护理；婴儿、女性与家庭护理。",
+      "website": "https://www.pg.com",
+      "is_builtin": true
+    },
+    {
+      "code": "JNJ",
+      "name": "强生公司",
+      "market": "US",
+      "industry": "制药",
+      "exchange": "NYSE",
+      "description": "从事医疗保健领域的研究、开发、制造和销售各种产品。其部门包括消费者健康、制药和医疗技术。",
+      "website": "https://www.jnj.com",
+      "is_builtin": true
+    },
+    {
+      "code": "COST",
+      "name": "好市多",
+      "market": "US",
+      "industry": "综合零售",
+      "exchange": "NASDAQ",
+      "description": "在全球范围内经营会员制仓储式商店，以低价销售各种品牌和自有品牌的商品。",
+      "website": "https://www.costco.com",
+      "is_builtin": true
+    },
+    {
+      "code": "MRK",
+      "name": "默克公司",
+      "market": "US",
+      "industry": "制药",
+      "exchange": "NYSE",
+      "description": "一家全球性的医疗保健公司，通过处方药、疫苗、生物疗法和动物保健产品提供健康解决方案。",
+      "website": "https://www.merck.com",
+      "is_builtin": true
+    },
+    {
+      "code": "BAC",
+      "name": "美国银行",
+      "market": "US",
+      "industry": "银行",
+      "exchange": "NYSE",
+      "description": "一家银行和金融控股公司，通过其子公司为个人消费者、中小型市场企业、机构投资者、大公司和政府提供银行和非银行金融服务。",
+      "website": "https://www.bankofamerica.com",
+      "is_builtin": true
+    },
+    {
+      "code": "ABBV",
+      "name": "艾伯维",
+      "market": "US",
+      "industry": "制药",
+      "exchange": "NYSE",
+      "description": "一家研究型生物制药公司，发现、开发、制造和销售药品和疗法。",
+      "website": "https://www.abbvie.com",
+      "is_builtin": true
+    },
+    {
+      "code": "CVX",
+      "name": "雪佛龙",
+      "market": "US",
+      "industry": "石油和天然气",
+      "exchange": "NYSE",
+      "description": "提供综合能源和化学品业务，业务遍及全球。该公司通过上游和下游两个业务部门运营。",
+      "website": "https://www.chevron.com",
+      "is_builtin": true
+    },
+    {
+      "code": "CRM",
+      "name": "赛富时",
+      "market": "US",
+      "industry": "软件",
+      "exchange": "NYSE",
+      "description": "全球领先的客户关系管理（CRM）软件供应商，提供一系列企业应用程序，专注于客户服务、营销自动化、分析和应用程序开发。",
+      "website": "https://www.salesforce.com",
+      "is_builtin": true
+    },
+    {
+      "code": "NFLX",
+      "name": "奈飞",
+      "market": "US",
+      "industry": "娱乐",
+      "exchange": "NASDAQ",
+      "description": "全球领先的流媒体娱乐服务公司，在190多个国家/地区拥有付费会员，可以观看各种类型的电视连续剧、纪录片和故事片。",
+      "website": "https://www.netflix.com",
+      "is_builtin": true
+    },
+    {
+      "code": "AMD",
+      "name": "超威半导体",
+      "market": "US",
+      "industry": "半导体",
+      "exchange": "NASDAQ",
+      "description": "一家全球性的半导体公司，为计算、图形和可视化市场开发高性能计算和可视化产品。",
+      "website": "https://www.amd.com",
+      "is_builtin": true
+    },
+    {
+      "code": "KO",
+      "name": "可口可乐公司",
+      "market": "US",
+      "industry": "饮料",
+      "exchange": "NYSE",
+      "description": "全球最大的非酒精饮料公司，拥有并销售一系列非酒精饮料品牌，包括汽水、水、增强水和运动饮料、果汁、乳制品和植物性饮料、茶和咖啡以及能量饮料。",
+      "website": "https://www.thecoca-colacompany.com",
+      "is_builtin": true
+    },
+    {
+      "code": "PEP",
+      "name": "百事公司",
+      "market": "US",
+      "industry": "饮料",
+      "exchange": "NASDAQ",
+      "description": "一家全球性的食品和饮料公司，其产品组合包括一系列知名品牌，如百事可乐、佳得乐、乐事、桂格和纯果乐。",
+      "website": "https://www.pepsico.com",
+      "is_builtin": true
+    },
+    {
+      "code": "TMO",
+      "name": "赛默飞世尔科技",
+      "market": "US",
+      "industry": "生命科学工具和服务",
+      "exchange": "NYSE",
+      "description": "提供分析仪器、设备、试剂和耗材、软件和服务，用于研究、分析、发现和诊断。",
+      "website": "https://www.thermofisher.com",
+      "is_builtin": true
+    },
+    {
+      "code": "ORCL",
+      "name": "甲骨文",
+      "market": "US",
+      "industry": "软件",
+      "exchange": "NYSE",
+      "description": "提供全面的、完全集成的云应用和平台服务。其业务分为云和许可、硬件以及服务三个部分。",
+      "website": "https://www.oracle.com",
+      "is_builtin": true
+    },
+    {
+      "code": "WFC",
+      "name": "富国银行",
+      "market": "US",
+      "industry": "银行",
+      "exchange": "NYSE",
+      "description": "一家多元化的社区型金融服务公司，业务范围包括银行、保险、投资、抵押贷款以及消费者和商业融资。",
+      "website": "https://www.wellsfargo.com",
+      "is_builtin": true
+    },
+    {
+      "code": "ADBE",
+      "name": "奥多比",
+      "market": "US",
+      "industry": "软件",
+      "exchange": "NASDAQ",
+      "description": "一家多元化的软件公司，产品和服务涵盖数字媒体和数字体验。其知名产品包括Photoshop、Illustrator和Acrobat Reader。",
+      "website": "https://www.adobe.com",
+      "is_builtin": true
+    },
+    {
+      "code": "QCOM",
+      "name": "高通",
+      "market": "US",
+      "industry": "半导体",
+      "exchange": "NASDAQ",
+      "description": "开发和商业化无线行业的基础技术。其业务分为三个部分：QCT（高通CDMA技术）；QTL（高通技术许可）；和QSI（高通战略计划）。",
+      "website": "https://www.qualcomm.com",
+      "is_builtin": true
+    },
+    {
+      "code": "CSCO",
+      "name": "思科",
+      "market": "US",
+      "industry": "通信设备",
+      "exchange": "NASDAQ",
+      "description": "设计和销售一系列技术，涵盖网络、安全、协作、应用程序和云。",
+      "website": "https://www.cisco.com",
+      "is_builtin": true
+    },
+    {
+      "code": "MCD",
+      "name": "麦当劳",
+      "market": "US",
+      "industry": "餐饮",
+      "exchange": "NYSE",
+      "description": "在全球范围内经营和特许经营麦当劳餐厅。这些餐厅提供统一菜单的食品和饮料，包括汉堡、薯条和鸡块。",
+      "website": "https://corporate.mcdonalds.com",
+      "is_builtin": true
+    },
+    {
+      "code": "ACN",
+      "name": "埃森哲",
+      "market": "US",
+      "industry": "信息技术服务",
+      "exchange": "NYSE",
+      "description": "一家全球性的专业服务公司，提供战略与咨询、互动、技术和运营服务。",
+      "website": "https://www.accenture.com",
+      "is_builtin": true
+    },
+    {
+      "code": "INTC",
+      "name": "英特尔",
+      "market": "US",
+      "industry": "半导体",
+      "exchange": "NASDAQ",
+      "description": "设计、制造和销售用于计算和通信行业的计算机组件和相关产品。",
+      "website": "https://www.intel.com",
+      "is_builtin": true
+    },
+    {
+      "code": "GE",
+      "name": "通用电气",
+      "market": "US",
+      "industry": "工业集团",
+      "exchange": "NYSE",
+      "description": "一家高科技工业公司，在航空、医疗保健和能源领域开展业务。",
+      "website": "https://www.ge.com",
+      "is_builtin": true
+    },
+    {
+      "code": "DIS",
+      "name": "华特迪士尼公司",
+      "market": "US",
+      "industry": "娱乐",
+      "exchange": "NYSE",
+      "description": "一家多元化的全球性娱乐公司，业务分为两个主要部门：迪士尼媒体和娱乐发行；以及迪士尼乐园、体验和产品。",
+      "website": "https://thewaltdisneycompany.com",
+      "is_builtin": true
+    },
+    {
+      "code": "VZ",
+      "name": "威瑞森通信",
+      "market": "US",
+      "industry": "电信服务",
+      "exchange": "NYSE",
+      "description": "一家控股公司，通过其子公司为消费者、企业和政府实体提供通信、信息和娱乐产品及服务。",
+      "website": "https://www.verizon.com",
+      "is_builtin": true
+    },
+    {
+      "code": "CAT",
+      "name": "卡特彼勒",
+      "market": "US",
+      "industry": "机械",
+      "exchange": "NYSE",
+      "description": "制造建筑和采矿设备、柴油和天然气发动机、工业燃气轮机和柴油电力机车。",
+      "website": "https://www.caterpillar.com",
+      "is_builtin": true
+    },
+    {
+      "code": "TXN",
+      "name": "德州仪器",
+      "market": "US",
+      "industry": "半导体",
+      "exchange": "NASDAQ",
+      "description": "设计和制造半导体，并将其销售给全球的电子产品设计师和制造商。",
+      "website": "https://www.ti.com",
+      "is_builtin": true
+    },
+    {
+      "code": "IBM",
+      "name": "国际商业机器公司",
+      "market": "US",
+      "industry": "信息技术服务",
+      "exchange": "NYSE",
+      "description": "一家综合性的技术和咨询公司，提供基础设施、软件和咨询服务。",
+      "website": "https://www.ibm.com",
+      "is_builtin": true
+    },
+    {
+      "code": "LIN",
+      "name": "林德公司",
+      "market": "US",
+      "industry": "化学制品",
+      "exchange": "NASDAQ",
+      "description": "一家工业气体和工程公司，为各种终端市场提供服务，包括化学品和能源、食品和饮料、电子、医疗保健、制造以及金属和采矿。",
+      "website": "https://www.linde.com",
+      "is_builtin": true
+    },
+    {
+      "code": "AMAT",
+      "name": "应用材料",
+      "market": "US",
+      "industry": "半导体设备",
+      "exchange": "NASDAQ",
+      "description": "为半导体、平板显示器和太阳能光伏（PV）行业提供制造设备、服务和软件。",
+      "website": "https://www.appliedmaterials.com",
+      "is_builtin": true
+    },
+    {
+      "code": "UBER",
+      "name": "优步",
+      "market": "US",
+      "industry": "陆路运输",
+      "exchange": "NYSE",
+      "description": "开发和运营专有技术应用程序，通过多模式人员运输、餐厅送餐和货物运输服务连接消费者与独立服务提供商。",
+      "website": "https://www.uber.com",
+      "is_builtin": true
+    },
+    {
+      "code": "NOW",
+      "name": "ServiceNow",
+      "market": "US",
+      "industry": "软件",
+      "exchange": "NYSE",
+      "description": "为企业提供云平台，帮助他们构建和管理数字化工作流程。",
+      "website": "https://www.servicenow.com",
+      "is_builtin": true
+    },
+    {
+      "code": "SBUX",
+      "name": "星巴克",
+      "market": "US",
+      "industry": "餐饮",
+      "exchange": "NASDAQ",
+      "description": "全球领先的咖啡烘焙商、营销商和零售商，在全球范围内经营和特许经营咖啡店。",
+      "website": "https://www.starbucks.com",
+      "is_builtin": true
+    },
+    {
+      "code": "UNP",
+      "name": "联合太平洋",
+      "market": "US",
+      "industry": "铁路",
+      "exchange": "NYSE",
+      "description": "美国主要的铁路运输公司之一，其铁路网络连接着美国西部23个州。",
+      "website": "https://www.up.com",
+      "is_builtin": true
+    },
+    {
+      "code": "GS",
+      "name": "高盛",
+      "market": "US",
+      "industry": "资本市场",
+      "exchange": "NYSE",
+      "description": "一家全球性的投资银行、证券和投资管理公司，为公司、金融机构、政府和个人等多元化客户群提供广泛的金融服务。",
+      "website": "https://www.goldmansachs.com",
+      "is_builtin": true
+    },
+    {
+      "code": "LOW",
+      "name": "劳氏公司",
+      "market": "US",
+      "industry": "家居装修零售",
+      "exchange": "NYSE",
+      "description": "一家家居装修零售商，在美国和加拿大经营一系列商店，提供维护、维修、改造和装饰产品。",
+      "website": "https://www.lowes.com",
+      "is_builtin": true
+    },
+    {
+      "code": "UPS",
+      "name": "联合包裹服务",
+      "market": "US",
+      "industry": "航空货运和物流",
+      "exchange": "NYSE",
+      "description": "一家全球性的包裹递送公司，提供广泛的综合物流解决方案。",
+      "website": "https://www.ups.com",
+      "is_builtin": true
+    },
+    {
+      "code": "MS",
+      "name": "摩根士丹利",
+      "market": "US",
+      "industry": "资本市场",
+      "exchange": "NYSE",
+      "description": "一家全球性的金融服务公司，通过其子公司和关联公司，为公司、政府、金融机构和个人提供广泛的投资银行、证券、投资管理和财富管理服务。",
+      "website": "https://www.morganstanley.com",
+      "is_builtin": true
+    },
+    {
+      "code": "BLK",
+      "name": "贝莱德",
+      "market": "US",
+      "industry": "资产管理",
+      "exchange": "NYSE",
+      "description": "全球最大的投资管理公司之一，为机构和零售客户提供各种投资管理和技术服务。",
+      "website": "https://www.blackrock.com",
+      "is_builtin": true
+    },
+    {
+      "code": "RTX",
+      "name": "雷神技术公司",
+      "market": "US",
+      "industry": "航空航天与国防",
+      "exchange": "NYSE",
+      "description": "一家航空航天和国防公司，为全球商业、军事和政府客户提供先进系统和服​​务。",
+      "website": "https://www.rtx.com",
+      "is_builtin": true
+    },
+    {
+      "code": "SCHW",
+      "name": "嘉信理财",
+      "market": "US",
+      "industry": "资本市场",
+      "exchange": "NYSE",
+      "description": "一家储蓄和贷款控股公司，通过其子公司为个人和机构客户提供财富管理、证券经纪、银行、资产管理、托管和财务咨询服务。",
+      "website": "https://www.schwab.com",
+      "is_builtin": true
+    },
+    {
+      "code": "C",
+      "name": "花旗集团",
+      "market": "US",
+      "industry": "银行",
+      "exchange": "NYSE",
+      "description": "一家多元化的金融服务控股公司，为消费者、公司、政府和机构提供广泛的金融产品和服务，包括消费银行和信贷、公司和投资银行、证券经纪、交易和证券服务以及财富管理。",
+      "website": "https://www.citigroup.com",
+      "is_builtin": true
+    },
+    {
+      "code": "BA",
+      "name": "波音",
+      "market": "US",
+      "industry": "航空航天与国防",
+      "exchange": "NYSE",
+      "description": "全球最大的航空航天公司和领先的商用喷气式飞机、国防、太空和安全系统制造商。",
+      "website": "https://www.boeing.com",
+      "is_builtin": true
+    },
+    {
+      "code": "AXP",
+      "name": "美国运通",
+      "market": "US",
+      "industry": "金融服务",
+      "exchange": "NYSE",
+      "description": "一家全球性的支付和旅游公司，提供签账卡和信用卡、旅游相关服务以及网络服务。",
+      "website": "https://www.americanexpress.com",
+      "is_builtin": true
+    },
+    {
+      "code": "AMT",
+      "name": "美国电塔",
+      "market": "US",
+      "industry": "房地产投资信托",
+      "exchange": "NYSE",
+      "description": "一家独立的无线通信基础设施所有者、运营商和开发商。",
+      "website": "https://www.americantower.com",
+      "is_builtin": true
+    },
+    {
+      "code": "PFE",
+      "name": "辉瑞",
+      "market": "US",
+      "industry": "制药",
+      "exchange": "NYSE",
+      "description": "一家研究型全球生物制药公司，应用科学和全球资源为人类和动物带来疗法。",
+      "website": "https://www.pfizer.com",
+      "is_builtin": true
+    },
+    {
+      "code": "T",
+      "name": "美国电话电报公司",
+      "market": "US",
+      "industry": "电信服务",
+      "exchange": "NYSE",
+      "description": "一家控股公司，是电信、媒体和技术领域的全球领导者。它通过通信和拉丁美洲部门运营。",
+      "website": "https://www.att.com",
+      "is_builtin": true
+    },
+    {
+      "code": "BMY",
+      "name": "百时美施贵宝",
+      "market": "US",
+      "industry": "制药",
+      "exchange": "NYSE",
+      "description": "发现、开发、许可、制造和销售用于治疗严重疾病的生物制药产品。",
+      "website": "https://www.bms.com",
+      "is_builtin": true
+    },
+    {
+      "code": "NKE",
+      "name": "耐克",
+      "market": "US",
+      "industry": "纺织品、服装和奢侈品",
+      "exchange": "NYSE",
+      "description": "从事运动鞋、服装、设备、配饰和服务的设计、开发、营销和销售。",
+      "website": "https://www.nike.com",
+      "is_builtin": true
+    },
+    {
+      "code": "CMCSA",
+      "name": "康卡斯特",
+      "market": "US",
+      "industry": "媒体",
+      "exchange": "NASDAQ",
+      "description": "一家全球性的媒体和技术公司，通过三个主要业务部门运营：康卡斯特有线、NBC环球和天空。",
+      "website": "https://corporate.comcast.com",
+      "is_builtin": true
+    },
+    {
+      "code": "HON",
+      "name": "霍尼韦尔",
+      "market": "US",
+      "industry": "工业集团",
+      "exchange": "NASDAQ",
+      "description": "一家软件工业公司，为航空航天、建筑技术、高性能材料和技术以及安全和生产力解决方案领域的客户提供行业特定的解决方案。",
+      "website": "https://www.honeywell.com",
+      "is_builtin": true
+    },
+    {
+      "code": "PLD",
+      "name": "普洛斯",
+      "market": "US",
+      "industry": "房地产投资信托",
+      "exchange": "NYSE",
+      "description": "一家房地产投资信托公司，专注于物流设施的拥有、运营、收购和开发。",
+      "website": "https://www.prologis.com",
+      "is_builtin": true
+    },
+    {
+      "code": "NEE",
+      "name": "新纪元能源",
+      "market": "US",
+      "industry": "电力公用事业",
+      "exchange": "NYSE",
+      "description": "一家电力公司，通过其子公司佛罗里达电力与照明公司在美国发电、输电、配电和销售电力。",
+      "website": "https://www.nexteraenergy.com",
+      "is_builtin": true
+    },
+    {
+      "code": "INTU",
+      "name": "财捷",
+      "market": "US",
+      "industry": "软件",
+      "exchange": "NASDAQ",
+      "description": "为小型企业、消费者和会计专业人士提供财务管理和合规产品及服务。",
+      "website": "https://www.intuit.com",
+      "is_builtin": true
+    },
+    {
+      "code": "LRCX",
+      "name": "拉姆研究",
+      "market": "US",
+      "industry": "半导体设备",
+      "exchange": "NASDAQ",
+      "description": "为半导体行业提供晶圆制造设备和服务。",
+      "website": "https://www.lamresearch.com",
+      "is_builtin": true
+    },
+    {
+      "code": "ISRG",
+      "name": "直觉外科",
+      "market": "US",
+      "industry": "医疗保健设备",
+      "exchange": "NASDAQ",
+      "description": "开发、制造和销售机器人产品，旨在通过微创手术改善临床结果，最著名的是达芬奇手术系统。",
+      "website": "https://www.intuitive.com",
+      "is_builtin": true
+    },
+    {
+      "code": "CI",
+      "name": "信诺",
+      "market": "US",
+      "industry": "健康护理",
+      "exchange": "NYSE",
+      "description": "一家全球性的健康服务公司，提供医疗、牙科、行为健康、药房、视力、补充福利和其他相关产品。",
+      "website": "https://www.cigna.com",
+      "is_builtin": true
+    },
+    {
+      "code": "SPGI",
+      "name": "标普全球",
+      "market": "US",
+      "industry": "资本市场",
+      "exchange": "NYSE",
+      "description": "向全球资本和商品市场的投资者、公司和政府提供信用评级、基准、分析和数据。",
+      "website": "https://www.spglobal.com",
+      "is_builtin": true
+    },
+    {
+      "code": "CVS",
+      "name": "CVS健康",
+      "market": "US",
+      "industry": "健康护理",
+      "exchange": "NYSE",
+      "description": "一家综合性的药房医疗保健公司，其部门包括药房服务、零售/长期护理和健康护理福利。",
+      "website": "https://www.cvshealth.com",
+      "is_builtin": true
+    },
+    {
+      "code": "PM",
+      "name": "菲利普莫里斯国际",
+      "market": "US",
+      "industry": "烟草",
+      "exchange": "NYSE",
+      "description": "一家烟草公司，从事卷烟以及无烟产品的制造和销售，其产品组合包括万宝路和L&M等品牌。",
+      "website": "https://www.pmi.com",
+      "is_builtin": true
+    },
+    {
+      "code": "TJX",
+      "name": "TJX公司",
+      "market": "US",
+      "industry": "服装零售",
+      "exchange": "NYSE",
+      "description": "一家平价服装和家居时尚零售商，在美国和全球范围内开展业务。",
+      "website": "https://www.tjx.com",
+      "is_builtin": true
+    },
+    {
+      "code": "ZTS",
+      "name": "硕腾",
+      "market": "US",
+      "industry": "制药",
+      "exchange": "NYSE",
+      "description": "发现、开发、制造和商业化动物保健药品、疫苗和诊断产品。",
+      "website": "https://www.zoetis.com",
+      "is_builtin": true
+    },
+    {
+      "code": "DE",
+      "name": "迪尔公司",
+      "market": "US",
+      "industry": "机械",
+      "exchange": "NYSE",
+      "description": "制造和分销用于农业和草坪、建筑和林业的设备。",
+      "website": "https://www.deere.com",
+      "is_builtin": true
+    },
+    {
+      "code": "MDLZ",
+      "name": "亿滋国际",
+      "market": "US",
+      "industry": "食品",
+      "exchange": "NASDAQ",
+      "description": "在全球范围内制造和销售零食和饮料产品。其品牌组合包括吉百利、妙卡和Toblerone巧克力；奥利奥、焙朗和LU饼干；以及Trident口香糖。",
+      "website": "https://www.mondelezinternational.com",
+      "is_builtin": true
+    },
+    {
+      "code": "PNC",
+      "name": "PNC金融服务集团",
+      "market": "US",
+      "industry": "银行",
+      "exchange": "NYSE",
+      "description": "一家多元化的金融服务公司，业务遍及美国。",
+      "website": "https://www.pnc.com",
+      "is_builtin": true
+    },
+    {
+      "code": "MO",
+      "name": "奥驰亚集团",
+      "market": "US",
+      "industry": "烟草",
+      "exchange": "NYSE",
+      "description": "一家控股公司，通过其子公司制造和销售可吸烟和口服烟草产品。",
+      "website": "https://www.altria.com",
+      "is_builtin": true
+    },
+    {
+      "code": "ADP",
+      "name": "自动数据处理公司",
+      "market": "US",
+      "industry": "人力资源和就业服务",
+      "exchange": "NASDAQ",
+      "description": "提供基于云的人力资本管理（HCM）解决方案，将人力资源、薪资、人才、时间和福利管理统一起来，并提供业务外包服务、分析和合规专业知识。",
+      "website": "https://www.adp.com",
+      "is_builtin": true
+    },
+    {
+      "code": "SO",
+      "name": "南方公司",
+      "market": "US",
+      "industry": "电力公用事业",
+      "exchange": "NYSE",
+      "description": "一家燃气和电力公用事业控股公司，通过其子公司为东南部地区的客户提供清洁、安全、可靠和负担得起的能源。",
+      "website": "https://www.southerncompany.com",
+      "is_builtin": true
+    },
+    {
+      "code": "REGN",
+      "name": "再生元制药",
+      "market": "US",
+      "industry": "生物技术",
+      "exchange": "NASDAQ",
+      "description": "一家生物技术公司，发现、发明、开发、制造和商业化治疗严重疾病的药物。",
+      "website": "https://www.regeneron.com",
+      "is_builtin": true
+    },
+    {
+      "code": "DUK",
+      "name": "杜克能源",
+      "market": "US",
+      "industry": "电力公用事业",
+      "exchange": "NYSE",
+      "description": "一家能源公司，其部门包括电力公用事业和基础设施以及燃气公用事业和基础设施。",
+      "website": "https://www.duke-energy.com",
+      "is_builtin": true
+    },
+    {
+      "code": "MMC",
+      "name": "威达信集团",
+      "market": "US",
+      "industry": "保险经纪",
+      "exchange": "NYSE",
+      "description": "一家专业服务公司，为客户提供风险、战略和人事方面的建议和解决方案。其部门包括风险和保险服务以及咨询。",
+      "website": "https://www.marshmclennan.com",
+      "is_builtin": true
+    },
+    {
+      "code": "BDX",
+      "name": "碧迪医疗",
+      "market": "US",
+      "industry": "医疗保健设备",
+      "exchange": "NYSE",
+      "description": "一家全球性的医疗技术公司，通过改进医学发现、诊断和护理服务来推动世界健康。",
+      "website": "https://www.bd.com",
+      "is_builtin": true
+    },
+    {
+      "code": "SHW",
+      "name": "宣伟公司",
+      "market": "US",
+      "industry": "特种化学品",
+      "exchange": "NYSE",
+      "description": "开发、制造、分销和销售油漆、涂料和相关产品给专业、工业、商业和零售客户。",
+      "website": "https://www.sherwin-williams.com",
+      "is_builtin": true
+    },
+    {
+      "code": "CCI",
+      "name": "美国冠城国际",
+      "market": "US",
+      "industry": "房地产投资信托",
+      "exchange": "NYSE",
+      "description": "一家房地产投资信托公司，拥有、经营和租赁共享无线基础设施。",
+      "website": "https://www.crowncastle.com",
+      "is_builtin": true
+    },
+    {
+      "code": "SYK",
+      "name": "史赛克",
+      "market": "US",
+      "industry": "医疗保健设备",
+      "exchange": "NYSE",
+      "description": "一家医疗技术公司，提供医疗外科、神经技术和脊柱以及骨科产品。",
+      "website": "https://www.stryker.com",
+      "is_builtin": true
+    },
+    {
+      "code": "CMG",
+      "name": "奇波雷墨西哥烧烤",
+      "market": "US",
+      "industry": "餐饮",
+      "exchange": "NYSE",
+      "description": "经营和拥有Chipotle Mexican Grill餐厅，提供以墨西哥风味为主的快餐。",
+      "website": "https://www.chipotle.com",
+      "is_builtin": true
+    },
+    {
+      "code": "TGT",
+      "name": "塔吉特",
+      "market": "US",
+      "industry": "综合零售",
+      "exchange": "NYSE",
+      "description": "一家综合商品零售商，在美国各地销售各种商品。",
+      "website": "https://corporate.target.com",
+      "is_builtin": true
+    },
+    {
+      "code": "CB",
+      "name": "安达保险",
+      "market": "US",
+      "industry": "保险",
+      "exchange": "NYSE",
+      "description": "全球最大的公开交易的财产和意外伤害保险公司。",
+      "website": "https://www.chubb.com",
+      "is_builtin": true
+    },
+    {
+      "code": "COP",
+      "name": "康菲石油",
+      "market": "US",
+      "industry": "石油和天然气",
+      "exchange": "NYSE",
+      "description": "勘探、生产、运输和销售原油、沥青、天然气和液化天然气。",
+      "website": "https://www.conocophillips.com",
+      "is_builtin": true
+    },
+    {
+      "code": "ECL",
+      "name": "艺康",
+      "market": "US",
+      "industry": "特种化学品",
+      "exchange": "NYSE",
+      "description": "提供水、卫生和感染预防解决方案及服务，以保护人类和重要资源。",
+      "website": "https://www.ecolab.com",
+      "is_builtin": true
+    },
+    {
+      "code": "PGR",
+      "name": "前进保险",
+      "market": "US",
+      "industry": "保险",
+      "exchange": "NYSE",
+      "description": "一家保险控股公司，提供个人和商业车险、住宅财产保险和其他专业财产意外保险及相关服务。",
+      "website": "https://www.progressive.com",
+      "is_builtin": true
+    },
+    {
+      "code": "FDX",
+      "name": "联邦快递",
+      "market": "US",
+      "industry": "航空货运和物流",
+      "exchange": "NYSE",
+      "description": "提供运输、电子商务和商业服务组合。",
+      "website": "https://www.fedex.com",
+      "is_builtin": true
+    },
+    {
+      "code": "USB",
+      "name": "美国合众银行",
+      "market": "US",
+      "industry": "银行",
+      "exchange": "NYSE",
+      "description": "一家金融服务控股公司，为个人、企业、机构实体、政府实体和其他金融机构提供一系列金融服务。",
+      "website": "https://www.usbank.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00700",
+      "name": "腾讯控股",
+      "market": "HK",
+      "industry": "媒体与娱乐",
+      "exchange": "HKEX",
+      "description": "一家主要提供增值(VAS)服务及网络广告服务的投资控股公司。",
+      "website": "https://www.tencent.com",
+      "is_builtin": true
+    },
+    {
+      "code": "09988",
+      "name": "阿里巴巴集团",
+      "market": "HK",
+      "industry": "核心商业",
+      "exchange": "HKEX",
+      "description": "一家提供技术基础设施及营销平台，帮助品牌、零售商及企业接触、交互及服务消费者的控股公司。",
+      "website": "https://www.alibabagroup.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00941",
+      "name": "中国移动",
+      "market": "HK",
+      "industry": "电信服务",
+      "exchange": "HKEX",
+      "description": "一家主要在中国内地提供通信及信息服务的投资控股公司。",
+      "website": "https://www.chinamobileltd.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01398",
+      "name": "中国工商银行",
+      "market": "HK",
+      "industry": "银行",
+      "exchange": "HKEX",
+      "description": "一家主要从事银行及相关金融服务的公司。",
+      "website": "http://www.icbc.com.cn",
+      "is_builtin": true
+    },
+    {
+      "code": "00939",
+      "name": "中国建设银行",
+      "market": "HK",
+      "industry": "银行",
+      "exchange": "HKEX",
+      "description": "一家主要从事银行及相关金融服务的公司。",
+      "website": "http://www.ccb.com",
+      "is_builtin": true
+    },
+    {
+      "code": "03988",
+      "name": "中国银行",
+      "market": "HK",
+      "industry": "银行",
+      "exchange": "HKEX",
+      "description": "一家主要从事银行及相关金融服务的公司。",
+      "website": "https://www.boc.cn",
+      "is_builtin": true
+    },
+    {
+      "code": "01288",
+      "name": "中国农业银行",
+      "market": "HK",
+      "industry": "银行",
+      "exchange": "HKEX",
+      "description": "一家主要从事银行及相关金融服务的公司。",
+      "website": "http://www.abchina.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00883",
+      "name": "中国海洋石油",
+      "market": "HK",
+      "industry": "能源",
+      "exchange": "HKEX",
+      "description": "一家从事原油和天然气的勘探、开发、生产及销售的投资控股公司。",
+      "website": "https://www.cnoocltd.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01299",
+      "name": "友邦保险",
+      "market": "HK",
+      "industry": "保险",
+      "exchange": "HKEX",
+      "description": "一家提供人寿保险、意外和医疗保险以及储蓄计划的投资控股公司。",
+      "website": "https://www.aia.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00005",
+      "name": "汇丰控股",
+      "market": "HK",
+      "industry": "银行",
+      "exchange": "HKEX",
+      "description": "一家主要从事银行及金融业务的控股公司。",
+      "website": "https://www.hsbc.com",
+      "is_builtin": true
+    },
+    {
+      "code": "03690",
+      "name": "美团",
+      "market": "HK",
+      "industry": "零售业",
+      "exchange": "HKEX",
+      "description": "一家主要从事外卖业务的中国控股公司。",
+      "website": "https://www.meituan.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00857",
+      "name": "中国石油股份",
+      "market": "HK",
+      "industry": "能源",
+      "exchange": "HKEX",
+      "description": "一家主要从事油气业务的中国公司。",
+      "website": "http://www.petrochina.com.cn",
+      "is_builtin": true
+    },
+    {
+      "code": "02628",
+      "name": "中国人寿",
+      "market": "HK",
+      "industry": "保险",
+      "exchange": "HKEX",
+      "description": "一家主要从事人寿保险业务的中国公司。",
+      "website": "http://www.chinalife.com.cn",
+      "is_builtin": true
+    },
+    {
+      "code": "01810",
+      "name": "小米集团",
+      "market": "HK",
+      "industry": "耐用消费品与服装",
+      "exchange": "HKEX",
+      "description": "一家主要从事智能手机、物联网(IoT)和生活消费产品研发和销售业务的投资控股公司。",
+      "website": "https://www.mi.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00386",
+      "name": "中国石油化工股份",
+      "market": "HK",
+      "industry": "能源",
+      "exchange": "HKEX",
+      "description": "一家主要从事石油及化工业务的中国公司。",
+      "website": "http://www.sinopec.com",
+      "is_builtin": true
+    },
+    {
+      "code": "02318",
+      "name": "中国平安",
+      "market": "HK",
+      "industry": "保险",
+      "exchange": "HKEX",
+      "description": "一家主要从事金融和科技业务的中国公司。",
+      "website": "https://www.pingan.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01088",
+      "name": "中国神华",
+      "market": "HK",
+      "industry": "能源",
+      "exchange": "HKEX",
+      "description": "一家主要从事煤炭和电力业务的中国公司。",
+      "website": "http://www.shenhuachina.com",
+      "is_builtin": true
+    },
+    {
+      "code": "009999",
+      "name": "网易",
+      "market": "HK",
+      "industry": "媒体与娱乐",
+      "exchange": "HKEX",
+      "description": "一家主要从事在线游戏服务及其他业务的中国控股公司。",
+      "website": "https://www.netease.com",
+      "is_builtin": true
+    },
+    {
+      "code": "009618",
+      "name": "京东集团",
+      "market": "HK",
+      "industry": "零售业",
+      "exchange": "HKEX",
+      "description": "一家主要从事电子商务业务的中国控股公司。",
+      "website": "https://www.jd.com",
+      "is_builtin": true
+    },
+    {
+      "code": "03968",
+      "name": "招商银行",
+      "market": "HK",
+      "industry": "银行",
+      "exchange": "HKEX",
+      "description": "一家主要从事银行及相关金融服务的公司。",
+      "website": "http://www.cmbchina.com",
+      "is_builtin": true
+    },
+    {
+      "code": "03328",
+      "name": "交通银行",
+      "market": "HK",
+      "industry": "银行",
+      "exchange": "HKEX",
+      "description": "一家主要从事银行及相关金融服务的公司。",
+      "website": "http://www.bankcomm.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01211",
+      "name": "比亚迪股份",
+      "market": "HK",
+      "industry": "汽车与汽车零部件",
+      "exchange": "HKEX",
+      "description": "一家主要从事二次充电电池业务的中国公司。",
+      "website": "http://www.byd.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00267",
+      "name": "中信股份",
+      "market": "HK",
+      "industry": "综合企业",
+      "exchange": "HKEX",
+      "description": "一家主要从事金融业务的香港投资控股公司。",
+      "website": "https://www.citic.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00388",
+      "name": "香港交易所",
+      "market": "HK",
+      "industry": "多元金融",
+      "exchange": "HKEX",
+      "description": "一家主要从事交易所业务的投资控股公司。",
+      "website": "https://www.hkex.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "09633",
+      "name": "农夫山泉",
+      "market": "HK",
+      "industry": "食品、饮料与烟草",
+      "exchange": "HKEX",
+      "description": "一家主要从事包装饮用水和饮料生产和销售的中国公司。",
+      "website": "http://www.nongfuspring.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01109",
+      "name": "华润置地",
+      "market": "HK",
+      "industry": "房地产",
+      "exchange": "HKEX",
+      "description": "一家主要从事房地产开发及相关业务的投资控股公司。",
+      "website": "https://www.crland.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "02020",
+      "name": "安踏体育",
+      "market": "HK",
+      "industry": "耐用消费品与服装",
+      "exchange": "HKEX",
+      "description": "一家主要从事体育用品（包括鞋类、服装及配饰）生产及买卖业务的投资控股公司。",
+      "website": "http://www.anta.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00016",
+      "name": "新鸿基地产",
+      "market": "HK",
+      "industry": "房地产",
+      "exchange": "HKEX",
+      "description": "一家主要从事地产业务的香港投资控股公司。",
+      "website": "https://www.shkp.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00688",
+      "name": "中国海外发展",
+      "market": "HK",
+      "industry": "房地产",
+      "exchange": "HKEX",
+      "description": "一家主要从事房地产开发及相关业务的投资控股公司。",
+      "website": "http://www.coli.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "00762",
+      "name": "中国联通",
+      "market": "HK",
+      "industry": "电信服务",
+      "exchange": "HKEX",
+      "description": "一家主要于中国提供电信服务的投资控股公司。",
+      "website": "http://www.chinaunicom.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "02382",
+      "name": "舜宇光学科技",
+      "market": "HK",
+      "industry": "技术硬件与设备",
+      "exchange": "HKEX",
+      "description": "一家主要从事设计、研发、生产及销售光学及光学相关产品的投资控股公司。",
+      "website": "http://www.sunnyoptical.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00011",
+      "name": "恒生银行",
+      "market": "HK",
+      "industry": "银行",
+      "exchange": "HKEX",
+      "description": "一家主要从事银行及金融业务的香港公司。",
+      "website": "https://www.hangseng.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00002",
+      "name": "中电控股",
+      "market": "HK",
+      "industry": "公用事业",
+      "exchange": "HKEX",
+      "description": "一家主要从事电力业务的香港投资控股公司。",
+      "website": "https://www.clpgroup.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00003",
+      "name": "香港中华煤气",
+      "market": "HK",
+      "industry": "公用事业",
+      "exchange": "HKEX",
+      "description": "一家主要从事燃气生产及分销的投资控股公司。",
+      "website": "https://www.towngas.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00981",
+      "name": "中芯国际",
+      "market": "HK",
+      "industry": "半导体与半导体生产设备",
+      "exchange": "HKEX",
+      "description": "一家主要从事电脑辅助设计、制造、测试、封装及买卖集成电路及其他半导体服务的投资控股公司。",
+      "website": "http://www.smics.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00241",
+      "name": "阿里健康",
+      "market": "HK",
+      "industry": "医疗保健设备与服务",
+      "exchange": "HKEX",
+      "description": "一家主要从事医药电商业务的香港投资控股公司。",
+      "website": "https://www.alihealth.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "01044",
+      "name": "恒安国际",
+      "market": "HK",
+      "industry": "家庭与个人用品",
+      "exchange": "HKEX",
+      "description": "一家主要从事个人卫生用品制造及销售的投资控股公司。",
+      "website": "http://www.hengan.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00066",
+      "name": "港铁公司",
+      "market": "HK",
+      "industry": "运输",
+      "exchange": "HKEX",
+      "description": "一家主要从事铁路设计、建设、营运、维修及投资的公司。",
+      "website": "http://www.mtr.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "00001",
+      "name": "长和",
+      "market": "HK",
+      "industry": "综合企业",
+      "exchange": "HKEX",
+      "description": "一家业务涵盖港口及相关服务、零售、基建、能源及电讯的投资控股公司。",
+      "website": "https://www.ckh.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "01997",
+      "name": "九龙仓置业",
+      "market": "HK",
+      "industry": "房地产",
+      "exchange": "HKEX",
+      "description": "一家主要于香港从事投资物业业务的投资控股公司。",
+      "website": "https://www.wharfreic.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01177",
+      "name": "中国生物制药",
+      "market": "HK",
+      "industry": "制药、生物科技与生命科学",
+      "exchange": "HKEX",
+      "description": "一家主要从事药品研发、生产及销售的投资控股公司。",
+      "website": "http://www.sinobiopharm.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00175",
+      "name": "吉利汽车",
+      "market": "HK",
+      "industry": "汽车与汽车零部件",
+      "exchange": "HKEX",
+      "description": "一家主要从事汽车销售及贸易的投资控股公司。",
+      "website": "http://www.geelyauto.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "00823",
+      "name": "领展房产基金",
+      "market": "HK",
+      "industry": "房地产",
+      "exchange": "HKEX",
+      "description": "一只主要在香港投资零售及停车场设施的房地产投资信托基金。",
+      "website": "https://www.linkreit.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00012",
+      "name": "恒基地产",
+      "market": "HK",
+      "industry": "房地产",
+      "exchange": "HKEX",
+      "description": "一家主要从事物业发展及投资的投资控股公司。",
+      "website": "https://www.hld.com",
+      "is_builtin": true
+    },
+    {
+      "code": "02018",
+      "name": "瑞声科技",
+      "market": "HK",
+      "industry": "技术硬件与设备",
+      "exchange": "HKEX",
+      "description": "一家主要从事微型声学元器件的生产和销售的投资控股公司。",
+      "website": "https://www.aactechnologies.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01876",
+      "name": "百威亚太",
+      "market": "HK",
+      "industry": "食品、饮料与烟草",
+      "exchange": "HKEX",
+      "description": "一家主要于亚太地区从事啤酒酿造及经销的公司。",
+      "website": "https://www.budweiserapac.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01928",
+      "name": "金沙中国有限公司",
+      "market": "HK",
+      "industry": "消费者服务",
+      "exchange": "HKEX",
+      "description": "一家于澳门发展及经营综合度假村的投资控股公司。",
+      "website": "https://www.sandschina.com",
+      "is_builtin": true
+    },
+    {
+      "code": "06098",
+      "name": "中通快递",
+      "market": "HK",
+      "industry": "运输",
+      "exchange": "HKEX",
+      "description": "一家主要提供快递服务的中国公司。",
+      "website": "http://www.zto.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00027",
+      "name": "银河娱乐",
+      "market": "HK",
+      "industry": "消费者服务",
+      "exchange": "HKEX",
+      "description": "一家主要于澳门从事娱乐场幸运博彩或其他形式的博彩业务的投资控股公司。",
+      "website": "https://www.galaxyentertainment.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01093",
+      "name": "石药集团",
+      "market": "HK",
+      "industry": "制药、生物科技与生命科学",
+      "exchange": "HKEX",
+      "description": "一家主要从事药品制造及销售的投资控股公司。",
+      "website": "http://www.cspc.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "01113",
+      "name": "长实集团",
+      "market": "HK",
+      "industry": "房地产",
+      "exchange": "HKEX",
+      "description": "一家主要从事物业发展及投资的投资控股公司。",
+      "website": "https://www.ckah.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00083",
+      "name": "信和置业",
+      "market": "HK",
+      "industry": "房地产",
+      "exchange": "HKEX",
+      "description": "一家主要从事物业发展及销售的投资控股公司。",
+      "website": "https://www.sino.com",
+      "is_builtin": true
+    },
+    {
+      "code": "02269",
+      "name": "药明生物",
+      "market": "HK",
+      "industry": "制药、生物科技与生命科学",
+      "exchange": "HKEX",
+      "description": "一家主要从事生物制剂的发现、开发及生产的投资控股公司。",
+      "website": "https://www.wuxibiologics.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01316",
+      "name": "耐世特",
+      "market": "HK",
+      "industry": "汽车与汽车零部件",
+      "exchange": "HKEX",
+      "description": "一家主要从事汽车转向及传动系统设计、制造及分销的投资控股公司。",
+      "website": "https://www.nexteer.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00101",
+      "name": "恒隆地产",
+      "market": "HK",
+      "industry": "房地产",
+      "exchange": "HKEX",
+      "description": "一家主要从事物业租赁业务的投资控股公司。",
+      "website": "https://www.hanglung.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00322",
+      "name": "康师傅控股",
+      "market": "HK",
+      "industry": "食品、饮料与烟草",
+      "exchange": "HKEX",
+      "description": "一家主要从事方便面、饮品及方便食品的生产和销售的投资控股公司。",
+      "website": "http://www.masterkong.com.cn",
+      "is_builtin": true
+    },
+    {
+      "code": "00151",
+      "name": "中国旺旺",
+      "market": "HK",
+      "industry": "食品、饮料与烟草",
+      "exchange": "HKEX",
+      "description": "一家主要从事食品饮料生产及销售的投资控股公司。",
+      "website": "http://www.want-want.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00144",
+      "name": "招商局港口",
+      "market": "HK",
+      "industry": "运输",
+      "exchange": "HKEX",
+      "description": "一家主要从事港口业务的投资控股公司。",
+      "website": "http://www.cmport.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "00836",
+      "name": "华润电力",
+      "market": "HK",
+      "industry": "公用事业",
+      "exchange": "HKEX",
+      "description": "一家主要从事电厂的投资、开发、经营及管理业务的投资控股公司。",
+      "website": "http://www.cr-power.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00669",
+      "name": "创科实业",
+      "market": "HK",
+      "industry": "耐用消费品与服装",
+      "exchange": "HKEX",
+      "description": "一家主要从事电动工具、配件、手动工具、户外园艺工具及地板护理产品设计、制造及销售的投资控股公司。",
+      "website": "https://www.ttigroup.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00019",
+      "name": "太古股份公司A",
+      "market": "HK",
+      "industry": "综合企业",
+      "exchange": "HKEX",
+      "description": "一家主要从事地产、航空、饮料及船务业务的投资控股公司。",
+      "website": "https://www.swirepacific.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01038",
+      "name": "长江基建集团",
+      "market": "HK",
+      "industry": "公用事业",
+      "exchange": "HKEX",
+      "description": "一家主要从事基建业务的投资控股公司。",
+      "website": "https://www.cki.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "00881",
+      "name": "中远海控",
+      "market": "HK",
+      "industry": "运输",
+      "exchange": "HKEX",
+      "description": "一家主要从事集装箱航运及相关业务的中国公司。",
+      "website": "http://www.coscoshipping.com",
+      "is_builtin": true
+    },
+    {
+      "code": "02313",
+      "name": "申洲国际",
+      "market": "HK",
+      "industry": "耐用消费品与服装",
+      "exchange": "HKEX",
+      "description": "一家主要从事针织品制造及销售的投资控股公司。",
+      "website": "http://www.shenzhouintl.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01929",
+      "name": "周大福",
+      "market": "HK",
+      "industry": "耐用消费品与服装",
+      "exchange": "HKEX",
+      "description": "一家主要从事珠宝首饰的制造及销售的投资控股公司。",
+      "website": "https://www.chowtaifook.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00291",
+      "name": "华润啤酒",
+      "market": "HK",
+      "industry": "食品、饮料与烟草",
+      "exchange": "HKEX",
+      "description": "一家主要从事啤酒生产及销售的投资控股公司。",
+      "website": "https://www.crbeer.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "00288",
+      "name": "万洲国际",
+      "market": "HK",
+      "industry": "食品、饮料与烟草",
+      "exchange": "HKEX",
+      "description": "一家主要从事猪肉产品生产及销售的投资控股公司。",
+      "website": "http://www.wh-group.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00347",
+      "name": "鞍钢股份",
+      "market": "HK",
+      "industry": "材料",
+      "exchange": "HKEX",
+      "description": "一家主要从事黑色金属的冶炼、轧制、加工、生产和销售的公司。",
+      "website": "http://www.ansteel.com.cn",
+      "is_builtin": true
+    },
+    {
+      "code": "01728",
+      "name": "正通汽车",
+      "market": "HK",
+      "industry": "零售业",
+      "exchange": "HKEX",
+      "description": "一家主要从事汽车销售及服务的投资控股公司。",
+      "website": "http://www.zhengtongauto.com",
+      "is_builtin": true
+    },
+    {
+      "code": "02331",
+      "name": "李宁",
+      "market": "HK",
+      "industry": "耐用消费品与服装",
+      "exchange": "HKEX",
+      "description": "一家主要从事体育用品（包括鞋类、服装、器材及配件）生产及买卖的投资控股公司。",
+      "website": "http://www.lining.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01193",
+      "name": "华润燃气",
+      "market": "HK",
+      "industry": "公用事业",
+      "exchange": "HKEX",
+      "description": "一家主要从事燃气分销的投资控股公司。",
+      "website": "https://www.crgas.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "03658",
+      "name": "中集车辆",
+      "market": "HK",
+      "industry": "汽车与汽车零部件",
+      "exchange": "HKEX",
+      "description": "一家主要从事半挂车及专用车上装制造及销售的中国公司。",
+      "website": "http://www.cimc.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00006",
+      "name": "电能实业",
+      "market": "HK",
+      "industry": "公用事业",
+      "exchange": "HKEX",
+      "description": "一家主要从事电力及公用事业相关业务的投资控股公司。",
+      "website": "https://www.powerassets.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01628",
+      "name": "禹洲地产",
+      "market": "HK",
+      "industry": "房地产",
+      "exchange": "HKEX",
+      "description": "一家主要从事房地产开发及投资的投资控股公司。",
+      "website": "http://www.yuzhou-group.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01336",
+      "name": "新华保险",
+      "market": "HK",
+      "industry": "保险",
+      "exchange": "HKEX",
+      "description": "一家主要从事人寿保险业务的中国公司。",
+      "website": "http://www.newchinalife.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00753",
+      "name": "中国国航",
+      "market": "HK",
+      "industry": "运输",
+      "exchange": "HKEX",
+      "description": "一家主要从事航空客运、货运及邮运业务的中国公司。",
+      "website": "http://www.airchina.com.cn",
+      "is_builtin": true
+    },
+    {
+      "code": "01055",
+      "name": "南方航空",
+      "market": "HK",
+      "industry": "运输",
+      "exchange": "HKEX",
+      "description": "一家主要从事航空客运、货运及邮运业务的中国公司。",
+      "website": "http://www.csair.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00902",
+      "name": "华能国际电力股份",
+      "market": "HK",
+      "industry": "公用事业",
+      "exchange": "HKEX",
+      "description": "一家主要从事发电及售电业务的中国公司。",
+      "website": "http://www.hpi.com.cn",
+      "is_builtin": true
+    },
+    {
+      "code": "01800",
+      "name": "中国交通建设",
+      "market": "HK",
+      "industry": "资本货物",
+      "exchange": "HKEX",
+      "description": "一家主要从事基建建设业务的中国公司。",
+      "website": "http://www.ccccltd.cn",
+      "is_builtin": true
+    },
+    {
+      "code": "00656",
+      "name": "复星国际",
+      "market": "HK",
+      "industry": "综合企业",
+      "exchange": "HKEX",
+      "description": "一家主要从事健康、快乐、富足及智造业务的投资控股公司。",
+      "website": "https://www.fosun.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00853",
+      "name": "微创医疗",
+      "market": "HK",
+      "industry": "医疗保健设备与服务",
+      "exchange": "HKEX",
+      "description": "一家主要从事医疗器械的研发、制造和销售的投资控股公司。",
+      "website": "https://www.microport.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00811",
+      "name": "新濠国际发展",
+      "market": "HK",
+      "industry": "消费者服务",
+      "exchange": "HKEX",
+      "description": "一家主要从事博彩及娱乐业务的投资控股公司。",
+      "website": "https://www.melco-group.com",
+      "is_builtin": true
+    },
+    {
+      "code": "01816",
+      "name": "中广核电力",
+      "market": "HK",
+      "industry": "公用事业",
+      "exchange": "HKEX",
+      "description": "一家主要从事核电站的建设、运营及管理的公司。",
+      "website": "http://www.cgnpc.com.cn",
+      "is_builtin": true
+    },
+    {
+      "code": "00493",
+      "name": "国美零售",
+      "market": "HK",
+      "industry": "零售业",
+      "exchange": "HKEX",
+      "description": "一家主要从事电器及消费电子产品零售的投资控股公司。",
+      "website": "http://www.gome.com.cn",
+      "is_builtin": true
+    },
+    {
+      "code": "01066",
+      "name": "威高股份",
+      "market": "HK",
+      "industry": "医疗保健设备与服务",
+      "exchange": "HKEX",
+      "description": "一家主要从事医疗器械及耗材的研发、生产和销售的投资控股公司。",
+      "website": "http://www.weigaogroup.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00135",
+      "name": "昆仑能源",
+      "market": "HK",
+      "industry": "能源",
+      "exchange": "HKEX",
+      "description": "一家主要从事天然气销售的投资控股公司。",
+      "website": "http://www.kunlun.com.hk",
+      "is_builtin": true
+    },
+    {
+      "code": "01898",
+      "name": "中煤能源",
+      "market": "HK",
+      "industry": "能源",
+      "exchange": "HKEX",
+      "description": "一家主要从事煤炭生产及销售的中国公司。",
+      "website": "http://www.chinacoal.com",
+      "is_builtin": true
+    },
+    {
+      "code": "03898",
+      "name": "中车时代电气",
+      "market": "HK",
+      "industry": "资本货物",
+      "exchange": "HKEX",
+      "description": "一家主要从事轨道交通装备产品的研发、制造和销售的公司。",
+      "website": "http://www.tec.crrczic.cc",
+      "is_builtin": true
+    },
+    {
+      "code": "00522",
+      "name": "ASM太平洋",
+      "market": "HK",
+      "industry": "半导体与半导体生产设备",
+      "exchange": "HKEX",
+      "description": "一家主要从事半导体及电子行业所用机械及材料的生产和销售的投资控股公司。",
+      "website": "https://www.asmpacific.com",
+      "is_builtin": true
+    },
+    {
+      "code": "00198",
+      "name": "星岛",
+      "market": "HK",
+      "industry": "媒体与娱乐",
+      "exchange": "HKEX",
+      "description": "一家主要从事媒体业务的投资控股公司。",
+      "website": "https://www.singtaonewscorp.com",
+      "is_builtin": true
+    }
+  ]

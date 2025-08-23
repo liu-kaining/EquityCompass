@@ -28,12 +28,16 @@ def create_app(config_name='development'):
     app = Flask(__name__)
     
     # 加载配置
+    import app.config as config_module
+    
     if config_name == 'development':
-        app.config.from_object('app.config.DevelopmentConfig')
+        app.config.from_object(config_module.DevelopmentConfig)
     elif config_name == 'production':
-        app.config.from_object('app.config.ProductionConfig')
+        app.config.from_object(config_module.ProductionConfig)
     elif config_name == 'testing':
-        app.config.from_object('app.config.TestingConfig')
+        app.config.from_object(config_module.TestingConfig)
+    else:
+        app.config.from_object(config_module.DevelopmentConfig)
     
     # 初始化扩展
     db.init_app(app)
@@ -46,26 +50,28 @@ def create_app(config_name='development'):
     from app.views.main import main_bp
     from app.views.auth import auth_bp
     from app.views.dashboard import dashboard_bp
-    from app.views.stocks import stocks_bp
     from app.views.analysis import analysis_bp
     from app.views.reports import reports_bp
+    from app.views.stocks import stocks_bp
     
     # 注册API蓝图
     from app.api.auth_api import auth_api_bp
     from app.api.stocks_api import stocks_api_bp
+    from app.api.analysis_api import analysis_api_bp
     from app.api.health import health_bp
     
     # Web页面路由
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
-    app.register_blueprint(stocks_bp, url_prefix='/stocks')
     app.register_blueprint(analysis_bp, url_prefix='/analysis')
     app.register_blueprint(reports_bp, url_prefix='/reports')
+    app.register_blueprint(stocks_bp, url_prefix='/stocks')
     
     # API路由 (保留一些API供Ajax使用)
     app.register_blueprint(auth_api_bp, url_prefix='/api/auth')
     app.register_blueprint(stocks_api_bp, url_prefix='/api/stocks')
+    app.register_blueprint(analysis_api_bp, url_prefix='/api/analysis')
     app.register_blueprint(health_bp, url_prefix='/api/health')
     
 
