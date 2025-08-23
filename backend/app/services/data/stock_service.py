@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from app.repositories.stock_repository import StockRepository
 from app.repositories.watchlist_repository import WatchlistRepository
+from app.utils.timezone import format_local_time
 
 
 class StockDataService:
@@ -100,7 +101,7 @@ class StockDataService:
                 'watchlist_item': {
                     'id': watchlist_item.id,
                     'stock': self._format_stock(stock),
-                    'created_at': watchlist_item.added_at.isoformat() if watchlist_item.added_at else None
+                    'added_at': format_local_time(watchlist_item.added_at) if watchlist_item.added_at else None
                 }
             }
         except ValueError as e:
@@ -121,6 +122,21 @@ class StockDataService:
             'success': success,
             'message': f'已从关注列表移除 {stock.code}' if success else '移除失败'
         }
+    
+    def clear_watchlist(self, user_id: int) -> Dict[str, Any]:
+        """一键清空关注列表"""
+        try:
+            deleted_count = self.watchlist_repo.clear_watchlist(user_id)
+            return {
+                'success': True,
+                'message': f'已清空关注列表，共移除 {deleted_count} 支股票',
+                'deleted_count': deleted_count
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'message': f'清空失败: {str(e)}'
+            }
     
     def get_watchlist_stocks_for_analysis(self, user_id: int) -> List[Dict[str, Any]]:
         """获取用户关注的股票列表（用于分析）"""

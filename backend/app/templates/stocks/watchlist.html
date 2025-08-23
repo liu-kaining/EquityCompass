@@ -1,104 +1,425 @@
 {% extends "base.html" %}
 
-{% block title %}关注列表 - 智策股析{% endblock %}
+{% block title %}我的关注列表 - 智策股析{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1 class="gradient-text mb-4">我的关注列表</h1>
-        <p class="text-muted mb-4">管理您关注的股票（最多20支）</p>
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-bookmark me-2"></i>我的关注列表
+                </h2>
+                <a href="{{ url_for('stocks.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-plus me-2"></i>添加更多股票
+                </a>
+            </div>
+            
+            <!-- 统计信息 -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card glass-effect">
+                        <div class="card-body text-center">
+                            <h3 class="text-primary mb-1" id="watchlistCount">{{ watchlist|length }}</h3>
+                            <p class="text-muted mb-0">已关注股票</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card glass-effect">
+                        <div class="card-body text-center">
+                            <h3 class="text-success mb-1" id="remainingSlots">{{ 50 - watchlist|length }}</h3>
+                            <p class="text-muted mb-0">剩余名额</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card glass-effect">
+                        <div class="card-body text-center">
+                            <h3 class="text-info mb-1">50</h3>
+                            <p class="text-muted mb-0">最大关注数</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card glass-effect">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning mb-1">{{ watchlist|length }}</h3>
+                            <p class="text-muted mb-0">待分析</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 关注列表 -->
+            <div class="card glass-effect">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>关注股票列表
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if watchlist %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>股票代码</th>
+                                        <th>公司名称</th>
+                                        <th>市场</th>
+                                        <th>行业</th>
+                                        <th>关注时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in watchlist %}
+                                    <tr>
+                                        <td>
+                                            <code class="text-primary">{{ item.stock.code }}</code>
+                                        </td>
+                                        <td>{{ item.stock.name }}</td>
+                                        <td>
+                                            {% if item.stock.market == 'US' %}
+                                                <span class="badge bg-primary">美股</span>
+                                            {% else %}
+                                                <span class="badge bg-success">港股</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ item.stock.industry or '未知' }}</small>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {% if item.added_at %}
+                                                    {{ item.added_at }}
+                                                {% else %}
+                                                    未知
+                                                {% endif %}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger remove-watch-btn" 
+                                                    data-stock-code="{{ item.stock.code }}">
+                                                <i class="fas fa-times me-1"></i>移除
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">您还没有关注任何股票</h5>
+                            <p class="text-muted">开始关注您感兴趣的股票，我们将为您提供专业的AI分析</p>
+                            <a href="{{ url_for('stocks.index') }}" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>浏览股票池
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- 统计信息 -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card glass-effect">
-            <div class="card-body text-center">
-                <h3 class="text-primary">5</h3>
-                <p class="text-muted mb-0">已关注股票</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card glass-effect">
-            <div class="card-body text-center">
-                <h3 class="text-warning">15</h3>
-                <p class="text-muted mb-0">剩余名额</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card glass-effect">
-            <div class="card-body text-center">
-                <h3 class="text-success">3</h3>
-                <p class="text-muted mb-0">今日分析</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 关注列表 -->
-<div class="row">
+<!-- 快速操作 -->
+{% if watchlist %}
+<div class="row mt-4">
     <div class="col-12">
         <div class="card glass-effect">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="card-title mb-0">关注的股票</h5>
-                    <a href="{{ url_for('stocks.index') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>添加股票
-                    </a>
-                </div>
-                
-                {% if watchlist %}
-                    <div class="table-responsive">
-                        <table class="table table-dark table-hover">
-                            <thead>
-                                <tr>
-                                    <th>股票代码</th>
-                                    <th>公司名称</th>
-                                    <th>市场</th>
-                                    <th>添加时间</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for stock in watchlist %}
-                                <tr>
-                                    <td><code>{{ stock.code }}</code></td>
-                                    <td>{{ stock.name }}</td>
-                                    <td><span class="badge bg-primary">{{ stock.market }}</span></td>
-                                    <td>{{ stock.created_at }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-danger">
-                                            <i class="fas fa-trash me-1"></i>移除
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-info">
-                                            <i class="fas fa-chart-line me-1"></i>分析
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-cogs me-2"></i>快速操作
+                </h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-warning w-100 mb-2" id="clearAllBtn">
+                            <i class="fas fa-trash me-2"></i>清空关注列表
+                        </button>
                     </div>
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">暂无关注的股票</h5>
-                        <p class="text-muted">从股票池中添加您感兴趣的股票</p>
-                        <a href="{{ url_for('stocks.index') }}" class="btn btn-primary">
-                            <i class="fas fa-search me-2"></i>浏览股票池
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-info w-100 mb-2" id="exportBtn">
+                            <i class="fas fa-download me-2"></i>导出列表
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('analysis.index') }}" class="btn btn-outline-success w-100 mb-2">
+                            <i class="fas fa-chart-line me-2"></i>开始分析
                         </a>
                     </div>
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_css %}
 <!-- Font Awesome -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 执行移除操作
+function performRemoveAction(btn, stockCode, row) {
+    console.log('执行移除操作:', stockCode);
+    
+    // 禁用按钮防止重复点击
+    btn.prop('disabled', true);
+    
+    // 显示加载状态
+    btn.html('<i class="fas fa-spinner fa-spin me-1"></i>移除中...');
+    
+    // 发送API请求
+    $.ajax({
+        url: '/api/stocks/watchlist/remove',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ stock_code: stockCode }),
+        success: function(response) {
+            console.log('移除API响应:', response);
+            if (response.success) {
+                // 移除表格行
+                row.fadeOut(300, function() {
+                    $(this).remove();
+                    
+                    // 检查是否还有股票
+                    if ($('tbody tr').length === 0) {
+                        location.reload(); // 重新加载页面显示空状态
+                    }
+                });
+                
+                // 显示成功消息
+                showToast('success', response.message);
+                
+                // 更新统计信息
+                updateWatchlistSummary();
+            } else {
+                showToast('error', response.message || '移除失败');
+            }
+        },
+        error: function(xhr) {
+            console.error('移除API错误:', xhr);
+            const response = xhr.responseJSON;
+            showToast('error', response?.message || '网络错误，请稍后重试');
+        },
+        complete: function() {
+            btn.prop('disabled', false);
+        }
+    });
+}
+
+// 执行清空操作
+function performClearAction(btn) {
+    btn.prop('disabled', true);
+    btn.html('<i class="fas fa-spinner fa-spin me-2"></i>清空中...');
+    
+    // 调用一键清空API
+    $.ajax({
+        url: '/api/stocks/watchlist/clear',
+        method: 'POST',
+        contentType: 'application/json',
+        success: function(response) {
+            if (response.success) {
+                showToast('success', response.message);
+                // 清空表格内容
+                $('tbody').empty();
+                // 显示空状态
+                $('tbody').append(`
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">您还没有关注任何股票</h5>
+                            <p class="text-muted">开始关注您感兴趣的股票，我们将为您提供专业的AI分析</p>
+                            <a href="/stocks/" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>浏览股票池
+                            </a>
+                        </td>
+                    </tr>
+                `);
+                // 隐藏快速操作区域
+                $('.row.mt-4').hide();
+            } else {
+                showToast('error', response.message || '清空失败');
+            }
+        },
+        error: function(xhr) {
+            const response = xhr.responseJSON;
+            showToast('error', response?.message || '网络错误，请稍后重试');
+        },
+        complete: function() {
+            btn.prop('disabled', false);
+            btn.html('<i class="fas fa-trash me-2"></i>清空关注列表');
+        }
+    });
+}
+
+// 更新关注列表统计信息
+function updateWatchlistSummary() {
+    const currentCount = $('tbody tr').length;
+    const maxCount = 50; // 假设最大关注数量为50
+    const remaining = maxCount - currentCount;
+    
+    // 更新统计显示
+    $('#watchlistCount').text(currentCount);
+    $('#remainingSlots').text(remaining);
+    
+    // 如果达到最大数量，禁用添加按钮
+    if (currentCount >= maxCount) {
+        $('.add-watch-btn').prop('disabled', true);
+    } else {
+        $('.add-watch-btn').prop('disabled', false);
+    }
+}
+
+// 显示Toast消息
+function showToast(type, message) {
+    // 创建toast元素
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    
+    // 添加到页面
+    const toastContainer = $('#toastContainer');
+    if (toastContainer.length === 0) {
+        $('body').append('<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>');
+    }
+    
+    $('#toastContainer').append(toastHtml);
+    
+    // 显示toast
+    const toastElement = $('#toastContainer .toast').last();
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    // 自动移除
+    toastElement.on('hidden.bs.toast', function() {
+        $(this).remove();
+    });
+}
+
+$(document).ready(function() {
+    console.log('关注列表页面加载完成');
+    
+    // 检查确认弹窗函数
+    if (typeof confirmAction === 'undefined') {
+        console.error('confirmAction函数未定义，使用原生confirm');
+        // 移除关注功能（使用原生confirm作为备选）
+        $('.remove-watch-btn').click(function() {
+            console.log('移除按钮被点击（原生confirm）');
+            const btn = $(this);
+            const stockCode = btn.data('stock-code');
+            const row = btn.closest('tr');
+            
+            if (confirm(`确定要移除 ${stockCode} 的关注吗？`)) {
+                performRemoveAction(btn, stockCode, row);
+            }
+        });
+    } else {
+        console.log('confirmAction函数已定义，使用自定义弹窗');
+        // 移除关注功能
+        $('.remove-watch-btn').click(function() {
+            console.log('移除按钮被点击（自定义弹窗）');
+            const btn = $(this);
+            const stockCode = btn.data('stock-code');
+            const row = btn.closest('tr');
+            
+            // 使用自定义确认弹窗
+            confirmAction(
+                '移除关注',
+                `确定要移除 ${stockCode} 的关注吗？`,
+                function() {
+                    performRemoveAction(btn, stockCode, row);
+                }
+            );
+        });
+    }
+    
+    // 清空关注列表
+    $('#clearAllBtn').click(function() {
+        const btn = $(this);
+        
+        if (typeof confirmAction === 'undefined') {
+            // 使用原生confirm作为备选
+            if (confirm('确定要清空所有关注的股票吗？此操作不可撤销！')) {
+                performClearAction(btn);
+            }
+        } else {
+            // 使用自定义确认弹窗
+            confirmAction(
+                '清空关注列表',
+                '确定要清空所有关注的股票吗？此操作不可撤销！',
+                function() {
+                    performClearAction(btn);
+                }
+            );
+        }
+    });
+    
+    // 导出关注列表
+    $('#exportBtn').click(function() {
+        const btn = $(this);
+        btn.prop('disabled', true);
+        btn.html('<i class="fas fa-spinner fa-spin me-2"></i>导出中...');
+        
+        // 收集股票数据
+        const stocks = [];
+        $('tbody tr').each(function() {
+            const code = $(this).find('code').text();
+            const name = $(this).find('td:eq(1)').text();
+            const market = $(this).find('td:eq(2) .badge').text();
+            const industry = $(this).find('td:eq(3)').text();
+            
+            stocks.push({
+                code: code,
+                name: name,
+                market: market,
+                industry: industry
+            });
+        });
+        
+        // 生成CSV内容
+        const csvContent = [
+            ['股票代码', '公司名称', '市场', '行业'].join(','),
+            ...stocks.map(stock => [
+                stock.code,
+                stock.name,
+                stock.market,
+                stock.industry
+            ].join(','))
+        ].join('\n');
+        
+        // 下载文件
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `关注列表_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        btn.prop('disabled', false);
+        btn.html('<i class="fas fa-download me-2"></i>导出列表');
+        showToast('success', '关注列表导出成功');
+    });
+    
+    // 初始化
+    updateWatchlistSummary();
+});
+</script>
 {% endblock %}

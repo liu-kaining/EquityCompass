@@ -10,29 +10,81 @@
     </div>
 </div>
 
+<!-- 统计信息 -->
+{% if watchlist_summary %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ watchlist_summary.count }}</h4>
+                        <small class="text-muted">已关注</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">{{ watchlist_summary.remaining_slots }}</h4>
+                        <small class="text-muted">剩余额度</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info">{{ watchlist_summary.max_count }}</h4>
+                        <small class="text-muted">最大关注数</small>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('stocks.watchlist') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-bookmark me-1"></i>查看关注列表
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- 搜索框 -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="card glass-effect">
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <input type="text" class="form-control bg-dark border-secondary text-light" 
-                               placeholder="搜索股票代码或公司名称..." id="stockSearch">
+                <form method="GET" action="{{ url_for('stocks.index') }}" id="searchForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control bg-dark border-secondary text-light" 
+                                   placeholder="搜索股票代码或公司名称..." 
+                                   name="search" 
+                                   value="{{ pagination.search or '' }}"
+                                   id="stockSearch">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select bg-dark border-secondary text-light" name="market" id="marketFilter">
+                                <option value="">全部市场</option>
+                                <option value="US" {% if pagination.market == 'US' %}selected{% endif %}>美股</option>
+                                <option value="HK" {% if pagination.market == 'HK' %}selected{% endif %}>港股</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search me-2"></i>搜索
+                            </button>
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <select class="form-select bg-dark border-secondary text-light" id="marketFilter">
-                            <option value="">全部市场</option>
-                            <option value="US">美股</option>
-                            <option value="HK">港股</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button class="btn btn-primary w-100">
-                            <i class="fas fa-search me-2"></i>搜索
-                        </button>
-                    </div>
-                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 操作按钮 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <a href="{{ url_for('stocks.add_custom_stock') }}" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>添加自定义股票
+                </a>
+            </div>
+            <div>
+                <span class="text-muted">共找到 {{ pagination.total }} 支股票</span>
             </div>
         </div>
     </div>
@@ -43,57 +95,119 @@
     <div class="col-12">
         <div class="card glass-effect">
             <div class="card-body">
-                <h5 class="card-title mb-4">美股市值 TOP 100</h5>
-                
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    股票数据接口尚未集成，以下为示例数据
-                </div>
-                
-                <div class="table-responsive">
-                    <table class="table table-dark table-hover">
-                        <thead>
-                            <tr>
-                                <th>股票代码</th>
-                                <th>公司名称</th>
-                                <th>市场</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>AAPL</code></td>
-                                <td>苹果公司</td>
-                                <td><span class="badge bg-primary">美股</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-success">
-                                        <i class="fas fa-bookmark me-1"></i>关注
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><code>MSFT</code></td>
-                                <td>微软公司</td>
-                                <td><span class="badge bg-primary">美股</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-success">
-                                        <i class="fas fa-bookmark me-1"></i>关注
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><code>GOOGL</code></td>
-                                <td>谷歌</td>
-                                <td><span class="badge bg-primary">美股</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-success">
-                                        <i class="fas fa-bookmark me-1"></i>关注
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                {% if stocks %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>股票代码</th>
+                                    <th>公司名称</th>
+                                    <th>市场</th>
+                                    <th>行业</th>
+                                    <th>类型</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stock in stocks %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('stocks.stock_detail', code=stock.code) }}" 
+                                           class="text-decoration-none">
+                                            <code class="text-primary">{{ stock.code }}</code>
+                                        </a>
+                                    </td>
+                                    <td>{{ stock.name }}</td>
+                                    <td>
+                                        {% if stock.market == 'US' %}
+                                            <span class="badge bg-primary">美股</span>
+                                        {% else %}
+                                            <span class="badge bg-success">港股</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ stock.industry or '未知' }}</small>
+                                    </td>
+                                    <td>
+                                        {% if stock.stock_type == 'BUILTIN' %}
+                                            <span class="badge bg-info">内置</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">自定义</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stock.is_watching %}
+                                            <button class="btn btn-sm btn-outline-danger watch-btn" 
+                                                    data-stock-code="{{ stock.code }}"
+                                                    data-action="remove">
+                                                <i class="fas fa-bookmark me-1"></i>取消关注
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-outline-success watch-btn" 
+                                                    data-stock-code="{{ stock.code }}"
+                                                    data-action="add">
+                                                <i class="fas fa-bookmark me-1"></i>关注
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分页 -->
+                    {% if pagination.pages > 1 %}
+                    <nav aria-label="股票列表分页">
+                        <ul class="pagination justify-content-center">
+                            {% if pagination.page > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('stocks.index', page=pagination.page-1, market=pagination.market, search=pagination.search) }}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for p in range(1, pagination.pages + 1) %}
+                                {% if p == pagination.page %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ p }}</span>
+                                    </li>
+                                {% elif p <= 3 or p > pagination.pages - 3 or (pagination.page - 2 <= p <= pagination.page + 2) %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('stocks.index', page=p, market=pagination.market, search=pagination.search) }}">{{ p }}</a>
+                                    </li>
+                                {% elif p == 4 and pagination.page > 6 %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% elif p == pagination.pages - 3 and pagination.page < pagination.pages - 5 %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if pagination.page < pagination.pages %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('stocks.index', page=pagination.page+1, market=pagination.market, search=pagination.search) }}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">没有找到匹配的股票</h5>
+                        <p class="text-muted">请尝试使用不同的搜索关键词或市场筛选</p>
+                        <a href="{{ url_for('stocks.index') }}" class="btn btn-primary">
+                            <i class="fas fa-undo me-2"></i>返回全部股票
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -103,4 +217,125 @@
 {% block extra_css %}
 <!-- Font Awesome -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 关注/取消关注功能
+    $('.watch-btn').click(function() {
+        const btn = $(this);
+        const stockCode = btn.data('stock-code');
+        const action = btn.data('action');
+        const isAdding = action === 'add';
+        
+        // 如果是取消关注，需要确认
+        if (!isAdding) {
+            confirmAction(
+                '取消关注',
+                `确定要取消关注 ${stockCode} 吗？`,
+                function() {
+                    performWatchAction(btn, stockCode, action);
+                }
+            );
+        } else {
+            performWatchAction(btn, stockCode, action);
+        }
+    });
+    
+    // 执行关注/取消关注操作
+    function performWatchAction(btn, stockCode, action) {
+        const isAdding = action === 'add';
+        
+        // 禁用按钮防止重复点击
+        btn.prop('disabled', true);
+        
+        // 显示加载状态
+        btn.html('<i class="fas fa-spinner fa-spin me-1"></i>处理中...');
+        
+        // 发送API请求
+        $.ajax({
+            url: `/api/stocks/watchlist/${action}`,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ stock_code: stockCode }),
+            success: function(response) {
+                if (response.success) {
+                    // 更新按钮状态
+                    if (isAdding) {
+                        btn.removeClass('btn-outline-success').addClass('btn-outline-danger');
+                        btn.data('action', 'remove');
+                        btn.html('<i class="fas fa-bookmark me-1"></i>取消关注');
+                    } else {
+                        btn.removeClass('btn-outline-danger').addClass('btn-outline-success');
+                        btn.data('action', 'add');
+                        btn.html('<i class="fas fa-bookmark me-1"></i>关注');
+                    }
+                    
+                    // 显示成功消息
+                    showToast('success', response.message);
+                    
+                    // 更新统计信息
+                    updateWatchlistSummary();
+                } else {
+                    showToast('error', response.message || '操作失败');
+                }
+            },
+            error: function(xhr) {
+                const response = xhr.responseJSON;
+                showToast('error', response?.message || '网络错误，请稍后重试');
+            },
+            complete: function() {
+                btn.prop('disabled', false);
+            }
+        });
+    }
+    
+    // 搜索表单提交
+    $('#searchForm').submit(function() {
+        const searchValue = $('#stockSearch').val().trim();
+        const marketValue = $('#marketFilter').val();
+        
+        // 如果搜索框为空且没有选择市场，阻止提交
+        if (!searchValue && !marketValue) {
+            return false;
+        }
+    });
+    
+    // 更新关注列表统计信息
+    function updateWatchlistSummary() {
+        $.get('/api/stocks/watchlist', function(response) {
+            if (response.success) {
+                // 这里可以更新页面上的统计信息
+                // 暂时简单刷新页面
+                setTimeout(function() {
+                    location.reload();
+                }, 1000);
+            }
+        });
+    }
+    
+    // 显示消息提示
+    function showToast(type, message) {
+        const toastClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+        
+        const toast = $(`
+            <div class="alert ${toastClass} alert-dismissible fade show position-fixed" 
+                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                <i class="fas ${icon} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `);
+        
+        $('body').append(toast);
+        
+        // 自动消失
+        setTimeout(function() {
+            toast.alert('close');
+        }, 3000);
+    }
+});
+</script>
 {% endblock %}

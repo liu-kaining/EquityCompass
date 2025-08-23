@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}添加自定义股票 - 智策股析{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="gradient-text mb-2">添加自定义股票</h1>
+                <p class="text-muted">添加您关注的股票到系统中</p>
+            </div>
+            <div>
+                <a href="{{ url_for('stocks.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>返回股票池
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <h5 class="card-title mb-4">
+                    <i class="fas fa-plus-circle me-2"></i>股票信息
+                </h5>
+                
+                <form method="POST" id="addStockForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="code" class="form-label">股票代码 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control bg-dark border-secondary text-light" 
+                                   id="code" name="code" required 
+                                   placeholder="例如: AAPL, 00700.HK"
+                                   pattern="[A-Za-z0-9.]+"
+                                   title="请输入有效的股票代码">
+                            <div class="form-text text-muted">
+                                美股代码如：AAPL, MSFT, GOOGL<br>
+                                港股代码如：00700.HK, 09988.HK
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="market" class="form-label">市场 <span class="text-danger">*</span></label>
+                            <select class="form-select bg-dark border-secondary text-light" 
+                                    id="market" name="market" required>
+                                <option value="">请选择市场</option>
+                                <option value="US">美股 (NASDAQ/NYSE)</option>
+                                <option value="HK">港股 (HKEX)</option>
+                            </select>
+                            <div class="form-text text-muted">
+                                选择股票所属的市场
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">公司名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control bg-dark border-secondary text-light" 
+                               id="name" name="name" required 
+                               placeholder="例如: 苹果公司, 腾讯控股有限公司">
+                        <div class="form-text text-muted">
+                            请输入公司的完整名称
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="industry" class="form-label">行业</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-light" 
+                                   id="industry" name="industry" 
+                                   placeholder="例如: 科技, 金融, 消费">
+                            <div class="form-text text-muted">
+                                可选：公司所属行业
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="exchange" class="form-label">交易所</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-light" 
+                                   id="exchange" name="exchange" 
+                                   placeholder="例如: NASDAQ, NYSE, HKEX">
+                            <div class="form-text text-muted">
+                                可选：具体的交易所
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>提示：</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>股票代码将自动转换为大写格式</li>
+                            <li>添加的股票将出现在股票池中，其他用户也可以看到</li>
+                            <li>请确保股票代码的准确性，避免重复添加</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('stocks.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>取消
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>添加股票
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快速添加示例 -->
+<div class="row mt-4">
+    <div class="col-md-8 mx-auto">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-lightbulb me-2"></i>快速添加示例
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">美股示例</h6>
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item bg-transparent border-secondary">
+                                <strong>AAPL</strong> - 苹果公司 (科技)
+                            </div>
+                            <div class="list-group-item bg-transparent border-secondary">
+                                <strong>MSFT</strong> - 微软公司 (科技)
+                            </div>
+                            <div class="list-group-item bg-transparent border-secondary">
+                                <strong>GOOGL</strong> - 谷歌 (科技)
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-success">港股示例</h6>
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item bg-transparent border-secondary">
+                                <strong>00700.HK</strong> - 腾讯控股 (科技)
+                            </div>
+                            <div class="list-group-item bg-transparent border-secondary">
+                                <strong>09988.HK</strong> - 阿里巴巴 (科技)
+                            </div>
+                            <div class="list-group-item bg-transparent border-secondary">
+                                <strong>03690.HK</strong> - 美团 (消费)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 表单验证
+    $('#addStockForm').submit(function(e) {
+        const code = $('#code').val().trim().toUpperCase();
+        const name = $('#name').val().trim();
+        const market = $('#market').val();
+        
+        // 基本验证
+        if (!code || !name || !market) {
+            e.preventDefault();
+            showToast('error', '请填写所有必填字段');
+            return false;
+        }
+        
+        // 股票代码格式验证
+        if (!/^[A-Z0-9.]+$/.test(code)) {
+            e.preventDefault();
+            showToast('error', '股票代码格式不正确');
+            return false;
+        }
+        
+        // 市场与代码匹配验证
+        if (market === 'HK' && !code.includes('.HK')) {
+            if (!confirm('港股代码通常包含 .HK 后缀，是否继续添加？')) {
+                e.preventDefault();
+                return false;
+            }
+        }
+        
+        // 显示提交状态
+        const submitBtn = $(this).find('button[type="submit"]');
+        submitBtn.prop('disabled', true);
+        submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>添加中...');
+    });
+    
+    // 自动格式化股票代码
+    $('#code').on('input', function() {
+        let value = $(this).val().toUpperCase();
+        // 移除特殊字符，只保留字母、数字和点
+        value = value.replace(/[^A-Z0-9.]/g, '');
+        $(this).val(value);
+    });
+    
+    // 根据市场自动设置交易所
+    $('#market').change(function() {
+        const market = $(this).val();
+        if (market === 'US') {
+            $('#exchange').val('NASDAQ');
+        } else if (market === 'HK') {
+            $('#exchange').val('HKEX');
+        } else {
+            $('#exchange').val('');
+        }
+    });
+    
+    // 显示消息提示
+    function showToast(type, message) {
+        const toastClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+        
+        const toast = $(`
+            <div class="alert ${toastClass} alert-dismissible fade show position-fixed" 
+                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                <i class="fas ${icon} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `);
+        
+        $('body').append(toast);
+        
+        // 自动消失
+        setTimeout(function() {
+            toast.alert('close');
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}

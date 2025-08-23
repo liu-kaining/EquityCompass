@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from app.repositories.base import SQLAlchemyRepository
 from app.models.stock import UserWatchlist, Stock
+from app.utils.timezone import format_local_time
 
 
 class WatchlistRepository(SQLAlchemyRepository):
@@ -30,7 +31,7 @@ class WatchlistRepository(SQLAlchemyRepository):
                 'id': watchlist_item.id,
                 'user_id': watchlist_item.user_id,
                 'stock_id': watchlist_item.stock_id,
-                'created_at': watchlist_item.added_at,
+                'added_at': format_local_time(watchlist_item.added_at) if watchlist_item.added_at else None,
                 'stock': {
                     'id': stock.id,
                     'code': stock.code,

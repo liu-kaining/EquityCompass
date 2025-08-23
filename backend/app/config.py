@@ -61,6 +61,10 @@ class Config:
     MAX_WATCHLIST_SIZE = 20
     VERIFICATION_CODE_EXPIRE = 600  # 10分钟
     RATE_LIMIT_PER_MINUTE = 60
+    
+    # 时区配置
+    TIMEZONE = 'Asia/Shanghai'  # 东八区
+    TIMEZONE_OFFSET = 8  # UTC+8
 
 
 class DevelopmentConfig(Config):
