@@ -7,11 +7,13 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="gradient-text mb-2">添加自定义股票</h1>
-                <p class="text-muted">添加您关注的股票到系统中</p>
+                <h1 class="gradient-text mb-2">
+                    <i class="fas fa-plus-circle me-3"></i>添加自定义股票
+                </h1>
+                <p class="text-muted fs-5">添加您关注的股票到系统中，丰富股票池数据</p>
             </div>
             <div>
-                <a href="{{ url_for('stocks.index') }}" class="btn btn-outline-primary">
+                <a href="{{ url_for('stocks.index') }}" class="btn btn-outline-primary btn-lg">
                     <i class="fas fa-arrow-left me-2"></i>返回股票池
                 </a>
             </div>
@@ -20,132 +22,197 @@
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card glass-effect">
-            <div class="card-body">
-                <h5 class="card-title mb-4">
-                    <i class="fas fa-plus-circle me-2"></i>股票信息
+    <div class="col-lg-8">
+        <!-- 主要表单卡片 -->
+        <div class="card glass-effect shadow-lg border-0">
+            <div class="card-header bg-gradient-primary text-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>股票信息
                 </h5>
-                
+            </div>
+            <div class="card-body p-4">
                 <form method="POST" id="addStockForm">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="code" class="form-label">股票代码 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" 
-                                   id="code" name="code" required 
-                                   placeholder="例如: AAPL, 00700.HK"
-                                   pattern="[A-Za-z0-9.]+"
-                                   title="请输入有效的股票代码">
-                            <div class="form-text text-muted">
-                                美股代码如：AAPL, MSFT, GOOGL<br>
-                                港股代码如：00700.HK, 09988.HK
+                    <!-- 股票代码和市场 -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control form-control-lg" 
+                                       id="code" name="code" required 
+                                       placeholder="例如: AAPL, 00700.HK"
+                                       pattern="[A-Za-z0-9.]+"
+                                       title="请输入有效的股票代码">
+                                <label for="code">
+                                    <i class="fas fa-tag me-2"></i>股票代码 <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="fas fa-info-circle me-1"></i>
+                                美股：AAPL, MSFT, GOOGL<br>
+                                港股：00700.HK, 09988.HK
                             </div>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
-                            <label for="market" class="form-label">市场 <span class="text-danger">*</span></label>
-                            <select class="form-select" 
-                                    id="market" name="market" required>
-                                <option value="">请选择市场</option>
-                                <option value="US">美股 (NASDAQ/NYSE)</option>
-                                <option value="HK">港股 (HKEX)</option>
-                            </select>
-                            <div class="form-text text-muted">
+                        <div class="col-md-6">
+                            <div class="custom-select market-select">
+                                <select class="form-select form-select-lg" 
+                                        id="market" name="market" required>
+                                    <option value="">请选择市场</option>
+                                    <option value="US">🇺🇸 美股 (NASDAQ/NYSE)</option>
+                                    <option value="HK">🇭🇰 港股 (HKEX)</option>
+                                </select>
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="fas fa-info-circle me-1"></i>
+                                选择股票所属的市场
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="fas fa-info-circle me-1"></i>
                                 选择股票所属的市场
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="name" class="form-label">公司名称 <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" 
-                               id="name" name="name" required 
-                               placeholder="例如: 苹果公司, 腾讯控股有限公司">
-                        <div class="form-text text-muted">
+                    <!-- 公司名称 -->
+                    <div class="mb-4">
+                        <div class="form-floating">
+                            <input type="text" class="form-control form-control-lg" 
+                                   id="name" name="name" required 
+                                   placeholder="例如: 苹果公司, 腾讯控股有限公司">
+                            <label for="name">
+                                <i class="fas fa-building me-2"></i>公司名称 <span class="text-danger">*</span>
+                            </label>
+                        </div>
+                        <div class="form-text mt-2">
+                            <i class="fas fa-info-circle me-1"></i>
                             请输入公司的完整名称
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="industry" class="form-label">行业</label>
-                            <input type="text" class="form-control" 
-                                   id="industry" name="industry" 
-                                   placeholder="例如: 科技, 金融, 消费">
-                            <div class="form-text text-muted">
+                    <!-- 行业和交易所 -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control form-control-lg" 
+                                       id="industry" name="industry" 
+                                       placeholder="例如: 科技, 金融, 消费">
+                                <label for="industry">
+                                    <i class="fas fa-industry me-2"></i>行业
+                                </label>
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="fas fa-info-circle me-1"></i>
                                 可选：公司所属行业
                             </div>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
-                            <label for="exchange" class="form-label">交易所</label>
-                            <input type="text" class="form-control bg-dark border-secondary text-light" 
-                                   id="exchange" name="exchange" 
-                                   placeholder="例如: NASDAQ, NYSE, HKEX">
-                            <div class="form-text text-muted">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control form-control-lg" 
+                                       id="exchange" name="exchange" 
+                                       placeholder="例如: NASDAQ, NYSE, HKEX">
+                                <label for="exchange">
+                                    <i class="fas fa-exchange-alt me-2"></i>交易所
+                                </label>
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="fas fa-info-circle me-1"></i>
                                 可选：具体的交易所
                             </div>
                         </div>
                     </div>
                     
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>提示：</strong>
-                        <ul class="mb-0 mt-2">
-                            <li>股票代码将自动转换为大写格式</li>
-                            <li>添加的股票将出现在股票池中，其他用户也可以看到</li>
-                            <li>请确保股票代码的准确性，避免重复添加</li>
-                        </ul>
+                    <!-- 提示信息 -->
+                    <div class="alert alert-info border-0 shadow-sm">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-lightbulb text-warning fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="alert-heading mb-2">添加提示</h6>
+                                <ul class="mb-0 ps-3">
+                                    <li>股票代码将自动转换为大写格式</li>
+                                    <li>添加的股票将出现在股票池中，其他用户也可以看到</li>
+                                    <li>请确保股票代码的准确性，避免重复添加</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="d-flex justify-content-between">
-                        <a href="{{ url_for('stocks.index') }}" class="btn btn-outline-secondary">
+                    <!-- 操作按钮 -->
+                    <div class="d-flex justify-content-between pt-3">
+                        <a href="{{ url_for('stocks.index') }}" class="btn btn-outline-secondary btn-lg">
                             <i class="fas fa-times me-2"></i>取消
                         </a>
-                        <button type="submit" class="btn btn-success">
+                        <button type="submit" class="btn btn-success btn-lg px-4">
                             <i class="fas fa-plus me-2"></i>添加股票
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- 快速添加示例 -->
-<div class="row mt-4">
-    <div class="col-md-8 mx-auto">
-        <div class="card glass-effect">
-            <div class="card-body">
-                <h5 class="card-title mb-3">
+        
+        <!-- 快速添加示例 -->
+        <div class="card glass-effect shadow-lg border-0 mt-4">
+            <div class="card-header bg-gradient-info text-white py-3">
+                <h5 class="card-title mb-0">
                     <i class="fas fa-lightbulb me-2"></i>快速添加示例
                 </h5>
+            </div>
+            <div class="card-body p-4">
                 <div class="row">
                     <div class="col-md-6">
-                        <h6 class="text-primary">美股示例</h6>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-flag-usa text-primary fs-4 me-2"></i>
+                            <h6 class="mb-0 text-primary fw-bold">美股示例</h6>
+                        </div>
                         <div class="list-group list-group-flush">
-                            <div class="list-group-item bg-transparent border-secondary">
-                                <strong>AAPL</strong> - 苹果公司 (科技)
+                            <div class="list-group-item bg-transparent border-0 ps-0">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2">AAPL</span>
+                                    <span>苹果公司</span>
+                                    <small class="text-muted ms-auto">科技</small>
+                                </div>
                             </div>
-                            <div class="list-group-item bg-transparent border-secondary">
-                                <strong>MSFT</strong> - 微软公司 (科技)
+                            <div class="list-group-item bg-transparent border-0 ps-0">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2">MSFT</span>
+                                    <span>微软公司</span>
+                                    <small class="text-muted ms-auto">科技</small>
+                                </div>
                             </div>
-                            <div class="list-group-item bg-transparent border-secondary">
-                                <strong>GOOGL</strong> - 谷歌 (科技)
+                            <div class="list-group-item bg-transparent border-0 ps-0">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2">GOOGL</span>
+                                    <span>谷歌</span>
+                                    <small class="text-muted ms-auto">科技</small>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="text-success">港股示例</h6>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-flag text-success fs-4 me-2"></i>
+                            <h6 class="mb-0 text-success fw-bold">港股示例</h6>
+                        </div>
                         <div class="list-group list-group-flush">
-                            <div class="list-group-item bg-transparent border-secondary">
-                                <strong>00700.HK</strong> - 腾讯控股 (科技)
+                            <div class="list-group-item bg-transparent border-0 ps-0">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">00700.HK</span>
+                                    <span>腾讯控股</span>
+                                    <small class="text-muted ms-auto">科技</small>
+                                </div>
                             </div>
-                            <div class="list-group-item bg-transparent border-secondary">
-                                <strong>09988.HK</strong> - 阿里巴巴 (科技)
+                            <div class="list-group-item bg-transparent border-0 ps-0">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">09988.HK</span>
+                                    <span>阿里巴巴</span>
+                                    <small class="text-muted ms-auto">科技</small>
+                                </div>
                             </div>
-                            <div class="list-group-item bg-transparent border-secondary">
-                                <strong>03690.HK</strong> - 美团 (消费)
+                            <div class="list-group-item bg-transparent border-0 ps-0">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">03690.HK</span>
+                                    <span>美团</span>
+                                    <small class="text-muted ms-auto">消费</small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -159,6 +226,41 @@
 {% block extra_css %}
 <!-- Font Awesome -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+.form-floating > .form-control:focus,
+.form-floating > .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.form-floating > .form-control-lg {
+    height: calc(3.5rem + 2px);
+    line-height: 1.25;
+}
+
+.form-floating > .form-select-lg {
+    height: calc(3.5rem + 2px);
+    line-height: 1.25;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.card.glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.shadow-lg {
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}

@@ -26,8 +26,8 @@
                             <label class="form-label fw-semibold">
                                 <i class="fas fa-chart-line me-2"></i>股票筛选
                             </label>
-                            <div class="custom-select-wrapper">
-                                <select class="form-select custom-select" name="stock" id="stockFilter">
+                            <div class="custom-select filter-select">
+                                <select class="form-select" name="stock" id="stockFilter">
                                     <option value="">📊 全部股票</option>
                                     {% for stock in available_stocks %}
                                     <option value="{{ stock.code }}" {% if request.args.get('stock') == stock.code %}selected{% endif %}>
@@ -35,29 +35,27 @@
                                     </option>
                                     {% endfor %}
                                 </select>
-                                <div class="select-arrow">▼</div>
                             </div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label fw-semibold">
                                 <i class="fas fa-calendar me-2"></i>日期筛选
                             </label>
-                            <div class="custom-select-wrapper">
-                                <select class="form-select custom-select" name="date" id="dateFilter">
+                            <div class="custom-select filter-select">
+                                <select class="form-select" name="date" id="dateFilter">
                                     <option value="">📅 全部日期</option>
                                     <option value="today" {% if request.args.get('date') == 'today' %}selected{% endif %}>📆 今天</option>
                                     <option value="week" {% if request.args.get('date') == 'week' %}selected{% endif %}>📅 本周</option>
                                     <option value="month" {% if request.args.get('date') == 'month' %}selected{% endif %}>📊 本月</option>
                                 </select>
-                                <div class="select-arrow">▼</div>
                             </div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label fw-semibold">
                                 <i class="fas fa-chart-line me-2"></i>分析类型
                             </label>
-                            <div class="custom-select-wrapper">
-                                <select class="form-select custom-select" name="analysis_type" id="analysisTypeFilter">
+                            <div class="custom-select filter-select">
+                                <select class="form-select" name="analysis_type" id="analysisTypeFilter">
                                     <option value="">📊 全部类型</option>
                                     <option value="fundamental" {% if request.args.get('analysis_type') == 'fundamental' %}selected{% endif %}>
                                         📈 基本面分析
@@ -66,15 +64,14 @@
                                         📉 技术面分析
                                     </option>
                                 </select>
-                                <div class="select-arrow">▼</div>
                             </div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label fw-semibold">
                                 <i class="fas fa-robot me-2"></i>模型筛选
                             </label>
-                            <div class="custom-select-wrapper">
-                                <select class="form-select custom-select" name="model" id="modelFilter">
+                            <div class="custom-select filter-select">
+                                <select class="form-select" name="model" id="modelFilter">
                                     <option value="">🤖 全部模型</option>
                                     <option value="gemini" {% if request.args.get('model') == 'gemini' %}selected{% endif %}>
                                         🤖 Gemini
@@ -86,13 +83,12 @@
                                         🚀 DeepSeek
                                     </option>
                                 </select>
-                                <div class="select-arrow">▼</div>
                             </div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">&nbsp;</label>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">
+                            <div class="d-flex">
+                                <button type="submit" class="btn btn-primary w-100">
                                     <i class="fas fa-search me-2"></i>筛选
                                 </button>
                             </div>
@@ -116,11 +112,17 @@
                         </h5>
                         <p class="text-muted mb-0 small">共 {{ reports|length }} 份分析报告</p>
                     </div>
-                    <div>
-                        <button class="btn btn-outline-secondary me-2">
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-outline-primary report-action-btn" id="batchExportBtn" onclick="toggleBatchMode()">
                             <i class="fas fa-download me-2"></i>批量导出
                         </button>
-                        <a href="{{ url_for('analysis.index') }}" class="btn btn-primary">
+                        <button class="btn btn-success report-action-btn" id="confirmExportBtn" onclick="confirmBatchExport()" style="display: none;">
+                            <i class="fas fa-check me-2"></i>确认导出
+                        </button>
+                        <button class="btn btn-secondary report-action-btn" id="cancelBatchBtn" onclick="cancelBatchMode()" style="display: none;">
+                            <i class="fas fa-times me-2"></i>取消
+                        </button>
+                        <a href="{{ url_for('analysis.index') }}" class="btn btn-primary report-action-btn">
                             <i class="fas fa-plus me-2"></i>新建分析
                         </a>
                     </div>
@@ -130,8 +132,21 @@
                     <div class="row">
                         {% for report in reports %}
                         <div class="col-lg-6 col-xl-4 mb-4">
-                            <div class="card report-card glass-effect h-100">
+                            <div class="card report-card glass-effect h-100" data-report-id="{{ report.id }}">
                                 <div class="card-body d-flex flex-column">
+                                    <!-- 多选复选框 -->
+                                    <div class="report-checkbox" style="display: none;">
+                                        <div class="form-check">
+                                            <input class="form-check-input report-select-checkbox" type="checkbox" 
+                                                   value="{{ report.id }}" 
+                                                   data-stock-code="{{ report.stock_code }}"
+                                                   data-report-id="{{ report.report_id }}"
+                                                   id="report_{{ report.id }}">
+                                            <label class="form-check-label" for="report_{{ report.id }}">
+                                                选择此报告
+                                            </label>
+                                        </div>
+                                    </div>
                                     <!-- 卡片头部 -->
                                     <div class="d-flex justify-content-between align-items-start mb-3">
                                         <div class="flex-grow-1">
@@ -181,6 +196,46 @@
                         </div>
                         {% endfor %}
                     </div>
+                    
+                    <!-- 分页组件 -->
+                    {% if pagination and pagination.pages > 1 %}
+                    <div class="pagination-container mt-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="pagination-info">
+                                <small>
+                                    共 {{ pagination.total }} 份报告 · 第 {{ pagination.page }} 页，共 {{ pagination.pages }} 页
+                                </small>
+                            </div>
+                            <nav aria-label="报告分页">
+                                <ul class="pagination pagination-sm mb-0">
+                                    {% if pagination.has_prev %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('reports.index', page=pagination.prev_page, stock=request.args.get('stock', ''), date=request.args.get('date', ''), analysis_type=request.args.get('analysis_type', ''), model=request.args.get('model', '')) }}">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    {% for p in range(max(1, pagination.page - 2), min(pagination.pages + 1, pagination.page + 3)) %}
+                                    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('reports.index', page=p, stock=request.args.get('stock', ''), date=request.args.get('date', ''), analysis_type=request.args.get('analysis_type', ''), model=request.args.get('model', '')) }}">
+                                            {{ p }}
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                    
+                                    {% if pagination.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('reports.index', page=pagination.next_page, stock=request.args.get('stock', ''), date=request.args.get('date', ''), analysis_type=request.args.get('analysis_type', ''), model=request.args.get('model', '')) }}">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                    {% endif %}
                 {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
@@ -200,4 +255,133 @@
 {% block extra_css %}
 <!-- Font Awesome -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let batchMode = false;
+
+function toggleBatchMode() {
+    batchMode = !batchMode;
+    const checkboxes = document.querySelectorAll('.report-checkbox');
+    const batchBtn = document.getElementById('batchExportBtn');
+    const confirmBtn = document.getElementById('confirmExportBtn');
+    const cancelBtn = document.getElementById('cancelBatchBtn');
+    
+    if (batchMode) {
+        // 进入多选模式
+        checkboxes.forEach(cb => cb.style.display = 'block');
+        batchBtn.style.display = 'none';
+        confirmBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'inline-block';
+        
+        // 添加选中效果
+        document.querySelectorAll('.report-card').forEach(card => {
+            card.style.border = '2px solid transparent';
+            card.style.transition = 'all 0.3s ease';
+        });
+        
+        // 监听复选框变化
+        document.querySelectorAll('.report-select-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const card = this.closest('.report-card');
+                if (this.checked) {
+                    card.style.border = '2px solid #4f46e5';
+                    card.style.transform = 'scale(1.02)';
+                } else {
+                    card.style.border = '2px solid transparent';
+                    card.style.transform = 'scale(1)';
+                }
+            });
+        });
+    }
+}
+
+function cancelBatchMode() {
+    batchMode = false;
+    const checkboxes = document.querySelectorAll('.report-checkbox');
+    const batchBtn = document.getElementById('batchExportBtn');
+    const confirmBtn = document.getElementById('confirmExportBtn');
+    const cancelBtn = document.getElementById('cancelBatchBtn');
+    
+    // 退出多选模式
+    checkboxes.forEach(cb => cb.style.display = 'none');
+    batchBtn.style.display = 'inline-block';
+    confirmBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
+    
+    // 清除选中状态
+    document.querySelectorAll('.report-select-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    // 清除选中效果
+    document.querySelectorAll('.report-card').forEach(card => {
+        card.style.border = '2px solid transparent';
+        card.style.transform = 'scale(1)';
+    });
+}
+
+function confirmBatchExport() {
+    const selectedReports = document.querySelectorAll('.report-select-checkbox:checked');
+    
+    if (selectedReports.length === 0) {
+        alert('请至少选择一个报告进行导出');
+        return;
+    }
+    
+    // 显示加载提示
+    const confirmBtn = document.getElementById('confirmExportBtn');
+    const originalText = confirmBtn.innerHTML;
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>生成中...';
+    confirmBtn.disabled = true;
+    
+    // 收集选中的报告信息
+    const reportData = Array.from(selectedReports).map(checkbox => ({
+        stock_code: checkbox.getAttribute('data-stock-code'),
+        report_id: checkbox.getAttribute('data-report-id')
+    }));
+    
+    // 发送批量导出请求
+    fetch('/reports/batch-export', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reports: reportData })
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.blob();
+        }
+        throw new Error('导出失败');
+    })
+    .then(blob => {
+        // 创建下载链接
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `分析报告_${new Date().toISOString().slice(0, 10)}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        // 退出多选模式
+        cancelBatchMode();
+        
+        // 恢复按钮状态
+        confirmBtn.innerHTML = originalText;
+        confirmBtn.disabled = false;
+    })
+    .catch(error => {
+        console.error('导出错误:', error);
+        alert('导出失败，请重试');
+        
+        // 恢复按钮状态
+        confirmBtn.innerHTML = originalText;
+        confirmBtn.disabled = false;
+    });
+}
+</script>
 {% endblock %}

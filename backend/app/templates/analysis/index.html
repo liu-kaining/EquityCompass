@@ -53,10 +53,12 @@
                                 <label for="analysisType" class="form-label">
                                     <i class="fas fa-chart-line me-2"></i>分析类型
                                 </label>
-                                <select class="form-select" id="analysisType">
-                                    <option value="fundamental">📊 基本面分析</option>
-                                    <option value="technical">📈 技术面分析</option>
-                                </select>
+                                <div class="custom-select analysis-type-select">
+                                    <select class="form-select" id="analysisType">
+                                        <option value="fundamental">📊 基本面分析</option>
+                                        <option value="technical">📈 技术面分析</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -64,32 +66,23 @@
                                 <label for="aiProvider" class="form-label">
                                     <i class="fas fa-robot me-2"></i>AI模型
                                 </label>
-                                <div class="custom-select-wrapper">
-                                    <select class="form-select custom-select" id="aiProvider">
-                                        <option value="gemini" data-icon="🤖">
-                                            <i class="fas fa-robot"></i> Gemini (推荐)
-                                        </option>
-                                        <option value="qwen" data-icon="🌟">
-                                            <i class="fas fa-star"></i> Qwen
-                                        </option>
-                                        <option value="deepseek" data-icon="🚀">
-                                            <i class="fas fa-rocket"></i> DeepSeek
-                                        </option>
+                                <div class="custom-select ai-model-select">
+                                    <select class="form-select" id="aiProvider">
+                                        <option value="gemini">🤖 Gemini (推荐)</option>
+                                        <option value="qwen">🌟 Qwen</option>
+                                        <option value="deepseek">🚀 DeepSeek</option>
                                     </select>
-                                    <div class="select-arrow">
-                                        <i class="fas fa-chevron-down"></i>
-                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label">快速操作</label>
-                                <div class="d-grid gap-2">
-                                    <button id="batchAnalyzeBtn" class="btn btn-primary">
+                                <div class="d-flex gap-2">
+                                    <button id="batchAnalyzeBtn" class="btn btn-primary flex-fill">
                                         <i class="fas fa-magic me-2"></i>批量分析所有
                                     </button>
-                                    <a href="{{ url_for('analysis.tasks') }}" class="btn btn-outline-info">
+                                    <a href="{{ url_for('analysis.tasks') }}" class="btn btn-outline-info flex-fill">
                                         <i class="fas fa-tasks me-2"></i>查看任务
                                     </a>
                                 </div>

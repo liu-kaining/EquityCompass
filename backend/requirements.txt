@@ -46,3 +46,8 @@ gunicorn==21.2.0
 openai==0.28.0
 google-generativeai==0.2.0
 dashscope==1.14.0  # 阿里云通义千问API
+
+# PDF Generation
+reportlab==4.4.3
+playwright==1.54.0
+markdown==3.8.2

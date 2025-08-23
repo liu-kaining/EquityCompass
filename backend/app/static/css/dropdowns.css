@@ -1,0 +1,331 @@
+/* 现代化下拉框样式优化 */
+
+/* 基础下拉框容器 */
+.custom-select {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 下拉框主体样式 */
+.custom-select select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #2c3e50;
+    background: #ffffff;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 悬停状态 */
+.custom-select select:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    transform: translateY(-1px);
+}
+
+/* 焦点状态 */
+.custom-select select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* 自定义下拉箭头 */
+.custom-select::after {
+    content: '';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #6c757d;
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+
+/* 悬停时箭头旋转 */
+.custom-select:hover::after {
+    transform: translateY(-50%) rotate(180deg);
+    border-top-color: #667eea;
+}
+
+/* 选项样式优化 */
+.custom-select select option {
+    background: #ffffff;
+    color: #2c3e50;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 400;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+/* 选项悬停效果 */
+.custom-select select option:hover {
+    background: #f8f9fa;
+}
+
+/* 选项选中效果 */
+.custom-select select option:checked {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1976d2;
+    font-weight: 500;
+}
+
+/* 市场选择下拉框 - 浅蓝色主题 */
+.market-select select {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1976d2;
+    border-color: #90caf9;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.15);
+}
+
+.market-select select:hover {
+    background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.25);
+}
+
+.market-select select:focus {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.market-select::after {
+    border-top-color: #1976d2;
+}
+
+.market-select:hover::after {
+    border-top-color: #1565c0;
+}
+
+/* 分析类型下拉框 - 浅紫色主题 */
+.analysis-type-select select {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    color: #7b1fa2;
+    border-color: #ce93d8;
+    box-shadow: 0 4px 15px rgba(123, 31, 162, 0.15);
+}
+
+.analysis-type-select select:hover {
+    background: linear-gradient(135deg, #e1bee7 0%, #ce93d8 100%);
+    box-shadow: 0 6px 20px rgba(123, 31, 162, 0.25);
+}
+
+.analysis-type-select::after {
+    border-top-color: #7b1fa2;
+}
+
+/* AI模型下拉框 - 浅粉色主题 */
+.ai-model-select select {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    color: #c2185b;
+    border-color: #f48fb1;
+    box-shadow: 0 4px 15px rgba(194, 24, 91, 0.15);
+}
+
+.ai-model-select select:hover {
+    background: linear-gradient(135deg, #f8bbd9 0%, #f48fb1 100%);
+    box-shadow: 0 6px 20px rgba(194, 24, 91, 0.25);
+}
+
+.ai-model-select::after {
+    border-top-color: #c2185b;
+}
+
+/* 筛选下拉框 - 浅色主题 */
+.filter-select select {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+.filter-select select:hover {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-color: #cbd5e1;
+}
+
+.filter-select::after {
+    border-top-color: #64748b;
+}
+
+/* 分页下拉框 - 小尺寸 */
+.pagination-select {
+    width: auto;
+    min-width: 120px;
+}
+
+.pagination-select select {
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1976d2;
+    border-color: #90caf9;
+}
+
+/* 玻璃效果下拉框 */
+.glass-dropdown select {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #1e293b;
+}
+
+.glass-dropdown select:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 状态样式 */
+.custom-select.success select {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.custom-select.warning select {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.custom-select.error select {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* 禁用状态 */
+.custom-select select:disabled {
+    background: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.custom-select select:disabled:hover {
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .custom-select select {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+    
+    .custom-select::after {
+        right: 14px;
+    }
+    
+    .pagination-select {
+        min-width: 100px;
+    }
+}
+
+/* 动画效果 */
+@keyframes dropdownSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.custom-select {
+    animation: dropdownSlideIn 0.2s ease-out;
+}
+
+/* 深色主题支持 - 改为明亮主题 */
+@media (prefers-color-scheme: dark) {
+    .custom-select select {
+        background: #ffffff;
+        color: #333333;
+        border-color: #e0e0e0;
+    }
+    
+    .custom-select select option {
+        background: #ffffff;
+        color: #333333;
+    }
+    
+    .custom-select select option:hover {
+        background: #f5f5f5;
+    }
+    
+    .filter-select select {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        color: #495057;
+        border-color: #dee2e6;
+    }
+}
+
+/* 图标下拉框增强 */
+.icon-select {
+    position: relative;
+}
+
+.icon-select::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 1;
+    opacity: 0.8;
+}
+
+.icon-select select {
+    padding-left: 48px;
+}
+
+/* 特定图标样式 */
+.icon-select.market::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E");
+}
+
+.icon-select.analysis::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z'/%3E%3C/svg%3E");
+}
+
+.icon-select.ai::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E");
+}
+
+/* 微交互增强 */
+.custom-select select:active {
+    transform: translateY(0);
+    transition: transform 0.1s ease;
+}
+
+/* 加载状态 */
+.custom-select.loading select {
+    background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}

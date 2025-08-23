@@ -65,11 +65,13 @@
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <select class="form-select" name="market" id="marketFilter">
-                                <option value="">全部市场</option>
-                                <option value="US" {% if pagination.market == 'US' %}selected{% endif %}>美股</option>
-                                <option value="HK" {% if pagination.market == 'HK' %}selected{% endif %}>港股</option>
-                            </select>
+                            <div class="custom-select market-select">
+                                <select class="form-select" name="market" id="marketFilter">
+                                    <option value="">全部市场</option>
+                                    <option value="US" {% if pagination.market == 'US' %}selected{% endif %}>🇺🇸 美股</option>
+                                    <option value="HK" {% if pagination.market == 'HK' %}selected{% endif %}>🇭🇰 港股</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="col-md-3">
                             <button type="submit" class="btn btn-primary w-100">
@@ -150,7 +152,7 @@
                                         <small class="text-muted">{{ stock.industry or '未知' }}</small>
                                     </td>
                                     <td>
-                                        {% if stock.stock_type == 'BUILTIN' %}
+                                        {% if stock.stock_type == 'BUILT_IN' %}
                                             <span class="badge bg-info">内置</span>
                                         {% else %}
                                             <span class="badge bg-warning">自定义</span>

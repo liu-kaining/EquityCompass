@@ -91,22 +91,24 @@
                                         </td>
                                         <td>{{ task.created_at[:19] }}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-primary view-task-btn" 
-                                                    data-task-id="{{ task.task_id }}"
-                                                    onclick="console.log('按钮被点击:', '{{ task.task_id }}')">
-                                                <i class="fas fa-eye me-1"></i>查看
-                                            </button>
-                                            {% if task.status == 'failed' %}
-                                                <button class="btn btn-sm btn-outline-warning retry-task-btn" 
-                                                        data-task-id="{{ task.task_id }}">
-                                                    <i class="fas fa-redo me-1"></i>重试
+                                            <div class="task-actions">
+                                                <button class="btn btn-outline-primary view-task-btn" 
+                                                        data-task-id="{{ task.task_id }}"
+                                                        onclick="console.log('按钮被点击:', '{{ task.task_id }}')">
+                                                    <i class="fas fa-eye"></i>查看
                                                 </button>
-                                            {% endif %}
-                                            {% if task.status == 'completed' %}
-                                                <a href="/reports/" class="btn btn-sm btn-outline-success">
-                                                    <i class="fas fa-chart-line me-1"></i>报告
-                                                </a>
-                                            {% endif %}
+                                                {% if task.status == 'failed' %}
+                                                    <button class="btn btn-outline-warning retry-task-btn" 
+                                                            data-task-id="{{ task.task_id }}">
+                                                        <i class="fas fa-redo"></i>重试
+                                                    </button>
+                                                {% endif %}
+                                                {% if task.status == 'completed' %}
+                                                    <a href="/reports/" class="btn btn-outline-success">
+                                                        <i class="fas fa-chart-line"></i>报告
+                                                    </a>
+                                                {% endif %}
+                                            </div>
                                         </td>
                                     </tr>
                                     {% endfor %}

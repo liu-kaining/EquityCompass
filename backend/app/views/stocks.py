@@ -1,7 +1,8 @@
 """
 股票管理页面视图
 """
-from flask import Blueprint, render_template, session, redirect, url_for, request
+import re
+from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from app.services.data.stock_service import StockDataService
 from app import db
 
@@ -112,10 +113,56 @@ def watchlist():
                              watchlist=[],
                              summary={'count': 0, 'remaining_slots': 20, 'max_count': 20})
 
-@stocks_bp.route('/add')
+@stocks_bp.route('/add', methods=['GET', 'POST'])
 @login_required
 def add_custom():
     """添加自定义股票页面"""
+    if request.method == 'POST':
+        try:
+            # 获取表单数据
+            code = request.form.get('code', '').strip().upper()
+            name = request.form.get('name', '').strip()
+            market = request.form.get('market', '').strip()
+            industry = request.form.get('industry', '').strip()
+            exchange = request.form.get('exchange', '').strip()
+            
+            # 验证必填字段
+            if not code or not name or not market:
+                flash('请填写所有必填字段', 'error')
+                return render_template('stocks/add_custom.html')
+            
+            if market not in ['US', 'HK']:
+                flash('市场类型必须是 US 或 HK', 'error')
+                return render_template('stocks/add_custom.html')
+            
+            # 验证股票代码格式
+            if not re.match(r'^[A-Z0-9.]+$', code):
+                flash('股票代码格式不正确', 'error')
+                return render_template('stocks/add_custom.html')
+            
+            # 添加股票
+            service = get_stock_service()
+            user_id = session.get('user_id')
+            
+            stock_data = {
+                'code': code,
+                'name': name,
+                'market': market,
+                'industry': industry,
+                'exchange': exchange
+            }
+            
+            stock = service.add_custom_stock(**stock_data, user_id=user_id)
+            flash(f'股票 {code} 添加成功！', 'success')
+            return redirect(url_for('stocks.index'))
+            
+        except ValueError as e:
+            flash(str(e), 'error')
+            return render_template('stocks/add_custom.html')
+        except Exception as e:
+            flash('添加股票失败，请重试', 'error')
+            return render_template('stocks/add_custom.html')
+    
     return render_template('stocks/add_custom.html')
 
 @stocks_bp.route('/<code>')

@@ -30,15 +30,14 @@
                         </p>
                     </div>
                     <div class="col-md-4 text-end">
-                        <button class="btn btn-outline-secondary me-2" onclick="downloadReport()">
-                            <i class="fas fa-download me-2"></i>导出PDF
-                        </button>
-                        <button class="btn btn-outline-info me-2" onclick="shareReport()">
-                            <i class="fas fa-share me-2"></i>分享
-                        </button>
-                        <a href="{{ url_for('analysis.index') }}?stock={{ report.stock_code }}" class="btn btn-primary">
-                            <i class="fas fa-redo me-2"></i>重新分析
-                        </a>
+                        <div class="d-flex gap-3 justify-content-end">
+                            <button class="btn btn-outline-primary report-action-btn" onclick="downloadReport()">
+                                <i class="fas fa-download me-2"></i>导出PDF
+                            </button>
+                            <a href="{{ url_for('analysis.index') }}?stock={{ report.stock_code }}" class="btn btn-primary report-action-btn">
+                                <i class="fas fa-redo me-2"></i>重新分析
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -121,7 +120,7 @@
                 </div>
             </div>
             
-            <!-- 相关报告 -->
+            <!-- 历史报告 -->
             <div class="card glass-effect">
                 <div class="card-header">
                     <h6 class="mb-0">
@@ -129,10 +128,39 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted small">暂无历史报告</p>
-                    <a href="{{ url_for('reports.index') }}?stock={{ report.stock_code }}" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-search me-1"></i>查看所有报告
-                    </a>
+                    {% if historical_reports %}
+                        <div class="list-group list-group-flush">
+                            {% for hist_report in historical_reports %}
+                            <div class="list-group-item bg-transparent border-0 px-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <span class="badge bg-primary me-2">{{ hist_report.provider }}</span>
+                                            <span class="badge bg-info">{{ hist_report.analysis_type == 'fundamental' and '基本面分析' or '技术面分析' }}</span>
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>{{ hist_report.analysis_date }}
+                                        </small>
+                                    </div>
+                                    <a href="{{ url_for('reports.detail', stock_code=hist_report.stock_code, report_id=hist_report.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i>查看
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('reports.index') }}?stock={{ report.stock_code }}" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="fas fa-search me-1"></i>查看所有报告
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted small">暂无历史报告</p>
+                        <a href="{{ url_for('reports.index') }}?stock={{ report.stock_code }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-search me-1"></i>查看所有报告
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -598,28 +626,30 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function downloadReport() {
+    // 显示加载提示
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>生成中...';
+    button.disabled = true;
+    
+    // 构建PDF下载URL
+    const url = `{{ url_for('reports.export_pdf', stock_code=report.stock_code) }}?report_id={{ report.id }}`;
+    
+    // 创建下载链接
     const link = document.createElement('a');
-    link.href = `/api/analysis/reports/{{ report.stock_code }}/download`;
-    link.download = `{{ report.stock_code }}_{{ report.stock_name }}_分析报告_{{ report.analysis_date }}.txt`;
+    link.href = url;
+    link.style.display = 'none';
     document.body.appendChild(link);
+    
+    // 触发下载
     link.click();
     document.body.removeChild(link);
-}
-
-function shareReport() {
-    const url = window.location.href;
-    if (navigator.share) {
-        navigator.share({
-            title: '{{ report.stock_code }} - {{ report.stock_name }} 分析报告',
-            text: '查看 {{ report.stock_name }} 的AI分析报告',
-            url: url
-        });
-    } else {
-        // 复制链接到剪贴板
-        navigator.clipboard.writeText(url).then(function() {
-            alert('报告链接已复制到剪贴板');
-        });
-    }
+    
+    // 恢复按钮状态
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }, 2000);
 }
 </script>
 {% endblock %}

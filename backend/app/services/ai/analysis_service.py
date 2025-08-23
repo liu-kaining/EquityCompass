@@ -465,6 +465,39 @@ class AnalysisService:
             logger.error(f"获取分析报告失败: {str(e)}")
             return None
     
+    def get_all_reports_for_stock(self, stock_code: str) -> List[Dict[str, Any]]:
+        """获取指定股票的所有分析报告"""
+        try:
+            reports = []
+            
+            # 遍历所有日期目录，查找该股票的所有报告
+            if os.path.exists(self.reports_dir):
+                for date_dir in sorted(os.listdir(self.reports_dir), reverse=True):
+                    date_path = os.path.join(self.reports_dir, date_dir)
+                    if not os.path.isdir(date_path):
+                        continue
+                    
+                    for filename in os.listdir(date_path):
+                        if filename.startswith(f"{stock_code}_") and filename.endswith('.json'):
+                            report_file = os.path.join(date_path, filename)
+                            try:
+                                with open(report_file, 'r', encoding='utf-8') as f:
+                                    report_data = json.load(f)
+                                    report_data['date'] = date_dir
+                                    reports.append(report_data)
+                            except Exception as e:
+                                logger.error(f"读取报告文件失败: {report_file}, {str(e)}")
+            
+            # 按创建时间倒序排列
+            reports.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+            
+            logger.info(f"找到股票 {stock_code} 的 {len(reports)} 个报告")
+            return reports
+                
+        except Exception as e:
+            logger.error(f"获取股票 {stock_code} 的所有报告失败: {str(e)}")
+            return []
+    
     def get_user_reports(self, user_id: int, limit: int = 20) -> List[Dict[str, Any]]:
         """获取用户的分析报告"""
         try:

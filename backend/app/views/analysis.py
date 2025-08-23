@@ -65,22 +65,51 @@ def index():
 def tasks():
     """任务管理页面"""
     try:
+        from flask import request
         from app.services.ai.analysis_service import AnalysisService
         
         user_id = session.get('user_id')
         analysis_service = AnalysisService(db.session)
         
-        # 获取用户的任务列表
-        tasks = analysis_service.get_user_tasks(user_id, limit=50)
+        # 获取分页参数
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 15, type=int)  # 每页显示15个任务
+        
+        # 获取用户的任务列表（不限制数量，用于分页）
+        all_tasks = analysis_service.get_user_tasks(user_id, limit=1000)
         
         # 转换任务时间为东八区
-        for task in tasks:
+        for task in all_tasks:
             if 'created_at' in task:
                 task['created_at'] = convert_to_beijing_time(task['created_at'])
             if 'completed_at' in task:
                 task['completed_at'] = convert_to_beijing_time(task['completed_at'])
         
-        return render_template('analysis/tasks.html', tasks=tasks)
+        # 分页处理
+        total_tasks = len(all_tasks)
+        total_pages = (total_tasks + per_page - 1) // per_page
+        
+        # 确保页码在有效范围内
+        page = max(1, min(page, total_pages)) if total_pages > 0 else 1
+        
+        # 计算分页切片
+        start_idx = (page - 1) * per_page
+        end_idx = start_idx + per_page
+        paginated_tasks = all_tasks[start_idx:end_idx]
+        
+        # 构建分页信息
+        pagination = {
+            'page': page,
+            'per_page': per_page,
+            'total': total_tasks,
+            'pages': total_pages,
+            'has_prev': page > 1,
+            'has_next': page < total_pages,
+            'prev_page': page - 1 if page > 1 else None,
+            'next_page': page + 1 if page < total_pages else None
+        }
+        
+        return render_template('analysis/tasks.html', tasks=paginated_tasks, pagination=pagination)
         
     except Exception as e:
-        return render_template('analysis/tasks.html', tasks=[])
+        return render_template('analysis/tasks.html', tasks=[], pagination=None)

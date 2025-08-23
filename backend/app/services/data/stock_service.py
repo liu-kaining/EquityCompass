@@ -67,7 +67,7 @@ class StockDataService:
             'name': name,
             'market': market,
             'stock_type': 'USER_ADDED',
-            'created_by': user_id,
+            'created_by_user_id': user_id,
             **kwargs
         }
         
@@ -168,5 +168,6 @@ class StockDataService:
             'industry': stock.industry,
             'stock_type': stock.stock_type,
             'market_cap': stock.market_cap,
+            'created_by_user_id': stock.created_by_user_id,
             'created_at': stock.created_at.isoformat() if stock.created_at else None
         }

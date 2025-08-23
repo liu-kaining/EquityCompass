@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  equitycompass:
+    build: .
+    container_name: equitycompass-app
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-your-secret-key-here}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+    volumes:
+      - equitycompass_data:/app/data
+      - equitycompass_logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  equitycompass_data:
+    driver: local
+  equitycompass_logs:
+    driver: local

@@ -17,7 +17,7 @@
     <style>
         /* 首页专用样式 */
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             color: #333;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
@@ -45,14 +45,14 @@
             position: relative;
             z-index: 2;
             text-align: center;
-            color: white;
+            color: #1e293b;
         }
         
         .hero-title {
             font-size: 3.5rem;
             font-weight: 800;
             margin-bottom: 1rem;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -61,7 +61,7 @@
         .hero-subtitle {
             font-size: 1.25rem;
             margin-bottom: 2rem;
-            opacity: 0.9;
+            color: #64748b;
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
@@ -84,26 +84,31 @@
         }
         
         .btn-primary-hero {
-            background: linear-gradient(45deg, #28a745, #20c997);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
         }
         
         .btn-primary-hero:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
+            background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
             color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
         }
         
         .btn-outline-hero {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.9);
+            color: #4f46e5;
+            border: 2px solid #4f46e5;
+            backdrop-filter: blur(10px);
         }
         
         .btn-outline-hero:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: #4f46e5;
             color: white;
-            transform: translateY(-3px);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
         }
         
         .features-section {
@@ -112,24 +117,27 @@
         }
         
         .feature-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             padding: 40px 30px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
             transition: all 0.3s ease;
             height: 100%;
+            border: 1px solid rgba(79, 70, 229, 0.1);
+            backdrop-filter: blur(10px);
         }
         
         .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(79, 70, 229, 0.15);
+            border-color: rgba(79, 70, 229, 0.2);
         }
         
         .feature-icon {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -137,6 +145,7 @@
             margin: 0 auto 20px;
             color: white;
             font-size: 32px;
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
         }
         
         .feature-title {
@@ -153,20 +162,36 @@
         
         .stats-section {
             padding: 60px 0;
-            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+            opacity: 0.3;
         }
         
         .stat-item {
             text-align: center;
             padding: 20px;
+            position: relative;
+            z-index: 2;
         }
         
         .stat-number {
             font-size: 2.5rem;
             font-weight: 800;
-            color: #667eea;
+            color: #ffffff;
             margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .stat-label {
@@ -176,36 +201,68 @@
         
         .cta-section {
             padding: 80px 0;
-            background: #f7fafc;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             text-align: center;
+            position: relative;
+        }
+        
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(79,70,229,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
         }
         
         .cta-title {
             font-size: 2.5rem;
             font-weight: 700;
-            color: #2d3748;
+            color: #1e293b;
             margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
         }
         
         .cta-subtitle {
             font-size: 1.1rem;
-            color: #718096;
+            color: #64748b;
             margin-bottom: 2rem;
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
+            position: relative;
+            z-index: 2;
         }
         
         .footer {
-            background: #2d3748;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
             color: white;
             padding: 40px 0;
             text-align: center;
+            position: relative;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.3), transparent);
         }
         
         .footer a {
-            color: #667eea;
+            color: #4f46e5;
             text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer a:hover {
+            color: #7c3aed;
         }
         
         .footer a:hover {
@@ -252,9 +309,9 @@
 </head>
 <body>
     <!-- 导航栏 -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background: rgba(0,0,0,0.1); backdrop-filter: blur(10px);">
+    <nav class="navbar navbar-expand-lg" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(79, 70, 229, 0.1);">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}">
+            <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}" style="color: #4f46e5;">
                 <i class="fas fa-chart-line me-2"></i>
                 智策股析
             </a>
@@ -266,13 +323,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#features">功能特色</a>
+                        <a class="nav-link" href="#features" style="color: #64748b; font-weight: 500;">功能特色</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#about">关于我们</a>
+                        <a class="nav-link" href="#about" style="color: #64748b; font-weight: 500;">关于我们</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.login') }}">登录</a>
+                        <a class="nav-link" href="{{ url_for('auth.login') }}" style="color: #4f46e5; font-weight: 600;">登录</a>
                     </li>
                 </ul>
             </div>
@@ -426,7 +483,7 @@
             <p class="cta-subtitle">
                 加入智策股析，体验AI驱动的智能投资分析，让投资决策更加科学和精准
             </p>
-            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none; box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);">
                 <i class="fas fa-rocket me-2"></i>
                 立即注册
             </a>
