@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}任务管理 - 智策股析{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="gradient-text mb-4">
+                <i class="fas fa-tasks me-2"></i>任务管理
+            </h1>
+            <p class="text-muted mb-4">查看和管理您的批量分析任务</p>
+        </div>
+    </div>
+
+    <!-- 任务列表 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card glass-effect">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>任务列表
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>任务ID</th>
+                                        <th>分析类型</th>
+                                        <th>股票数量</th>
+                                        <th>状态</th>
+                                        <th>进度</th>
+                                        <th>重试次数</th>
+                                        <th>创建时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in tasks %}
+                                    <tr>
+                                        <td>
+                                            <code class="text-primary">{{ task.task_id[:12] }}...</code>
+                                        </td>
+                                        <td>
+                                            {% if task.analysis_type == 'fundamental' %}
+                                                <span class="badge bg-info">基本面分析</span>
+                                            {% elif task.analysis_type == 'technical' %}
+                                                <span class="badge bg-warning">技术面分析</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">综合分析</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ task.total_count }} 支</td>
+                                        <td>
+                                            {% if task.status == 'pending' %}
+                                                <span class="badge bg-secondary">等待中</span>
+                                            {% elif task.status == 'running' %}
+                                                <span class="badge bg-primary">进行中</span>
+                                            {% elif task.status == 'completed' %}
+                                                <span class="badge bg-success">已完成</span>
+                                            {% elif task.status == 'failed' %}
+                                                <span class="badge bg-danger">失败</span>
+                                            {% endif %}
+                                            {% if task.retry_count and task.retry_count > 0 %}
+                                                <br><small class="text-warning">重试 {{ task.retry_count }} 次</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.status == 'running' %}
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         style="width: {{ task.progress|default(0) }}%">
+                                                        {{ task.progress|default(0)|round(1) }}%
+                                                    </div>
+                                                </div>
+                                            {% elif task.status == 'completed' %}
+                                                <span class="text-success">100%</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.retry_count and task.retry_count > 0 %}
+                                                <span class="badge bg-warning">{{ task.retry_count }}</span>
+                                            {% else %}
+                                                <span class="text-muted">0</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ task.created_at[:19] }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary view-task-btn" 
+                                                    data-task-id="{{ task.task_id }}"
+                                                    onclick="console.log('按钮被点击:', '{{ task.task_id }}')">
+                                                <i class="fas fa-eye me-1"></i>查看
+                                            </button>
+                                            {% if task.status == 'failed' %}
+                                                <button class="btn btn-sm btn-outline-warning retry-task-btn" 
+                                                        data-task-id="{{ task.task_id }}">
+                                                    <i class="fas fa-redo me-1"></i>重试
+                                                </button>
+                                            {% endif %}
+                                            {% if task.status == 'completed' %}
+                                                <a href="/reports/" class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-chart-line me-1"></i>报告
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">暂无任务</h5>
+                            <p class="text-muted">您还没有创建任何批量分析任务</p>
+                            <a href="/analysis/" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>创建分析任务
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 任务详情模态框 -->
+<div class="modal fade" id="taskDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-effect">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle me-2"></i>任务详情
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="taskDetailContent">
+                <!-- 任务详情内容 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 确保jQuery加载完成后再执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 检查jQuery是否可用
+    if (typeof $ === 'undefined') {
+        console.error('jQuery未加载，等待加载...');
+        // 等待jQuery加载
+        setTimeout(function() {
+            if (typeof $ !== 'undefined') {
+                initTaskManagement();
+            } else {
+                console.error('jQuery加载失败');
+            }
+        }, 1000);
+    } else {
+        initTaskManagement();
+    }
+});
+
+function initTaskManagement() {
+    console.log('页面加载完成');
+    console.log('jQuery版本:', $.fn.jquery);
+    console.log('找到的查看按钮数量:', $('.view-task-btn').length);
+    
+    // 查看任务详情 - 使用事件委托
+    $(document).on('click', '.view-task-btn', function() {
+        console.log('查看按钮被点击');
+        const taskId = $(this).data('task-id');
+        console.log('任务ID:', taskId);
+        loadTaskDetail(taskId);
+    });
+    
+    // 重试任务 - 使用事件委托
+    $(document).on('click', '.retry-task-btn', function() {
+        console.log('重试按钮被点击');
+        const taskId = $(this).data('task-id');
+        console.log('重试任务ID:', taskId);
+        
+        if (confirm('确定要重试这个任务吗？')) {
+            retryTask(taskId);
+        }
+    });
+    
+    // 测试按钮点击
+    $('.view-task-btn').each(function() {
+        console.log('按钮:', $(this).data('task-id'));
+    });
+    
+    // 自动刷新进行中的任务
+    setInterval(function() {
+        refreshRunningTasks();
+    }, 10000); // 每10秒刷新一次
+}
+
+function loadTaskDetail(taskId) {
+    console.log('开始加载任务详情:', taskId);
+    const url = '/api/analysis/task-status/' + taskId;
+    console.log('请求URL:', url);
+    
+    $.get(url, function(response) {
+        console.log('API响应:', response);
+        if (response.success) {
+            const task = response.task;
+            let content = '<div class="row">';
+            content += '<div class="col-md-6">';
+            content += '<h6>基本信息</h6>';
+            content += '<ul class="list-unstyled">';
+            content += '<li><strong>任务ID:</strong> ' + task.task_id + '</li>';
+            content += '<li><strong>任务类型:</strong> ' + (task.task_id.startsWith('single_') ? '单个分析' : '批量分析') + '</li>';
+            content += '<li><strong>分析类型:</strong> ' + getAnalysisTypeName(task.analysis_type) + '</li>';
+            content += '<li><strong>AI模型:</strong> ' + task.ai_provider + '</li>';
+            content += '<li><strong>状态:</strong> ' + getStatusBadge(task.status) + '</li>';
+            if (task.retry_count) {
+                content += '<li><strong>重试次数:</strong> <span class="text-warning">' + task.retry_count + '</span></li>';
+            }
+            content += '</ul>';
+            content += '</div>';
+            content += '<div class="col-md-6">';
+            content += '<h6>进度信息</h6>';
+            content += '<ul class="list-unstyled">';
+            content += '<li><strong>总股票数:</strong> ' + task.total_count + '</li>';
+            content += '<li><strong>已完成:</strong> <span class="text-success">' + task.completed_count + '</span></li>';
+            content += '<li><strong>失败:</strong> <span class="text-danger">' + task.failed_count + '</span></li>';
+            content += '<li><strong>进度:</strong> ' + (task.progress ? task.progress.toFixed(1) + '%' : '-') + '</li>';
+            content += '</ul>';
+            content += '</div>';
+            content += '</div>';
+            
+            $('#taskDetailContent').html(content);
+            $('#taskDetailModal').modal('show');
+        } else {
+            console.error('API返回错误:', response.message);
+            showToast('error', response.message || '获取任务详情失败');
+        }
+    }).fail(function(xhr, status, error) {
+        console.error('API请求失败:', xhr, status, error);
+        showToast('error', '获取任务详情失败: ' + error);
+    });
+}
+
+function getAnalysisTypeName(type) {
+    const types = {
+        'default': '综合分析',
+        'fundamental': '基本面分析',
+        'technical': '技术面分析'
+    };
+    return types[type] || type;
+}
+
+function getStatusBadge(status) {
+    const badges = {
+        'pending': '<span class="badge bg-secondary">等待中</span>',
+        'running': '<span class="badge bg-primary">进行中</span>',
+        'completed': '<span class="badge bg-success">已完成</span>',
+        'failed': '<span class="badge bg-danger">失败</span>'
+    };
+    return badges[status] || status;
+}
+
+function generateStockStatusRows(task) {
+    let rows = '';
+    
+    // 单个分析任务
+    if (task.task_id.startsWith('single_')) {
+        const stockCode = task.stock_code || '未知';
+        const stockName = task.stock_name || '';
+        const status = task.status || 'pending';
+        const retryCount = task.retry_count || 0;
+        
+        rows += '<tr class="table-info">';
+        rows += '<td><strong>' + stockCode + '</strong></td>';
+        rows += '<td>' + stockName + '</td>';
+        rows += '<td>' + getStatusBadge(status) + '</td>';
+        rows += '<td>' + (retryCount > 0 ? '<span class="badge bg-warning">' + retryCount + '</span>' : '0') + '</td>';
+        rows += '</tr>';
+    } 
+    // 批量分析任务
+    else if (task.stocks && task.stocks.length > 0) {
+        task.stocks.forEach(function(stock) {
+            rows += '<tr class="table-info">';
+            rows += '<td><strong>' + stock.code + '</strong></td>';
+            rows += '<td>' + stock.name + '</td>';
+            rows += '<td>' + getStatusBadge('completed') + '</td>';
+            rows += '<td>0</td>';
+            rows += '</tr>';
+        });
+    }
+    
+    return rows;
+}
+
+function showToast(type, message) {
+    // 简单的toast提示
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const toastHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    $('body').append(toastHtml);
+    
+    // 3秒后自动消失
+    setTimeout(function() {
+        $('.alert').fadeOut();
+    }, 3000);
+}
+
+function retryTask(taskId) {
+    console.log('开始重试任务:', taskId);
+    
+    // 显示加载状态
+    const retryBtn = $(`.retry-task-btn[data-task-id="${taskId}"]`);
+    const originalText = retryBtn.html();
+    retryBtn.html('<i class="fas fa-spinner fa-spin me-1"></i>重试中...').prop('disabled', true);
+    
+    $.ajax({
+        url: `/api/analysis/retry-task/${taskId}`,
+        method: 'POST',
+        success: function(response) {
+            console.log('重试任务响应:', response);
+            if (response.success) {
+                showToast('success', '任务重试已启动');
+                // 刷新页面以显示最新状态
+                setTimeout(function() {
+                    location.reload();
+                }, 2000);
+            } else {
+                showToast('error', response.message || '重试任务失败');
+                retryBtn.html(originalText).prop('disabled', false);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('重试任务请求失败:', xhr, status, error);
+            showToast('error', '重试任务失败: ' + error);
+            retryBtn.html(originalText).prop('disabled', false);
+        }
+    });
+}
+
+function refreshRunningTasks() {
+    // 刷新进行中的任务状态
+    $('.view-task-btn').each(function() {
+        const taskId = $(this).data('task-id');
+        const row = $(this).closest('tr');
+        const statusCell = row.find('td:nth-child(4)'); // 状态列
+        const retryCell = row.find('td:nth-child(6)'); // 重试次数列
+        
+        $.get(`/api/analysis/task-status/${taskId}`, function(response) {
+            if (response.success) {
+                const task = response.task;
+                statusCell.html(getStatusBadge(task.status));
+                
+                // 更新重试次数
+                if (task.retry_count && task.retry_count > 0) {
+                    retryCell.html('<span class="badge bg-warning">' + task.retry_count + '</span>');
+                } else {
+                    retryCell.html('<span class="text-muted">0</span>');
+                }
+                
+                // 如果任务完成，更新进度
+                if (task.status === 'completed') {
+                    const progressCell = row.find('td:nth-child(5)'); // 进度列
+                    progressCell.text('100%');
+                }
+                
+                // 如果任务失败，显示重试按钮
+                if (task.status === 'failed') {
+                    const actionCell = row.find('td:nth-child(8)'); // 操作列
+                    if (!actionCell.find('.retry-task-btn').length) {
+                        actionCell.append(`
+                            <button class="btn btn-sm btn-outline-warning retry-task-btn ms-1" 
+                                    data-task-id="${taskId}">
+                                <i class="fas fa-redo me-1"></i>重试
+                            </button>
+                        `);
+                    }
+                }
+            }
+        });
+    });
+}
+</script>
+{% endblock %}

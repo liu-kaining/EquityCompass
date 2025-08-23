@@ -39,6 +39,16 @@ def index():
     reports = analysis_service.get_user_reports(user_id, limit=100)
     reports_count = len(reports)
     
+    # 根据用户角色获取不同的报告统计
+    if is_admin:
+        # 管理员：显示全局报告总数
+        global_reports_count = analysis_service.get_global_reports_count()
+        reports_count = global_reports_count
+    else:
+        # 普通用户：显示可访问的报告数量（基于关注列表）
+        accessible_reports_count = analysis_service.get_user_accessible_reports_count(user_id)
+        reports_count = accessible_reports_count
+    
     user_data = {
         'email': user_email,
         'watchlist_count': watchlist_count,

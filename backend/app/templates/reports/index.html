@@ -5,7 +5,9 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="gradient-text mb-4">分析报告</h1>
+        <h1 class="gradient-text mb-4">
+            <i class="fas fa-file-text me-3"></i>分析报告
+        </h1>
         <p class="text-muted mb-4">查看AI生成的股票分析报告</p>
     </div>
 </div>
@@ -13,38 +15,90 @@
 <!-- 筛选器 -->
 <div class="row mb-4">
     <div class="col-12">
-        <div class="card glass-effect">
+        <div class="card glass-effect filter-card">
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <select class="form-select">
-                            <option value="">全部股票</option>
-                            <option value="AAPL">AAPL - 苹果</option>
-                            <option value="MSFT">MSFT - 微软</option>
-                        </select>
+                <h6 class="card-title mb-3">
+                    <i class="fas fa-filter me-2 text-primary"></i>筛选条件
+                </h6>
+                <form id="filterForm" method="GET">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-chart-line me-2"></i>股票筛选
+                            </label>
+                            <div class="custom-select-wrapper">
+                                <select class="form-select custom-select" name="stock" id="stockFilter">
+                                    <option value="">📊 全部股票</option>
+                                    {% for stock in available_stocks %}
+                                    <option value="{{ stock.code }}" {% if request.args.get('stock') == stock.code %}selected{% endif %}>
+                                        {{ stock.code }} - {{ stock.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="select-arrow">▼</div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-calendar me-2"></i>日期筛选
+                            </label>
+                            <div class="custom-select-wrapper">
+                                <select class="form-select custom-select" name="date" id="dateFilter">
+                                    <option value="">📅 全部日期</option>
+                                    <option value="today" {% if request.args.get('date') == 'today' %}selected{% endif %}>📆 今天</option>
+                                    <option value="week" {% if request.args.get('date') == 'week' %}selected{% endif %}>📅 本周</option>
+                                    <option value="month" {% if request.args.get('date') == 'month' %}selected{% endif %}>📊 本月</option>
+                                </select>
+                                <div class="select-arrow">▼</div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-chart-line me-2"></i>分析类型
+                            </label>
+                            <div class="custom-select-wrapper">
+                                <select class="form-select custom-select" name="analysis_type" id="analysisTypeFilter">
+                                    <option value="">📊 全部类型</option>
+                                    <option value="fundamental" {% if request.args.get('analysis_type') == 'fundamental' %}selected{% endif %}>
+                                        📈 基本面分析
+                                    </option>
+                                    <option value="technical" {% if request.args.get('analysis_type') == 'technical' %}selected{% endif %}>
+                                        📉 技术面分析
+                                    </option>
+                                </select>
+                                <div class="select-arrow">▼</div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-robot me-2"></i>模型筛选
+                            </label>
+                            <div class="custom-select-wrapper">
+                                <select class="form-select custom-select" name="model" id="modelFilter">
+                                    <option value="">🤖 全部模型</option>
+                                    <option value="gemini" {% if request.args.get('model') == 'gemini' %}selected{% endif %}>
+                                        🤖 Gemini
+                                    </option>
+                                    <option value="qwen" {% if request.args.get('model') == 'qwen' %}selected{% endif %}>
+                                        🌟 Qwen
+                                    </option>
+                                    <option value="deepseek" {% if request.args.get('model') == 'deepseek' %}selected{% endif %}>
+                                        🚀 DeepSeek
+                                    </option>
+                                </select>
+                                <div class="select-arrow">▼</div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-2"></i>筛选
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <select class="form-select">
-                            <option value="">全部日期</option>
-                            <option value="today">今天</option>
-                            <option value="week">本周</option>
-                            <option value="month">本月</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select">
-                            <option value="">全部模型</option>
-                            <option value="gpt">ChatGPT</option>
-                            <option value="gemini">Gemini</option>
-                            <option value="qwen">Qwen</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button class="btn btn-primary w-100">
-                            <i class="fas fa-filter me-2"></i>筛选
-                        </button>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -56,7 +110,12 @@
         <div class="card glass-effect">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="card-title mb-0">报告列表</h5>
+                    <div>
+                        <h5 class="card-title mb-1">
+                            <i class="fas fa-file-text me-2 text-primary"></i>报告列表
+                        </h5>
+                        <p class="text-muted mb-0 small">共 {{ reports|length }} 份分析报告</p>
+                    </div>
                     <div>
                         <button class="btn btn-outline-secondary me-2">
                             <i class="fas fa-download me-2"></i>批量导出
@@ -70,19 +129,52 @@
                 {% if reports %}
                     <div class="row">
                         {% for report in reports %}
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card glass-effect card-hover h-100">
-                                <div class="card-body">
+                        <div class="col-lg-6 col-xl-4 mb-4">
+                            <div class="card report-card glass-effect h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <!-- 卡片头部 -->
                                     <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <h6 class="card-title mb-0">{{ report.stock_code }}</h6>
-                                        <span class="badge bg-success">{{ report.model }}</span>
+                                        <div class="flex-grow-1">
+                                            <h5 class="card-title mb-1 fw-bold text-primary">{{ report.stock_code }}</h5>
+                                            <p class="text-dark mb-0 fw-medium">{{ report.stock_name }}</p>
+                                            {% if report.is_watched %}
+                                            <span class="badge bg-success mt-1">
+                                                <i class="fas fa-bookmark me-1"></i>已关注
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-primary fs-6 fw-semibold">{{ report.ai_provider }}</span>
+                                            <br>
+                                            <span class="badge bg-info fs-6 mt-1">
+                                                {% if report.analysis_type == 'fundamental' %}
+                                                    基本面分析
+                                                {% elif report.analysis_type == 'technical' %}
+                                                    技术面分析
+                                                {% else %}
+                                                    {{ report.analysis_type }}
+                                                {% endif %}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <p class="text-muted small">{{ report.company_name }}</p>
-                                    <p class="card-text small">{{ report.summary[:100] }}...</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">{{ report.created_at }}</small>
-                                        <a href="{{ url_for('reports.detail', report_id=report.id) }}" 
-                                           class="btn btn-sm btn-primary">查看详情</a>
+                                    
+                                    <!-- 报告内容预览 -->
+                                    <div class="flex-grow-1 mb-3">
+                                        <div class="report-preview">
+                                            {{ report.content[:150] | replace('###', '') | replace('**', '') | replace('---', '') | replace('\n', ' ') }}...
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 卡片底部 -->
+                                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            <span class="fw-medium">{{ report.created_at if report.created_at else report.analysis_date }}</span>
+                                        </small>
+                                        <a href="{{ url_for('reports.detail', stock_code=report.stock_code, report_id=report.report_id) }}" 
+                                           class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i>查看详情
+                                        </a>
                                     </div>
                                 </div>
                             </div>

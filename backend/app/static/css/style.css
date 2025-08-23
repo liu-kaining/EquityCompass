@@ -1,11 +1,54 @@
 /* 智策股析 - 自定义样式 */
 
-/* 全局样式 */
+/* 页面布局优化 */
 body {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     min-height: 100vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
+}
+
+.container-xl {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+@media (min-width: 1400px) {
+    .container-xl {
+        max-width: 1320px;
+    }
+}
+
+@media (max-width: 1399.98px) {
+    .container-xl {
+        max-width: 1140px;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .container-xl {
+        max-width: 960px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .container-xl {
+        max-width: 720px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .container-xl {
+        max-width: 540px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .container-xl {
+        max-width: 100%;
+        padding: 0 0.75rem;
+    }
 }
 
 /* 玻璃效果卡片 */
@@ -24,6 +67,24 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     font-weight: 600;
+}
+
+/* 页面标题图标样式 */
+.gradient-text i {
+    font-size: 1.2em;
+    margin-right: 0.75rem;
+    color: #667eea;
+    opacity: 0.8;
+    -webkit-text-fill-color: #667eea;
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+}
+
+.gradient-text:hover i {
+    opacity: 1;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
 }
 
 /* 按钮样式 */
@@ -244,80 +305,281 @@ body {
     border-radius: 10px;
 }
 
-/* 导航栏样式 */
+/* 导航栏样式优化 */
 .navbar {
-    background: rgba(255, 255, 255, 0.98) !important;
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+    padding: 0.75rem 0;
 }
 
 .navbar-brand {
-    color: #667eea !important;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 700;
 }
 
 .navbar-nav .nav-link {
     color: #333 !important;
-    transition: color 0.3s ease;
+    font-weight: 500;
+    padding: 0.75rem 1rem !important;
+    border-radius: 8px;
+    margin: 0 0.25rem;
+    transition: all 0.3s ease;
+    position: relative;
 }
 
 .navbar-nav .nav-link:hover {
     color: #667eea !important;
+    background: rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+.navbar-nav .nav-link.active {
+    color: #667eea !important;
+    background: rgba(102, 126, 234, 0.15);
+    font-weight: 600;
+}
+
+.navbar-nav .nav-link i {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover i {
+    opacity: 1;
+}
+
+/* 导航栏图标优化 */
+.navbar-nav .nav-link i {
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+    margin-right: 0.25rem;
+    font-size: 0.9rem;
+}
+
+/* 确保Font Awesome图标正确显示 */
+.fas, .far, .fab {
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", "FontAwesome";
+    font-weight: 900;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 备用图标方案 */
+.nav-link[href*="stocks"]::before {
+    content: "📊";
+    margin-right: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.nav-link[href*="reports"]::before {
+    content: "📄";
+    margin-right: 0.25rem;
+    font-size: 0.9rem;
+}
+
+/* 当Font Awesome加载失败时的备用方案 */
+.nav-link i.fas:not([class*="fa-"]) {
+    display: none;
+}
+
+.nav-link[href*="stocks"] i.fas:not([class*="fa-"]) + span::before {
+    content: "📊";
+    margin-right: 0.25rem;
+}
+
+.nav-link[href*="reports"] i.fas:not([class*="fa-"]) + span::before {
+    content: "📄";
+    margin-right: 0.25rem;
 }
 
 /* 下拉菜单样式 */
 .dropdown-menu {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    margin-top: 8px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
 }
 
 .dropdown-item {
     color: #333;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
     transition: all 0.3s ease;
-    border-radius: 6px;
-    margin: 2px 4px;
 }
 
 .dropdown-item:hover {
     background: rgba(102, 126, 234, 0.1);
     color: #667eea;
+    transform: translateX(5px);
 }
 
-.dropdown-divider {
-    border-color: rgba(0, 0, 0, 0.1);
-    margin: 4px 8px;
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
 }
 
-.navbar-brand {
-    color: #667eea !important;
-    font-weight: 600;
-}
-
-.navbar-nav .nav-link {
-    color: #333 !important;
-    transition: color 0.3s ease;
-}
-
-.navbar-nav .nav-link:hover {
-    color: #667eea !important;
+/* 导航栏响应式优化 */
+@media (max-width: 991.98px) {
+    .navbar-nav .nav-link {
+        padding: 1rem !important;
+        margin: 0.25rem 0;
+        border-radius: 8px;
+    }
+    
+    .navbar-nav .nav-link:hover {
+        transform: none;
+    }
+    
+    .dropdown-menu {
+        border: none;
+        box-shadow: none;
+        background: rgba(102, 126, 234, 0.05);
+    }
 }
 
 /* 卡片样式 */
 .card {
     border: none;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
     transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.95);
+}
+
+.card-body {
+    padding: 1.5rem;
 }
 
 .card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* 报告卡片特殊样式 */
+.report-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.95) 100%);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.report-card:hover {
+    border-color: rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(248, 249, 250, 1) 100%);
+}
+
+.report-preview {
+    color: #555;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    max-height: 4.5rem;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    background: rgba(102, 126, 234, 0.03);
+    padding: 0.6rem;
+    border-radius: 6px;
+    border-left: 3px solid rgba(102, 126, 234, 0.2);
+    text-align: left;
+}
+
+.report-card .card-title {
+    color: #667eea !important;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+}
+
+.report-card .card-title + p {
+    color: #495057 !important;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.3;
+    margin-bottom: 0;
+}
+
+.report-card .badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 6px;
+    line-height: 1.2;
+}
+
+.report-card .badge.bg-primary {
+    background: linear-gradient(45deg, #667eea, #764ba2) !important;
+    border: none;
+}
+
+.report-card .badge.bg-info {
+    background: linear-gradient(45deg, #17a2b8, #20c997) !important;
+    border: none;
+    color: white !important;
+}
+
+.report-card .btn-primary {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    font-weight: 600;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.report-card .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.report-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.report-card .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.25rem;
+}
+
+.report-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+/* 筛选器卡片样式 */
+.filter-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 249, 250, 0.98) 100%);
+    border: 1px solid rgba(102, 126, 234, 0.15);
+}
+
+.filter-card .card-title {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.filter-card .form-label {
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.filter-card .form-label i {
+    color: #667eea;
 }
 
 .card-header {
@@ -442,4 +704,375 @@ a:hover {
 
 .text-info {
     color: #17a2b8 !important;
+}
+
+/* 弹窗样式优化 */
+.modal-content.glass-effect {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+}
+
+.modal-body {
+    padding: 1rem 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #333;
+}
+
+.modal-body p {
+    white-space: pre-line;
+    margin-bottom: 0;
+}
+
+.modal-footer {
+    padding: 0.5rem 1.5rem 1.5rem 1.5rem;
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.modal .btn-close {
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.modal .btn-close:hover {
+    opacity: 1;
+}
+
+/* 确认弹窗特殊样式 */
+#confirmModal .modal-content {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+#confirmModal .modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* 批量分析确认信息样式 */
+.batch-analysis-info {
+    background: rgba(102, 126, 234, 0.05);
+    border-left: 4px solid #667eea;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.batch-analysis-info .stock-list {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* 快速操作区域样式 - 使用表格结构 */
+.quick-actions {
+    /* 移除所有样式，使用默认的card样式 */
+}
+
+/* 表格响应式优化 */
+.table-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background: rgba(248, 249, 250, 0.8);
+    padding: 1rem 0.75rem;
+}
+
+.table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* 统计卡片优化 */
+.stats-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 0.5rem;
+}
+
+.stats-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* 美观的下拉框样式 */
+.custom-select-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.custom-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 12px 45px 12px 20px;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.custom-select:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.custom-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+.select-arrow {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    pointer-events: none;
+    transition: transform 0.3s ease;
+}
+
+.custom-select:focus + .select-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* 美化所有form-select */
+.form-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    color: #495057;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 15px 50px 15px 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+.form-select:hover {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+}
+
+.form-select:focus {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15), 0 8px 30px rgba(102, 126, 234, 0.2);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+/* 添加下拉箭头 */
+.form-select::after {
+    content: '';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #667eea;
+    pointer-events: none;
+    transition: transform 0.3s ease;
+}
+
+.form-select:focus::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* 下拉选项样式 */
+.form-select option {
+    background: white;
+    color: #495057;
+    font-weight: 500;
+    padding: 15px 20px;
+    border-bottom: 1px solid #f8f9fa;
+    transition: all 0.2s ease;
+}
+
+.form-select option:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.form-select option:checked {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+}
+
+/* 标签样式 */
+.form-label {
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+    display: block;
+    transition: color 0.3s ease;
+}
+
+.form-label i {
+    color: #667eea;
+    margin-right: 8px;
+    font-size: 1rem;
+}
+
+.form-select:focus + .form-label {
+    color: #667eea;
+}
+
+/* 筛选器卡片样式 */
+.filter-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    border-radius: 25px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.filter-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.filter-card:hover {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+    transform: translateY(-3px);
+}
+
+.filter-card:hover::before {
+    opacity: 1;
+}
+
+/* 按钮组样式 */
+.btn-group .form-select {
+    border-radius: 12px;
+    margin: 0 3px;
+}
+
+/* 特殊的下拉框样式 - 带图标 */
+.form-select.with-icon {
+    padding-left: 50px;
+}
+
+.form-select.with-icon::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.form-select.with-icon:hover::before {
+    opacity: 1;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .form-select {
+        font-size: 0.9rem;
+        padding: 12px 45px 12px 15px;
+        border-radius: 12px;
+    }
+    
+    .custom-select {
+        font-size: 0.9rem;
+        padding: 12px 45px 12px 15px;
+        border-radius: 12px;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+}
+
+/* 动画效果 */
+@keyframes selectPulse {
+    0% {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
+    }
+    100% {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+}
+
+.form-select:focus {
+    animation: selectPulse 2s infinite;
 }

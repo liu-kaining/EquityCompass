@@ -5,7 +5,9 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="gradient-text mb-4">股票池</h1>
+        <h1 class="gradient-text mb-4">
+            <i class="fas fa-chart-bar me-3"></i>股票池
+        </h1>
         <p class="text-muted mb-4">浏览和搜索美股、港股池中的股票</p>
     </div>
 </div>
@@ -49,11 +51,18 @@
                 <form method="GET" action="{{ url_for('stocks.index') }}" id="searchForm">
                     <div class="row">
                         <div class="col-md-6">
-                            <input type="text" class="form-control" 
-                                   placeholder="搜索股票代码或公司名称..." 
-                                   name="search" 
-                                   value="{{ pagination.search or '' }}"
-                                   id="stockSearch">
+                            <div class="input-group">
+                                <input type="text" class="form-control" 
+                                       placeholder="搜索股票代码或公司名称..." 
+                                       name="search" 
+                                       value="{{ pagination.search or '' }}"
+                                       id="stockSearch">
+                                {% if pagination.search or pagination.market %}
+                                <button type="button" class="btn btn-outline-secondary" id="clearSearchBtn" title="清空搜索">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                {% endif %}
+                            </div>
                         </div>
                         <div class="col-md-3">
                             <select class="form-select" name="market" id="marketFilter">
@@ -336,14 +345,54 @@ $(document).ready(function() {
     }
     
     // 搜索表单提交
-    $('#searchForm').submit(function() {
+    $('#searchForm').submit(function(e) {
         const searchValue = $('#stockSearch').val().trim();
         const marketValue = $('#marketFilter').val();
         
-        // 如果搜索框为空且没有选择市场，阻止提交
+        // 如果搜索框为空且没有选择市场，清除所有参数并跳转到基础页面
         if (!searchValue && !marketValue) {
+            e.preventDefault();
+            window.location.href = "{{ url_for('stocks.index') }}";
             return false;
         }
+        
+        // 如果搜索框为空但选择了市场，清除搜索参数
+        if (!searchValue && marketValue) {
+            $('#stockSearch').val('');
+        }
+    });
+    
+    // 添加清空搜索的功能
+    $('#stockSearch').on('input', function() {
+        const searchValue = $(this).val().trim();
+        const marketValue = $('#marketFilter').val();
+        
+        // 如果搜索框被清空且没有选择市场，自动跳转到基础页面
+        if (!searchValue && !marketValue) {
+            // 延迟执行，避免用户正在输入时跳转
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(function() {
+                window.location.href = "{{ url_for('stocks.index') }}";
+            }, 1000);
+        }
+    });
+    
+    // 市场筛选变化时也处理搜索框
+    $('#marketFilter').on('change', function() {
+        const searchValue = $('#stockSearch').val().trim();
+        const marketValue = $(this).val();
+        
+        // 如果搜索框为空且没有选择市场，跳转到基础页面
+        if (!searchValue && !marketValue) {
+            window.location.href = "{{ url_for('stocks.index') }}";
+        }
+    });
+
+    // 清空搜索按钮点击事件
+    $('#clearSearchBtn').click(function() {
+        $('#stockSearch').val('').trigger('input'); // 清空输入框并触发input事件
+        $('#marketFilter').val('').trigger('change'); // 清空市场筛选并触发change事件
+        $('#searchForm').submit(); // 提交表单
     });
     
     // 更新关注列表统计信息

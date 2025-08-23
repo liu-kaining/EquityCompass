@@ -24,12 +24,12 @@ class LLMProvider(ABC):
         self.temperature = config.get('temperature', 0.7)
     
     @abstractmethod
-    async def generate_analysis(self, prompt: str, stock_info: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_analysis(self, prompt: str, stock_info: Dict[str, Any]) -> Dict[str, Any]:
         """生成股票分析报告"""
         pass
     
     @abstractmethod
-    async def test_connection(self) -> bool:
+    def test_connection(self) -> bool:
         """测试API连接"""
         pass
     
@@ -63,9 +63,15 @@ class GeminiProvider(LLMProvider):
             import requests
             
             start_time = time.time()
+            stock_code = stock_info.get('code', 'unknown')
+            
+            logger.info(f"开始调用Gemini API - 股票: {stock_code}, 模型: {self.model_name}")
+            logger.info(f"Gemini API URL: {self.api_url}")
+            logger.info(f"API密钥长度: {len(self.api_key) if self.api_key else 0}")
             
             # 格式化提示词
             formatted_prompt = self.format_prompt(prompt, stock_info)
+            logger.info(f"提示词长度: {len(formatted_prompt)} 字符")
             
             # 准备请求数据
             headers = {
@@ -85,16 +91,24 @@ class GeminiProvider(LLMProvider):
                 ]
             }
             
+            logger.info(f"发送请求到Gemini API...")
             # 调用Gemini API
             response = requests.post(self.api_url, headers=headers, json=data, timeout=60)
             
             end_time = time.time()
+            response_time = end_time - start_time
+            logger.info(f"Gemini API响应时间: {response_time:.2f}秒, 状态码: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
+                logger.info(f"Gemini API返回成功，响应内容长度: {len(str(result))}")
+                
                 if 'candidates' in result and len(result['candidates']) > 0:
                     content = result['candidates'][0]['content']['parts'][0]['text']
                     usage_metadata = result.get('usageMetadata', {})
+                    
+                    logger.info(f"Gemini分析成功 - 股票: {stock_code}, 内容长度: {len(content)} 字符")
+                    logger.info(f"Token使用情况: {usage_metadata}")
                     
                     return {
                         'success': True,
@@ -102,10 +116,11 @@ class GeminiProvider(LLMProvider):
                         'provider': 'gemini',
                         'model': self.model_name,
                         'tokens_used': usage_metadata.get('totalTokenCount'),
-                        'response_time': end_time - start_time,
+                        'response_time': response_time,
                         'timestamp': datetime.utcnow().isoformat()
                     }
                 else:
+                    logger.error(f"Gemini API返回成功但无内容 - 股票: {stock_code}, 响应: {result}")
                     return {
                         'success': False,
                         'error': 'No response content',
@@ -113,6 +128,7 @@ class GeminiProvider(LLMProvider):
                         'timestamp': datetime.utcnow().isoformat()
                     }
             else:
+                logger.error(f"Gemini API请求失败 - 股票: {stock_code}, 状态码: {response.status_code}, 响应: {response.text}")
                 return {
                     'success': False,
                     'error': f'API request failed: {response.status_code} - {response.text}',
@@ -165,74 +181,6 @@ class GeminiProvider(LLMProvider):
             return False
 
 
-class ChatGPTProvider(LLMProvider):
-    """OpenAI ChatGPT Provider"""
-    
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__(config)
-        try:
-            import openai
-            self.client = openai.OpenAI(api_key=self.api_key)
-        except ImportError:
-            logger.error("OpenAI库未安装")
-            raise
-        except Exception as e:
-            logger.error(f"初始化ChatGPT失败: {str(e)}")
-            raise
-    
-    def generate_analysis(self, prompt: str, stock_info: Dict[str, Any]) -> Dict[str, Any]:
-        """使用ChatGPT生成分析报告（同步版本）"""
-        try:
-            start_time = time.time()
-            
-            # 格式化提示词
-            formatted_prompt = self.format_prompt(prompt, stock_info)
-            
-            # 调用ChatGPT API
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": "你是一个专业的股票分析师，请根据提供的信息进行专业的股票分析。"},
-                    {"role": "user", "content": formatted_prompt}
-                ],
-                max_tokens=self.max_tokens,
-                temperature=self.temperature
-            )
-            
-            end_time = time.time()
-            
-            return {
-                'success': True,
-                'content': response.choices[0].message.content,
-                'provider': 'chatgpt',
-                'model': self.model,
-                'tokens_used': response.usage.total_tokens,
-                'response_time': end_time - start_time,
-                'timestamp': datetime.utcnow().isoformat()
-            }
-            
-        except Exception as e:
-            logger.error(f"ChatGPT生成分析失败: {str(e)}")
-            return {
-                'success': False,
-                'error': str(e),
-                'provider': 'chatgpt',
-                'timestamp': datetime.utcnow().isoformat()
-            }
-    
-    def test_connection(self) -> bool:
-        """测试ChatGPT连接"""
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": "Hello"}],
-                max_tokens=10
-            )
-            return response.choices[0].message.content is not None
-        except Exception as e:
-            logger.error(f"ChatGPT连接测试失败: {str(e)}")
-            return False
-
 
 class QwenProvider(LLMProvider):
     """阿里云通义千问 Provider"""
@@ -243,7 +191,7 @@ class QwenProvider(LLMProvider):
             import dashscope
             dashscope.api_key = self.api_key
         except ImportError:
-            logger.error("DashScope库未安装")
+            logger.error("DashScope库未安装，请运行: pip install dashscope")
             raise
         except Exception as e:
             logger.error(f"初始化Qwen失败: {str(e)}")
@@ -253,33 +201,56 @@ class QwenProvider(LLMProvider):
         """使用Qwen生成分析报告（同步版本）"""
         try:
             start_time = time.time()
+            stock_code = stock_info.get('code', 'unknown')
+            
+            logger.info(f"开始调用Qwen API - 股票: {stock_code}, 模型: {self.model}")
+            logger.info(f"Qwen API密钥长度: {len(self.api_key) if self.api_key else 0}")
             
             # 格式化提示词
             formatted_prompt = self.format_prompt(prompt, stock_info)
+            logger.info(f"Qwen提示词长度: {len(formatted_prompt)} 字符")
             
             # 调用Qwen API
             from dashscope import Generation
+            logger.info(f"发送请求到Qwen API...")
             response = Generation.call(
                 model=self.model,
                 prompt=formatted_prompt,
                 max_tokens=self.max_tokens,
-                temperature=self.temperature
+                temperature=self.temperature,
+                result_format='message'  # 使用message格式
             )
             
             end_time = time.time()
+            response_time = end_time - start_time
+            logger.info(f"Qwen API响应时间: {response_time:.2f}秒, 状态码: {response.status_code}")
             
             if response.status_code == 200:
+                logger.info(f"Qwen API返回成功 - 股票: {stock_code}")
+                
+                # 从response中提取文本内容
+                if hasattr(response, 'output') and hasattr(response.output, 'choices'):
+                    content = response.output.choices[0].message.content
+                elif hasattr(response, 'output') and hasattr(response.output, 'text'):
+                    content = response.output.text
+                else:
+                    content = str(response.output)
+                
+                logger.info(f"Qwen分析成功 - 股票: {stock_code}, 内容长度: {len(content)} 字符")
+                
                 return {
                     'success': True,
-                    'content': response.output.text,
+                    'content': content,
                     'provider': 'qwen',
                     'model': self.model,
-                    'tokens_used': response.usage.total_tokens if hasattr(response, 'usage') else None,
-                    'response_time': end_time - start_time,
+                    'tokens_used': getattr(response.usage, 'total_tokens', None) if hasattr(response, 'usage') else None,
+                    'response_time': response_time,
                     'timestamp': datetime.utcnow().isoformat()
                 }
             else:
-                raise Exception(f"Qwen API错误: {response.message}")
+                error_msg = getattr(response, 'message', f"HTTP {response.status_code}")
+                logger.error(f"Qwen API请求失败 - 股票: {stock_code}, 错误: {error_msg}")
+                raise Exception(f"Qwen API错误: {error_msg}")
             
         except Exception as e:
             logger.error(f"Qwen生成分析失败: {str(e)}")
@@ -297,7 +268,8 @@ class QwenProvider(LLMProvider):
             response = Generation.call(
                 model=self.model,
                 prompt="Hello",
-                max_tokens=10
+                max_tokens=10,
+                result_format='message'
             )
             return response.status_code == 200
         except Exception as e:
@@ -318,9 +290,15 @@ class DeepSeekProvider(LLMProvider):
             import requests
             
             start_time = time.time()
+            stock_code = stock_info.get('code', 'unknown')
+            
+            logger.info(f"开始调用DeepSeek API - 股票: {stock_code}, 模型: {self.model}")
+            logger.info(f"DeepSeek API URL: {self.api_url}")
+            logger.info(f"DeepSeek API密钥长度: {len(self.api_key) if self.api_key else 0}")
             
             # 格式化提示词
             formatted_prompt = self.format_prompt(prompt, stock_info)
+            logger.info(f"DeepSeek提示词长度: {len(formatted_prompt)} 字符")
             
             # 准备请求数据
             headers = {
@@ -338,23 +316,32 @@ class DeepSeekProvider(LLMProvider):
                 "temperature": self.temperature
             }
             
+            logger.info(f"发送请求到DeepSeek API...")
             # 调用DeepSeek API
             response = requests.post(self.api_url, headers=headers, json=data, timeout=60)
             
             end_time = time.time()
+            response_time = end_time - start_time
+            logger.info(f"DeepSeek API响应时间: {response_time:.2f}秒, 状态码: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
+                logger.info(f"DeepSeek API返回成功 - 股票: {stock_code}")
+                
+                content = result['choices'][0]['message']['content']
+                logger.info(f"DeepSeek分析成功 - 股票: {stock_code}, 内容长度: {len(content)} 字符")
+                
                 return {
                     'success': True,
-                    'content': result['choices'][0]['message']['content'],
+                    'content': content,
                     'provider': 'deepseek',
                     'model': self.model,
                     'tokens_used': result['usage']['total_tokens'] if 'usage' in result else None,
-                    'response_time': end_time - start_time,
+                    'response_time': response_time,
                     'timestamp': datetime.utcnow().isoformat()
                 }
             else:
+                logger.error(f"DeepSeek API请求失败 - 股票: {stock_code}, 状态码: {response.status_code}, 响应: {response.text}")
                 return {
                     'success': False,
                     'error': f'API request failed: {response.status_code} - {response.text}',
@@ -404,32 +391,30 @@ class DeepSeekProvider(LLMProvider):
 class LLMProviderFactory:
     """LLM Provider工厂类"""
     
-    _providers = {
-        'gemini': GeminiProvider,
-        'chatgpt': ChatGPTProvider,
-        'qwen': QwenProvider,
-        'deepseek': DeepSeekProvider
-    }
-    
-    @classmethod
-    def create_provider(cls, provider_type: str, config: Dict[str, Any]) -> LLMProvider:
+    @staticmethod
+    def create_provider(provider_name: str, config: Dict[str, Any]) -> LLMProvider:
         """创建LLM Provider实例"""
-        if provider_type not in cls._providers:
-            raise ValueError(f"不支持的Provider类型: {provider_type}")
+        provider_name = provider_name.lower()
         
-        provider_class = cls._providers[provider_type]
-        return provider_class(config)
+        if provider_name == 'gemini':
+            return GeminiProvider(config)
+        elif provider_name == 'qwen':
+            return QwenProvider(config)
+        elif provider_name == 'deepseek':
+            return DeepSeekProvider(config)
+        else:
+            raise ValueError(f"不支持的Provider类型: {provider_name}")
     
-    @classmethod
-    def get_available_providers(cls) -> List[str]:
+    @staticmethod
+    def get_available_providers() -> List[str]:
         """获取可用的Provider列表"""
-        return list(cls._providers.keys())
+        return ['gemini', 'qwen', 'deepseek']
     
-    @classmethod
-    def test_provider(cls, provider_type: str, config: Dict[str, Any]) -> bool:
+    @staticmethod
+    def test_provider(provider_type: str, config: Dict[str, Any]) -> bool:
         """测试Provider连接"""
         try:
-            provider = cls.create_provider(provider_type, config)
+            provider = LLMProviderFactory.create_provider(provider_type, config)
             return provider.test_connection()
         except Exception as e:
             logger.error(f"测试Provider失败: {str(e)}")

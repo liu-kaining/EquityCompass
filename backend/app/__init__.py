@@ -25,10 +25,24 @@ mail = Mail()
 
 def create_app(config_name='development'):
     """Flask应用工厂函数"""
+    # 确保环境变量已加载
+    load_dotenv()
+    
     app = Flask(__name__)
     
+    # 配置日志
+    import logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(),  # 输出到控制台
+            logging.FileHandler('app.log', encoding='utf-8')  # 输出到文件
+        ]
+    )
+    
     # 加载配置
-    import app.config as config_module
+    from app import config as config_module
     
     if config_name == 'development':
         app.config.from_object(config_module.DevelopmentConfig)

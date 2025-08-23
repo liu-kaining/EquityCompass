@@ -45,3 +45,4 @@ gunicorn==21.2.0
 # External APIs
 openai==0.28.0
 google-generativeai==0.2.0
+dashscope==1.14.0  # 阿里云通义千问API

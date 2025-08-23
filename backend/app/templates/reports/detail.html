@@ -22,19 +22,23 @@
             <div class="card-body">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h1 class="gradient-text mb-2">AAPL - 苹果公司</h1>
-                        <p class="text-muted mb-0">分析时间：2024-08-08 09:15 | 分析模型：ChatGPT-4</p>
+                        <h1 class="gradient-text mb-2">{{ report.stock_code }} - {{ report.stock_name }}</h1>
+                        <p class="text-muted mb-0">
+                            分析时间：{{ report.analysis_date }} | 
+                            分析模型：{{ report.provider }} | 
+                            市场：{{ report.market }}
+                        </p>
                     </div>
                     <div class="col-md-4 text-end">
-                        <button class="btn btn-outline-secondary me-2">
+                        <button class="btn btn-outline-secondary me-2" onclick="downloadReport()">
                             <i class="fas fa-download me-2"></i>导出PDF
                         </button>
-                        <button class="btn btn-outline-info me-2">
+                        <button class="btn btn-outline-info me-2" onclick="shareReport()">
                             <i class="fas fa-share me-2"></i>分享
                         </button>
-                        <button class="btn btn-primary">
+                        <a href="{{ url_for('analysis.index') }}?stock={{ report.stock_code }}" class="btn btn-primary">
                             <i class="fas fa-redo me-2"></i>重新分析
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -48,172 +52,87 @@
         <div class="card glass-effect mb-4">
             <div class="card-body">
                 <h5 class="card-title">
-                    <i class="fas fa-chart-line text-primary me-2"></i>技术分析
+                    <i class="fas fa-chart-line text-primary me-2"></i>AI分析报告
                 </h5>
                 
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    以下为示例分析内容，实际数据将来自LLM API生成
-                </div>
-                
-                <div class="markdown-content">
-                    <h6>关键技术指标</h6>
-                    <ul>
-                        <li><strong>支撑位：</strong>$185.00</li>
-                        <li><strong>阻力位：</strong>$195.00</li>
-                        <li><strong>RSI：</strong>58.5（中性偏强）</li>
-                        <li><strong>MACD：</strong>金叉形态，多头信号</li>
-                    </ul>
-                    
-                    <h6>K线形态分析</h6>
-                    <p>近期股价突破20日均线，呈现上升三角形整理形态。成交量配合良好，显示多头力量增强。</p>
-                    
-                    <h6>移动平均线</h6>
-                    <p>5日、10日、20日均线呈多头排列，短期趋势向好。50日均线提供重要支撑。</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card glass-effect mb-4">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-building text-success me-2"></i>基本面分析
-                </h5>
-                
-                <div class="markdown-content">
-                    <h6>财务亮点</h6>
-                    <ul>
-                        <li>Q3营收超预期增长8.5%</li>
-                        <li>iPhone销量同比增长12%</li>
-                        <li>服务业务营收创历史新高</li>
-                        <li>现金流充裕，资产负债表健康</li>
-                    </ul>
-                    
-                    <h6>行业地位</h6>
-                    <p>苹果在智能手机市场保持领先地位，生态系统优势显著。AI技术整合加速，为未来增长提供动力。</p>
-                    
-                    <h6>风险因素</h6>
-                    <ul>
-                        <li>中国市场销量波动</li>
-                        <li>供应链成本上升</li>
-                        <li>监管政策不确定性</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card glass-effect">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-lightbulb text-warning me-2"></i>投资建议
-                </h5>
-                
-                <div class="alert alert-success">
-                    <h6 class="alert-heading">
-                        <i class="fas fa-thumbs-up me-2"></i>建议：买入
-                    </h6>
-                    <p class="mb-0">基于技术面和基本面分析，建议在当前价位买入并持有。</p>
-                </div>
-                
-                <div class="markdown-content">
-                    <h6>操作策略</h6>
-                    <ul>
-                        <li><strong>买入价位：</strong>$187-$190</li>
-                        <li><strong>目标价位：</strong>$200-$210</li>
-                        <li><strong>止损价位：</strong>$182</li>
-                        <li><strong>持有期限：</strong>3-6个月</li>
-                    </ul>
-                    
-                    <h6>关注要点</h6>
-                    <p>密切关注Q4财报预期，特别是iPhone 15系列销量数据。同时关注美联储政策对科技股的影响。</p>
+                <div class="markdown-content" id="markdownContent">
+                    {{ report.content | safe }}
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- 侧边栏 -->
     <div class="col-lg-4">
-        <div class="card glass-effect mb-4">
-            <div class="card-body">
-                <h6 class="card-title">快速信息</h6>
-                <table class="table table-borderless table-sm">
-                    <tr>
-                        <td class="text-muted">当前价格</td>
-                        <td class="text-end">$189.25</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">日涨跌</td>
-                        <td class="text-end text-success">+2.45 (+1.31%)</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">52周高点</td>
-                        <td class="text-end">$199.62</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">52周低点</td>
-                        <td class="text-end">$164.08</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">市值</td>
-                        <td class="text-end">$2.95T</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">P/E比率</td>
-                        <td class="text-end">28.5</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-        
-        <div class="card glass-effect mb-4">
-            <div class="card-body">
-                <h6 class="card-title">相关报告</h6>
-                <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-dark">
-                        <small class="text-muted">2024-08-07</small><br>
-                        AAPL 技术分析更新
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-dark">
-                        <small class="text-muted">2024-08-06</small><br>
-                        科技板块周报
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-dark">
-                        <small class="text-muted">2024-08-05</small><br>
-                        AAPL Q3财报解读
-                    </a>
+        <!-- 报告元数据 - 浮动跟随 -->
+        <div class="sticky-sidebar">
+            <div class="card glass-effect mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>报告信息
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>股票代码：</strong></div>
+                        <div class="col-6">{{ report.stock_code }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>公司名称：</strong></div>
+                        <div class="col-6">{{ report.stock_name }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>分析日期：</strong></div>
+                        <div class="col-6">{{ report.analysis_date }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>AI模型：</strong></div>
+                        <div class="col-6">
+                            <span class="badge bg-primary">{{ report.provider }}</span>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>市场：</strong></div>
+                        <div class="col-6">
+                            {% if report.market == 'US' %}
+                                <span class="badge bg-primary">美股</span>
+                            {% else %}
+                                <span class="badge bg-success">港股</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if report.metadata %}
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>生成时间：</strong></div>
+                        <div class="col-6">{{ report.metadata.timestamp or 'N/A' }}</div>
+                    </div>
+                    {% if report.metadata.tokens_used %}
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>Token使用：</strong></div>
+                        <div class="col-6">{{ report.metadata.tokens_used }}</div>
+                    </div>
+                    {% endif %}
+                    {% if report.metadata.response_time %}
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>响应时间：</strong></div>
+                        <div class="col-6">{{ "%.2f"|format(report.metadata.response_time) }}秒</div>
+                    </div>
+                    {% endif %}
+                    {% endif %}
                 </div>
             </div>
-        </div>
-        
-        <div class="card glass-effect">
-            <div class="card-body">
-                <h6 class="card-title">分析师观点</h6>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between">
-                        <span>买入</span>
-                        <span class="text-success">12</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-success" style="width: 60%"></div>
-                    </div>
+            
+            <!-- 相关报告 -->
+            <div class="card glass-effect">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history me-2"></i>历史报告
+                    </h6>
                 </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between">
-                        <span>持有</span>
-                        <span class="text-warning">6</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-warning" style="width: 30%"></div>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between">
-                        <span>卖出</span>
-                        <span class="text-danger">2</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-danger" style="width: 10%"></div>
-                    </div>
+                <div class="card-body">
+                    <p class="text-muted small">暂无历史报告</p>
+                    <a href="{{ url_for('reports.index') }}?stock={{ report.stock_code }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-search me-1"></i>查看所有报告
+                    </a>
                 </div>
             </div>
         </div>
@@ -224,30 +143,483 @@
 {% block extra_css %}
 <!-- Font Awesome -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
 <style>
-.markdown-content h6 {
-    color: #00D4FF;
-    margin-top: 1.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.markdown-content ul {
-    margin-bottom: 1rem;
-}
-
-.breadcrumb {
+.markdown-content {
+    line-height: 1.8;
+    color: #2c3e50;
+    font-size: 15px;
+    text-indent: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: transparent;
+    padding: 2rem;
+    border-radius: 8px;
+    /* 确保内容完整显示 */
+    min-height: auto;
+    max-height: none;
+    overflow: visible;
+}
+
+/* 去除Markdown内容开头的多余空格 */
+.markdown-content > *:first-child {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.markdown-content > p:first-child {
+    text-indent: 0;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3, 
+.markdown-content h4, .markdown-content h5, .markdown-content h6 {
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: #1a202c;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.025em;
+}
+
+.markdown-content h1 { 
+    font-size: 2.2rem; 
+    border-bottom: 3px solid #3182ce;
+    padding-bottom: 0.8rem;
+    margin-top: 0;
+    color: #1a202c;
+}
+.markdown-content h2 { 
+    font-size: 1.8rem; 
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.5rem;
+    color: #2d3748;
+}
+.markdown-content h3 { 
+    font-size: 1.5rem; 
+    color: #4a5568;
+    border-left: 4px solid #3182ce;
+    padding-left: 1rem;
+}
+.markdown-content h4 { 
+    font-size: 1.3rem; 
+    color: #718096;
+}
+.markdown-content h5 { 
+    font-size: 1.1rem; 
+    color: #a0aec0;
+}
+.markdown-content h6 { 
+    font-size: 1rem; 
+    color: #cbd5e0;
+}
+
+.markdown-content p {
+    margin-bottom: 1.5rem;
+    text-align: justify;
+    line-height: 1.8;
+    color: #2d3748;
+}
+
+.markdown-content ul, .markdown-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 2.5rem;
+}
+
+.markdown-content li {
+    margin-bottom: 0.8rem;
+    line-height: 1.7;
+    color: #2d3748;
+}
+
+.markdown-content ul li {
+    position: relative;
+}
+
+.markdown-content ul li::before {
+    content: "•";
+    color: #3182ce;
+    font-weight: bold;
+    position: absolute;
+    left: -1.5rem;
+}
+
+.markdown-content ol {
+    counter-reset: item;
+}
+
+.markdown-content ol li {
+    counter-increment: item;
+    position: relative;
+}
+
+.markdown-content ol li::before {
+    content: counter(item) ".";
+    color: #3182ce;
+    font-weight: bold;
+    position: absolute;
+    left: -2rem;
+}
+
+.markdown-content strong {
+    font-weight: 700;
+    color: #1a202c;
+}
+
+.markdown-content em {
+    font-style: italic;
+    color: #4a5568;
+}
+
+.markdown-content code {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.9em;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.markdown-content pre {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 2rem 0;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.markdown-content pre code {
+    background: none;
     padding: 0;
+    border: none;
+    color: white;
+    box-shadow: none;
 }
 
-.breadcrumb-item a {
-    color: #00D4FF;
-    text-decoration: none;
+.markdown-content blockquote {
+    border-left: 5px solid #3182ce;
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    font-size: 1.1em;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.breadcrumb-item.active {
-    color: #6c757d;
+.markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.markdown-content th, .markdown-content td {
+    border: 1px solid #e2e8f0;
+    padding: 1rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+.markdown-content th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.95em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.markdown-content tr:nth-child(even) {
+    background-color: #f7fafc;
+}
+
+.markdown-content tr:hover {
+    background-color: #edf2f7;
+    transition: background-color 0.2s ease;
+}
+
+/* 特殊样式 */
+.markdown-content .highlight {
+    background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.markdown-content .warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 5px solid #f59e0b;
+    margin: 1.5rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.markdown-content .success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3fae8 100%);
+    color: #155724;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 5px solid #38a169;
+    margin: 1.5rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.markdown-content .info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee3f8 100%);
+    color: #0c5460;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 5px solid #3182ce;
+    margin: 1.5rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* 报告开头介绍段落的特殊样式 */
+.markdown-content > p:first-of-type {
+    background: transparent !important;
+    color: #2c3e50 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    font-size: 1em !important;
+    font-weight: normal !important;
+    line-height: 1.8 !important;
+    margin: 1rem 0 !important;
+    box-shadow: none !important;
+    border-left: none !important;
+    position: static !important;
+    overflow: visible !important;
+}
+
+.markdown-content > p:first-of-type::before {
+    content: none;
+}
+
+.markdown-content > p:first-of-type::after {
+    content: none;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* 浮动跟随的侧边栏 */
+.sticky-sidebar {
+    position: sticky;
+    top: 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    z-index: 100;
+}
+
+/* 侧边栏滚动条样式 */
+.sticky-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sticky-sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.sticky-sidebar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 3px;
+}
+
+.sticky-sidebar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+}
+
+/* 确保侧边栏卡片有合适的间距 */
+.sticky-sidebar .card {
+    margin-bottom: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 确保报告内容卡片完整显示 */
+.card.glass-effect {
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+}
+
+.card-body {
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+}
+
+.sticky-sidebar .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .markdown-content {
+        padding: 1rem;
+        font-size: 14px;
+    }
+    
+    .markdown-content h1 { font-size: 1.8rem; }
+    .markdown-content h2 { font-size: 1.5rem; }
+    .markdown-content h3 { font-size: 1.3rem; }
+    
+    .markdown-content table {
+        font-size: 0.9em;
+    }
+    
+    .markdown-content th, .markdown-content td {
+        padding: 0.5rem;
+    }
+
+    .markdown-content > p:first-of-type {
+        padding: 1rem 1.5rem;
+        font-size: 1em;
+        margin: 1.5rem 0;
+    }
+    
+    .markdown-content > p:first-of-type::before {
+        font-size: 1.5rem;
+        top: 0.8rem;
+        right: 1rem;
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 991.98px) {
+    .sticky-sidebar {
+        position: static;
+        max-height: none;
+        overflow-y: visible;
+    }
+    
+    .sticky-sidebar .card {
+        margin-bottom: 1rem;
+    }
 }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Marked.js for Markdown parsing -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+// 配置marked.js
+marked.setOptions({
+    breaks: true,  // 支持换行
+    gfm: true,     // 支持GitHub风格的Markdown
+    sanitize: false, // 允许HTML标签
+    headerIds: false, // 不生成标题ID
+    mangle: false, // 不转义内容
+    highlight: function(code, lang) {
+        // 代码高亮功能
+        if (lang && hljs.getLanguage(lang)) {
+            try {
+                return hljs.highlight(code, { language: lang }).value;
+            } catch (err) {}
+        }
+        return code;
+    }
+});
+
+// 使用默认渲染器，不自定义
+
+// 解析Markdown内容
+document.addEventListener('DOMContentLoaded', function() {
+    const markdownContent = document.getElementById('markdownContent');
+    if (markdownContent) {
+        let markdownText = markdownContent.innerHTML;
+        
+        console.log('原始Markdown内容:', markdownText.substring(0, 200) + '...');
+        
+        // 清理开头的多余空格和换行
+        markdownText = markdownText.trim();
+        
+        // 去除开头的多余空格
+        markdownText = markdownText.replace(/^\s+/, '');
+        
+        // 处理可能的HTML实体
+        markdownText = markdownText.replace(/&amp;/g, '&')
+                                   .replace(/&lt;/g, '<')
+                                   .replace(/&gt;/g, '>')
+                                   .replace(/&quot;/g, '"')
+                                   .replace(/&#39;/g, "'");
+        
+        // 处理Qwen特有的格式问题
+        console.log('开始处理Markdown格式...');
+        
+        // 1. 处理标题中的粗体格式 - 移除标题中的粗体标记
+        markdownText = markdownText.replace(/^# \*\*(.*?)\*\*/gm, '# $1');
+        markdownText = markdownText.replace(/^## \*\*(.*?)\*\*/gm, '## $1');
+        markdownText = markdownText.replace(/^### \*\*(.*?)\*\*/gm, '### $1');
+        markdownText = markdownText.replace(/^#### \*\*(.*?)\*\*/gm, '#### $1');
+        markdownText = markdownText.replace(/^##### \*\*(.*?)\*\*/gm, '##### $1');
+        markdownText = markdownText.replace(/^###### \*\*(.*?)\*\*/gm, '###### $1');
+        
+        console.log('Markdown格式处理完成');
+        
+        console.log('清理后的Markdown内容:', markdownText.substring(0, 200) + '...');
+        console.log('Markdown内容总长度:', markdownText.length);
+        
+        try {
+            const htmlContent = marked.parse(markdownText);
+            console.log('解析后的HTML内容:', htmlContent.substring(0, 200) + '...');
+            console.log('HTML内容总长度:', htmlContent.length);
+            markdownContent.innerHTML = htmlContent;
+            
+            // 检查内容是否完整显示
+            setTimeout(() => {
+                console.log('最终显示的内容高度:', markdownContent.scrollHeight);
+                console.log('容器高度:', markdownContent.clientHeight);
+                console.log('是否有滚动条:', markdownContent.scrollHeight > markdownContent.clientHeight);
+            }, 100);
+        } catch (error) {
+            console.error('Markdown解析错误:', error);
+            // 如果解析失败，显示原始内容
+            markdownContent.innerHTML = '<pre>' + markdownText + '</pre>';
+        }
+    }
+});
+
+function downloadReport() {
+    const link = document.createElement('a');
+    link.href = `/api/analysis/reports/{{ report.stock_code }}/download`;
+    link.download = `{{ report.stock_code }}_{{ report.stock_name }}_分析报告_{{ report.analysis_date }}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function shareReport() {
+    const url = window.location.href;
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ report.stock_code }} - {{ report.stock_name }} 分析报告',
+            text: '查看 {{ report.stock_name }} 的AI分析报告',
+            url: url
+        });
+    } else {
+        // 复制链接到剪贴板
+        navigator.clipboard.writeText(url).then(function() {
+            alert('报告链接已复制到剪贴板');
+        });
+    }
+}
+</script>
 {% endblock %}

@@ -3,123 +3,113 @@
 {% block title %}我的关注列表 - 智策股析{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">
-                    <i class="fas fa-bookmark me-2"></i>我的关注列表
-                </h2>
-                <a href="{{ url_for('stocks.index') }}" class="btn btn-outline-primary">
-                    <i class="fas fa-plus me-2"></i>添加更多股票
-                </a>
-            </div>
-            
-            <!-- 统计信息 -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card glass-effect">
-                        <div class="card-body text-center">
-                            <h3 class="text-primary mb-1" id="watchlistCount">{{ watchlist|length }}</h3>
-                            <p class="text-muted mb-0">已关注股票</p>
-                        </div>
+<div class="row">
+    <div class="col-12">
+        <h1 class="gradient-text mb-4">
+            <i class="fas fa-bookmark me-2"></i>我的关注列表
+        </h1>
+        <p class="text-muted mb-4">管理您关注的股票，查看分析报告</p>
+    </div>
+</div>
+
+<!-- 统计信息 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ watchlist|length }}</h4>
+                        <small class="text-muted">已关注股票</small>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card glass-effect">
-                        <div class="card-body text-center">
-                            <h3 class="text-success mb-1" id="remainingSlots">{{ 20 - watchlist|length }}</h3>
-                            <p class="text-muted mb-0">剩余名额</p>
-                        </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">{{ 20 - watchlist|length }}</h4>
+                        <small class="text-muted">剩余名额</small>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card glass-effect">
-                        <div class="card-body text-center">
-                            <h3 class="text-info mb-1">20</h3>
-                            <p class="text-muted mb-0">最大关注数</p>
-                        </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info">20</h4>
+                        <small class="text-muted">最大关注数</small>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card glass-effect">
-                        <div class="card-body text-center">
-                            <h3 class="text-warning mb-1">{{ watchlist|length }}</h3>
-                            <p class="text-muted mb-0">待分析</p>
-                        </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('stocks.index') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>添加更多股票
+                        </a>
                     </div>
                 </div>
             </div>
-            
-            <!-- 关注列表 -->
-            <div class="card glass-effect">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-list me-2"></i>关注股票列表
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if watchlist %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>股票代码</th>
-                                        <th>公司名称</th>
-                                        <th>市场</th>
-                                        <th>行业</th>
-                                        <th>关注时间</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for item in watchlist %}
-                                    <tr>
-                                        <td>
+        </div>
+    </div>
+</div>
+
+<!-- 关注列表 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card glass-effect">
+            <div class="card-body">
+                {% if watchlist %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>股票代码</th>
+                                    <th>公司名称</th>
+                                    <th>市场</th>
+                                    <th>行业</th>
+                                    <th>关注时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in watchlist %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('stocks.detail', code=item.stock.code) }}" 
+                                           class="text-decoration-none">
                                             <code class="text-primary">{{ item.stock.code }}</code>
-                                        </td>
-                                        <td>{{ item.stock.name }}</td>
-                                        <td>
-                                            {% if item.stock.market == 'US' %}
-                                                <span class="badge bg-primary">美股</span>
+                                        </a>
+                                    </td>
+                                    <td>{{ item.stock.name }}</td>
+                                    <td>
+                                        {% if item.stock.market == 'US' %}
+                                            <span class="badge bg-primary">美股</span>
+                                        {% else %}
+                                            <span class="badge bg-success">港股</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ item.stock.industry or '未知' }}</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {% if item.added_at %}
+                                                {{ item.added_at }}
                                             {% else %}
-                                                <span class="badge bg-success">港股</span>
+                                                未知
                                             {% endif %}
-                                        </td>
-                                        <td>
-                                            <small class="text-muted">{{ item.stock.industry or '未知' }}</small>
-                                        </td>
-                                        <td>
-                                            <small class="text-muted">
-                                                {% if item.added_at %}
-                                                    {{ item.added_at }}
-                                                {% else %}
-                                                    未知
-                                                {% endif %}
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-danger remove-watch-btn" 
-                                                    data-stock-code="{{ item.stock.code }}">
-                                                <i class="fas fa-times me-1"></i>移除
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">您还没有关注任何股票</h5>
-                            <p class="text-muted">开始关注您感兴趣的股票，我们将为您提供专业的AI分析</p>
-                            <a href="{{ url_for('stocks.index') }}" class="btn btn-primary">
-                                <i class="fas fa-search me-2"></i>浏览股票池
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-danger watch-btn" 
+                                                data-stock-code="{{ item.stock.code }}"
+                                                data-action="remove">
+                                            <i class="fas fa-times me-1"></i>移除
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">您还没有关注任何股票</h5>
+                        <p class="text-muted">开始关注您感兴趣的股票，我们将为您提供专业的AI分析</p>
+                        <a href="{{ url_for('stocks.index') }}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>浏览股票池
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -131,25 +121,31 @@
     <div class="col-12">
         <div class="card glass-effect">
             <div class="card-body">
-                <h5 class="card-title mb-3">
+                <h5 class="card-title mb-3 text-center">
                     <i class="fas fa-cogs me-2"></i>快速操作
                 </h5>
-                <div class="row">
-                    <div class="col-md-4">
-                        <button class="btn btn-outline-warning w-100 mb-2" id="clearAllBtn">
-                            <i class="fas fa-trash me-2"></i>清空关注列表
-                        </button>
-                    </div>
-                    <div class="col-md-4">
-                        <button class="btn btn-outline-info w-100 mb-2" id="exportBtn">
-                            <i class="fas fa-download me-2"></i>导出列表
-                        </button>
-                    </div>
-                    <div class="col-md-4">
-                        <a href="{{ url_for('analysis.index') }}" class="btn btn-outline-success w-100 mb-2">
-                            <i class="fas fa-chart-line me-2"></i>开始分析
-                        </a>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td class="text-center" style="width: 33.33%;">
+                                    <button class="btn btn-outline-warning w-100" id="clearAllBtn">
+                                        <i class="fas fa-trash me-2"></i>清空关注列表
+                                    </button>
+                                </td>
+                                <td class="text-center" style="width: 33.33%;">
+                                    <button class="btn btn-outline-info w-100" id="exportBtn">
+                                        <i class="fas fa-download me-2"></i>导出列表
+                                    </button>
+                                </td>
+                                <td class="text-center" style="width: 33.33%;">
+                                    <a href="{{ url_for('analysis.index') }}" class="btn btn-outline-success w-100">
+                                        <i class="fas fa-chart-line me-2"></i>开始分析
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -318,7 +314,7 @@ $(document).ready(function() {
     if (typeof confirmAction === 'undefined') {
         console.error('confirmAction函数未定义，使用原生confirm');
         // 移除关注功能（使用原生confirm作为备选）
-        $('.remove-watch-btn').click(function() {
+        $('.watch-btn').click(function() {
             console.log('移除按钮被点击（原生confirm）');
             const btn = $(this);
             const stockCode = btn.data('stock-code');
@@ -331,7 +327,7 @@ $(document).ready(function() {
     } else {
         console.log('confirmAction函数已定义，使用自定义弹窗');
         // 移除关注功能
-        $('.remove-watch-btn').click(function() {
+        $('.watch-btn').click(function() {
             console.log('移除按钮被点击（自定义弹窗）');
             const btn = $(this);
             const stockCode = btn.data('stock-code');

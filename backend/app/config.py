@@ -22,9 +22,6 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-change-in-production')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=30)
     
-    # JWT配置
-    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-jwt-secret-key-change-in-production')
-    
     # 邮件配置
     SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
     SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
@@ -39,11 +36,22 @@ class Config:
     EXPORTS_DIR = os.getenv('EXPORTS_DIR', 'data/exports')
     LOGS_DIR = os.getenv('LOGS_DIR', 'data/logs')
     
-    # LLM API配置
-    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-    QWEN_API_KEY = os.getenv('QWEN_API_KEY')
-    DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+    # LLM API配置 - 使用属性方法动态获取
+    @property
+    def OPENAI_API_KEY(self):
+        return os.getenv('OPENAI_API_KEY')
+    
+    @property
+    def GEMINI_API_KEY(self):
+        return os.getenv('GEMINI_API_KEY')
+    
+    @property
+    def QWEN_API_KEY(self):
+        return os.getenv('QWEN_API_KEY')
+    
+    @property
+    def DEEPSEEK_API_KEY(self):
+        return os.getenv('DEEPSEEK_API_KEY')
     
     # 默认AI模型配置
     DEFAULT_AI_PROVIDER = os.getenv('DEFAULT_AI_PROVIDER', 'gemini')

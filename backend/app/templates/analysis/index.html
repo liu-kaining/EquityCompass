@@ -13,6 +13,30 @@
         </div>
     </div>
 
+    <!-- 使用量显示 -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" id="usageCard">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 text-muted">
+                                <i class="fas fa-chart-bar me-2"></i>今日分析次数
+                            </h6>
+                            <span class="h5 mb-0" id="usageDisplay">加载中...</span>
+                        </div>
+                        <div class="text-end">
+                            <div class="progress" style="width: 120px; height: 8px;">
+                                <div class="progress-bar" id="usageProgress" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted mt-1 d-block" id="usageHint">每日限额：10次</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 分析选项 -->
     <div class="row mb-4">
         <div class="col-12">
@@ -26,32 +50,48 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="analysisType" class="form-label">分析类型</label>
+                                <label for="analysisType" class="form-label">
+                                    <i class="fas fa-chart-line me-2"></i>分析类型
+                                </label>
                                 <select class="form-select" id="analysisType">
-                                    <option value="default">综合分析</option>
-                                    <option value="fundamental">基本面分析</option>
-                                    <option value="technical">技术面分析</option>
+                                    <option value="fundamental">📊 基本面分析</option>
+                                    <option value="technical">📈 技术面分析</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="aiProvider" class="form-label">AI模型</label>
-                                <select class="form-select" id="aiProvider">
-                                    <option value="gemini">Gemini (推荐)</option>
-                                    <option value="chatgpt">ChatGPT</option>
-                                    <option value="qwen">Qwen</option>
-                                    <option value="deepseek">DeepSeek</option>
-                                </select>
+                                <label for="aiProvider" class="form-label">
+                                    <i class="fas fa-robot me-2"></i>AI模型
+                                </label>
+                                <div class="custom-select-wrapper">
+                                    <select class="form-select custom-select" id="aiProvider">
+                                        <option value="gemini" data-icon="🤖">
+                                            <i class="fas fa-robot"></i> Gemini (推荐)
+                                        </option>
+                                        <option value="qwen" data-icon="🌟">
+                                            <i class="fas fa-star"></i> Qwen
+                                        </option>
+                                        <option value="deepseek" data-icon="🚀">
+                                            <i class="fas fa-rocket"></i> DeepSeek
+                                        </option>
+                                    </select>
+                                    <div class="select-arrow">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label">快速操作</label>
-                                <div class="d-grid">
+                                <div class="d-grid gap-2">
                                     <button id="batchAnalyzeBtn" class="btn btn-primary">
                                         <i class="fas fa-magic me-2"></i>批量分析所有
                                     </button>
+                                    <a href="{{ url_for('analysis.tasks') }}" class="btn btn-outline-info">
+                                        <i class="fas fa-tasks me-2"></i>查看任务
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -197,6 +237,72 @@
         </div>
     </div>
 </div>
+
+<!-- 确认分析弹窗 -->
+<div class="modal fade" id="confirmAnalysisModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-effect">
+            <div class="modal-header border-0 text-center">
+                <h5 class="modal-title w-100">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>确认分析
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                    <h6 id="confirmStockInfo">确认分析 AAPL - 苹果公司？</h6>
+                    <p class="text-muted">分析一次将消耗您今日的1次分析额度</p>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>剩余次数：</strong><span id="confirmRemaining">9次</span>
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary me-3" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>取消
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmAnalysisBtn">
+                    <i class="fas fa-check me-2"></i>确认分析
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 任务完成弹窗 -->
+<div class="modal fade" id="taskCompletedModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-effect">
+            <div class="modal-header border-0 text-center">
+                <h5 class="modal-title w-100">
+                    <i class="fas fa-check-circle text-success me-2"></i>任务提交成功
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-rocket fa-3x text-primary mb-3"></i>
+                    <h6 class="text-success">批量分析任务已成功提交！</h6>
+                    <p class="text-muted">您的分析任务正在后台运行，完成后会通过邮件通知您。</p>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>提示：</strong>您可以随时在"分析报告"页面查看进度和结果。
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary me-3" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>继续分析
+                </button>
+                <a href="/reports/" class="btn btn-primary">
+                    <i class="fas fa-chart-line me-2"></i>查看报告
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_css %}
@@ -244,17 +350,114 @@ $(document).ready(function() {
     let analysisQueue = [];
     let currentAnalysisIndex = 0;
     let analysisResults = [];
+    let currentUsageData = null;
+    let pendingAnalysis = null;
+    
+    // 页面加载时获取使用量
+    loadUsageData();
+    
+    // 获取使用量数据
+    function loadUsageData() {
+        $.ajax({
+            url: '/api/analysis/usage',
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    currentUsageData = response.usage;
+                    updateUsageDisplay(currentUsageData);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('获取使用量失败:', error);
+                $('#usageDisplay').text('获取失败');
+            }
+        });
+    }
+    
+    // 更新使用量显示
+    function updateUsageDisplay(usage) {
+        const current = usage.current_count;
+        const limit = usage.daily_limit;
+        const remaining = usage.remaining;
+        const percentage = (current / limit) * 100;
+        
+        $('#usageDisplay').text(`${current}/${limit}`);
+        $('#usageProgress').css('width', `${Math.min(percentage, 100)}%`);
+        
+        if (usage.is_admin) {
+            $('#usageHint').text('管理员无限制');
+            $('#usageProgress').removeClass('bg-warning bg-danger').addClass('bg-success');
+        } else {
+            $('#usageHint').text(`每日限额：${limit}次`);
+            
+            if (percentage >= 100) {
+                $('#usageProgress').removeClass('bg-success bg-warning').addClass('bg-danger');
+            } else if (percentage >= 80) {
+                $('#usageProgress').removeClass('bg-success bg-danger').addClass('bg-warning');
+            } else {
+                $('#usageProgress').removeClass('bg-warning bg-danger').addClass('bg-success');
+            }
+        }
+    }
     
     // 单个股票分析
     $('.analyze-btn').click(function() {
+        console.log('分析按钮被点击');
         const btn = $(this);
         const stockCode = btn.data('stock-code');
         const stockName = btn.data('stock-name');
+        
+        // 检查使用量限制
+        if (currentUsageData && !currentUsageData.is_admin && !currentUsageData.can_analyze) {
+            showToast('error', `今日分析次数已达上限（${currentUsageData.daily_limit}次），请明天再试`);
+            return;
+        }
+        
+        // 显示确认弹窗
+        showConfirmAnalysis(stockCode, stockName, btn);
+    });
+    
+    // 显示确认分析弹窗
+    function showConfirmAnalysis(stockCode, stockName, btn) {
+        pendingAnalysis = { stockCode, stockName, btn };
+        
+        $('#confirmStockInfo').text(`确认分析 ${stockCode} - ${stockName}？`);
+        
+        if (currentUsageData && currentUsageData.is_admin) {
+            $('#confirmRemaining').text('无限制');
+        } else if (currentUsageData) {
+            $('#confirmRemaining').text(`${currentUsageData.remaining}次`);
+        } else {
+            $('#confirmRemaining').text('加载中...');
+        }
+        
+        $('#confirmAnalysisModal').modal('show');
+    }
+    
+    // 确认分析按钮点击
+    $('#confirmAnalysisBtn').click(function() {
+        if (!pendingAnalysis) return;
+        
+        $('#confirmAnalysisModal').modal('hide');
+        executeAnalysis(pendingAnalysis.stockCode, pendingAnalysis.stockName, pendingAnalysis.btn);
+        pendingAnalysis = null;
+    });
+    
+    // 执行分析（异步任务）
+    function executeAnalysis(stockCode, stockName, btn) {
         const analysisType = $('#analysisType').val();
+        const aiProvider = $('#aiProvider').val();
+        
+        console.log('股票代码:', stockCode);
+        console.log('股票名称:', stockName);
+        console.log('分析类型:', analysisType);
+        console.log('AI模型:', aiProvider);
         
         // 禁用按钮
         btn.prop('disabled', true);
-        btn.html('<i class="fas fa-spinner fa-spin me-1"></i>分析中...');
+        btn.html('<i class="fas fa-spinner fa-spin me-1"></i>提交中...');
+        
+        console.log('发送分析请求到:', '/api/analysis/analyze');
         
         // 发送分析请求
         $.ajax({
@@ -263,28 +466,95 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ 
                 stock_code: stockCode,
-                analysis_type: analysisType
+                analysis_type: analysisType,
+                ai_provider: aiProvider
             }),
             success: function(response) {
+                console.log('分析请求成功:', response);
                 if (response.success) {
-                    showToast('success', `${stockCode} 分析完成！`);
+                    showToast('success', `${stockCode} 分析任务已提交！请稍后查看结果。`);
                     
-                    // 显示分析结果
-                    showAnalysisResult(stockCode, stockName, response.data);
+                    // 更新使用量
+                    loadUsageData();
+                    
+                    // 显示任务提交成功提示
+                    showTaskSubmittedModal(stockCode, response.data.task_id);
                 } else {
                     showToast('error', `${stockCode} 分析失败: ${response.message}`);
                 }
             },
-            error: function(xhr) {
+            error: function(xhr, status, error) {
+                console.error('分析请求失败:', xhr, status, error);
                 const response = xhr.responseJSON;
-                showToast('error', `${stockCode} 分析失败: ${response?.message || '网络错误'}`);
+                
+                if (response && response.error === 'DAILY_LIMIT_REACHED') {
+                    showToast('error', `今日分析次数已达上限（${response.data?.daily_limit || 10}次），请明天再试`);
+                    // 更新使用量显示
+                    if (response.data) {
+                        updateUsageDisplay(response.data);
+                    }
+                } else {
+                    showToast('error', `${stockCode} 分析失败: ${response?.message || '网络错误'}`);
+                }
             },
             complete: function() {
                 btn.prop('disabled', false);
                 btn.html('<i class="fas fa-chart-line me-1"></i>分析');
             }
         });
-    });
+    }
+    
+    // 显示任务提交成功弹窗
+    function showTaskSubmittedModal(stockCode, taskId) {
+        const modal = `
+            <div class="modal fade" id="singleTaskSubmittedModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content glass-effect">
+                        <div class="modal-header border-0 text-center">
+                            <h5 class="modal-title w-100">
+                                <i class="fas fa-check-circle text-success me-2"></i>任务提交成功
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <div class="mb-4">
+                                <i class="fas fa-rocket fa-3x text-primary mb-3"></i>
+                                <h6 class="text-success">${stockCode} 分析任务已成功提交！</h6>
+                                <p class="text-muted">您的分析任务正在后台运行，完成后可以在"分析报告"页面查看结果。</p>
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>任务ID：</strong>${taskId}
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-center">
+                            <button type="button" class="btn btn-outline-secondary me-3" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-2"></i>继续分析
+                            </button>
+                            <a href="/reports/" class="btn btn-primary">
+                                <i class="fas fa-chart-line me-2"></i>查看报告
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 移除之前的模态框（如果存在）
+        $('#singleTaskSubmittedModal').remove();
+        
+        // 添加新的模态框到页面
+        $('body').append(modal);
+        
+        // 显示模态框
+        const taskModal = new bootstrap.Modal(document.getElementById('singleTaskSubmittedModal'));
+        taskModal.show();
+        
+        // 模态框关闭后清理
+        $('#singleTaskSubmittedModal').on('hidden.bs.modal', function() {
+            $(this).remove();
+        });
+    }
     
     // 批量分析
     $('#batchAnalyzeBtn').click(function() {
@@ -296,16 +566,41 @@ $(document).ready(function() {
             return;
         }
         
+        // 收集要分析的股票信息
+        const stocksToAnalyze = [];
+        $('.analyze-btn').each(function() {
+            stocksToAnalyze.push({
+                code: $(this).data('stock-code'),
+                name: $(this).data('stock-name')
+            });
+        });
+        
+        // 构建美观的确认信息
+        const stockList = stocksToAnalyze.map(stock => `• ${stock.code} (${stock.name})`).join('\n');
+        const estimatedTime = Math.ceil(stocksToAnalyze.length * 0.5); // 每只股票约30秒
+        const analysisTypeName = getAnalysisTypeName(analysisType);
+        
+        const confirmMessage = `🎯 批量分析任务确认
+
+📊 分析类型：${analysisTypeName}
+⏱️ 预计时间：约 ${estimatedTime} 分钟
+🤖 AI模型：${$('#aiProvider option:selected').text()}
+
+📋 待分析股票 (${stocksToAnalyze.length} 只)：
+${stockList}
+
+💡 提示：分析将在后台异步进行，您可以离开页面做其他事情。分析完成后会通过邮件通知您，您也可以在"分析报告"页面查看结果。`;
+        
         if (confirmAction) {
             confirmAction(
-                '批量分析',
-                `确定要分析所有关注的股票吗？\n分析类型：${getAnalysisTypeName(analysisType)}\n预计需要几分钟时间。`,
+                '🚀 批量分析确认',
+                confirmMessage,
                 function() {
                     startBatchAnalysis(analysisType);
                 }
             );
         } else {
-            if (confirm(`确定要分析所有关注的股票吗？\n分析类型：${getAnalysisTypeName(analysisType)}\n预计需要几分钟时间。`)) {
+            if (confirm(confirmMessage)) {
                 startBatchAnalysis(analysisType);
             }
         }
@@ -314,26 +609,54 @@ $(document).ready(function() {
     function startBatchAnalysis(analysisType) {
         const btn = $('#batchAnalyzeBtn');
         btn.prop('disabled', true);
-        btn.html('<i class="fas fa-spinner fa-spin me-2"></i>分析中...');
+        btn.html('<i class="fas fa-spinner fa-spin me-2"></i>提交任务中...');
         
-        // 准备分析队列
-        analysisQueue = [];
+        // 收集要分析的股票信息
+        const stocksToAnalyze = [];
         $('.analyze-btn').each(function() {
-            analysisQueue.push({
+            stocksToAnalyze.push({
                 code: $(this).data('stock-code'),
                 name: $(this).data('stock-name')
             });
         });
         
-        currentAnalysisIndex = 0;
-        analysisResults = [];
-        
-        // 显示进度
-        $('#analysisProgress').show();
-        updateProgress();
-        
-        // 开始分析
-        processNextAnalysis(analysisType);
+        // 发送异步批量分析请求
+        $.ajax({
+            url: '/api/analysis/batch-analyze',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                stocks: stocksToAnalyze,
+                analysis_type: analysisType,
+                ai_provider: $('#aiProvider').val()
+            }),
+            success: function(response) {
+                if (response.success) {
+                    showToast('success', `批量分析任务已提交！任务ID: ${response.task_id}\n分析完成后会通过邮件通知您。`);
+                    
+                    // 恢复按钮状态
+                    btn.prop('disabled', false);
+                    btn.html('<i class="fas fa-magic me-2"></i>批量分析所有');
+                    
+                    // 可以选择跳转到报告页面
+                    setTimeout(function() {
+                        // 显示美观的任务完成弹窗
+                        const taskCompletedModal = new bootstrap.Modal(document.getElementById('taskCompletedModal'));
+                        taskCompletedModal.show();
+                    }, 1000);
+                } else {
+                    showToast('error', response.message || '提交批量分析任务失败');
+                    btn.prop('disabled', false);
+                    btn.html('<i class="fas fa-magic me-2"></i>批量分析所有');
+                }
+            },
+            error: function(xhr) {
+                const response = xhr.responseJSON;
+                showToast('error', response?.message || '网络错误，请稍后重试');
+                btn.prop('disabled', false);
+                btn.html('<i class="fas fa-magic me-2"></i>批量分析所有');
+            }
+        });
     }
     
     function processNextAnalysis(analysisType) {
@@ -449,26 +772,79 @@ $(document).ready(function() {
     function showAnalysisResult(stockCode, stockName, reportData) {
         // 显示分析结果模态框
         const content = `
-            <h4>${stockName} (${stockCode}) 分析报告</h4>
-            <div class="mb-3">
-                <span class="badge bg-primary">${reportData.provider || 'AI'}</span>
-                <span class="badge bg-secondary">${reportData.analysis_date}</span>
+            <div class="analysis-result-header mb-3">
+                <h4 class="mb-2">${stockName} (${stockCode}) 分析报告</h4>
+                <div class="mb-3">
+                    <span class="badge bg-primary me-2">${reportData.provider || 'AI'}</span>
+                    <span class="badge bg-secondary me-2">${reportData.analysis_date}</span>
+                    <span class="badge bg-info">${reportData.metadata?.model || 'AI模型'}</span>
+                </div>
             </div>
-            <div class="analysis-preview">
-                ${reportData.content.substring(0, 500)}...
+            <div class="analysis-content">
+                <div class="analysis-preview mb-3">
+                    <h6>分析内容预览：</h6>
+                    <div class="border rounded p-3 bg-light" style="max-height: 300px; overflow-y: auto;">
+                        ${formatAnalysisContent(reportData.content)}
+                    </div>
+                </div>
+                <div class="analysis-actions">
+                    <a href="/reports/${stockCode}" class="btn btn-primary me-2" target="_blank">
+                        <i class="fas fa-external-link-alt me-1"></i>查看完整报告
+                    </a>
+                    <button class="btn btn-outline-secondary me-2" onclick="downloadReport('${stockCode}', '${stockName}')">
+                        <i class="fas fa-download me-1"></i>下载报告
+                    </button>
+                    <button class="btn btn-outline-info" onclick="shareReport('${stockCode}', '${stockName}')">
+                        <i class="fas fa-share me-1"></i>分享报告
+                    </button>
+                </div>
             </div>
         `;
         
         $('#analysisResultContent').html(content);
-        $('#viewFullReport').attr('href', `/reports/${stockCode}`);
         
         const modal = new bootstrap.Modal(document.getElementById('analysisResultModal'));
         modal.show();
     }
     
+    function formatAnalysisContent(content) {
+        // 简单的Markdown格式化
+        return content
+            .replace(/#{1,6}\s+(.+)/g, '<strong>$1</strong>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>');
+    }
+    
+    function downloadReport(stockCode, stockName) {
+        // 下载报告功能
+        const link = document.createElement('a');
+        link.href = `/api/analysis/reports/${stockCode}/download`;
+        link.download = `${stockCode}_${stockName}_分析报告_${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    function shareReport(stockCode, stockName) {
+        // 分享报告功能
+        const url = `${window.location.origin}/reports/${stockCode}`;
+        if (navigator.share) {
+            navigator.share({
+                title: `${stockName} (${stockCode}) 分析报告`,
+                text: `查看 ${stockName} 的AI分析报告`,
+                url: url
+            });
+        } else {
+            // 复制链接到剪贴板
+            navigator.clipboard.writeText(url).then(function() {
+                showToast('success', '报告链接已复制到剪贴板');
+            });
+        }
+    }
+    
     function getAnalysisTypeName(type) {
         const types = {
-            'default': '综合分析',
             'fundamental': '基本面分析',
             'technical': '技术面分析'
         };

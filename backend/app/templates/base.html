@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
     
     <!-- 自定义CSS -->
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
@@ -32,31 +32,46 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard.index') }}">仪表板</a>
+                        <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                            <i class="fas fa-tachometer-alt me-1"></i>仪表板
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('stocks.index') }}">股票池</a>
+                        <a class="nav-link" href="{{ url_for('stocks.index') }}">
+                            <i class="fas fa-chart-bar me-1"></i>股票池
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('stocks.watchlist') }}">关注列表</a>
+                        <a class="nav-link" href="{{ url_for('stocks.watchlist') }}">
+                            <i class="fas fa-bookmark me-1"></i>关注列表
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('analysis.index') }}">AI分析</a>
+                        <a class="nav-link" href="{{ url_for('analysis.index') }}">
+                            <i class="fas fa-robot me-1"></i>AI分析
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('reports.index') }}">分析报告</a>
+                        <a class="nav-link" href="{{ url_for('analysis.tasks') }}">
+                            <i class="fas fa-tasks me-1"></i>任务管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('reports.index') }}">
+                            <i class="fas fa-file-text me-1"></i>分析报告
+                        </a>
                     </li>
                 </ul>
                 
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            {{ session.user_email }}
+                            <i class="fas fa-user-circle me-1"></i>{{ session.user_email }}
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">设置</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>设置</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">登出</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>登出</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -67,7 +82,7 @@
     
     <!-- 主要内容 -->
     <main class="{% if session.user_id %}py-4{% else %}d-flex align-items-center min-vh-100{% endif %}">
-        <div class="container">
+        <div class="container-xl">
             <!-- Flash消息 -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}

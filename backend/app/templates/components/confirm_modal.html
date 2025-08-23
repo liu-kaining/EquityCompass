@@ -1,22 +1,22 @@
 <!-- 自定义确认弹窗 -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark border-secondary">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title" id="confirmModalLabel">
+        <div class="modal-content glass-effect border-0 shadow-lg">
+            <div class="modal-header border-0 bg-transparent">
+                <h5 class="modal-title text-primary" id="confirmTitle">
                     <i class="fas fa-question-circle text-warning me-2"></i>
                     <span id="confirmTitle">确认操作</span>
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p id="confirmMessage" class="mb-0">确定要执行此操作吗？</p>
+                <p id="confirmMessage" class="mb-0 text-dark">确定要执行此操作吗？</p>
             </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <div class="modal-footer border-0 bg-transparent">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times me-2"></i>取消
                 </button>
-                <button type="button" class="btn btn-danger" id="confirmBtn">
+                <button type="button" class="btn btn-primary" id="confirmBtn">
                     <i class="fas fa-check me-2"></i>确认
                 </button>
             </div>

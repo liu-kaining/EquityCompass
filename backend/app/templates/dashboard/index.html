@@ -68,11 +68,11 @@
         <div class="card glass-effect card-hover">
             <div class="card-body text-center">
                 <div class="mb-3">
-                    <i class="fas fa-clock fa-2x text-warning"></i>
+                    <i class="fas fa-tasks fa-2x text-warning"></i>
                 </div>
-                <h3 class="card-title">0</h3>
-                <p class="card-text text-muted">待处理任务</p>
-                <a href="{{ url_for('analysis.index') }}" class="btn btn-sm btn-warning">查看</a>
+                <h3 class="card-title" id="taskCount">0</h3>
+                <p class="card-text text-muted">进行中任务</p>
+                <a href="{{ url_for('analysis.tasks') }}" class="btn btn-sm btn-warning">管理</a>
             </div>
         </div>
     </div>
@@ -128,4 +128,27 @@
 {% block extra_css %}
 <!-- Font Awesome -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 加载任务统计
+    loadTaskStats();
+    
+    // 每30秒刷新一次任务统计
+    setInterval(loadTaskStats, 30000);
+});
+
+function loadTaskStats() {
+    $.get('/api/analysis/tasks', function(response) {
+        if (response.success) {
+            const runningTasks = response.tasks.filter(task => task.status === 'running');
+            $('#taskCount').text(runningTasks.length);
+        }
+    }).fail(function() {
+        console.log('获取任务统计失败');
+    });
+}
+</script>
 {% endblock %}
