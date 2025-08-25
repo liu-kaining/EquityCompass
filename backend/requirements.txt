@@ -5,16 +5,11 @@ Flask-Migrate==4.0.5
 Flask-CORS==4.0.0
 Flask-JWT-Extended==4.5.3
 PyJWT==2.8.0
-redis==5.0.1
 
 # Database
 SQLAlchemy==2.0.21
 psycopg2-binary==2.9.7  # PostgreSQL adapter for production
 
-# Redis and Celery for async tasks
-redis==4.6.0
-celery==5.3.1
-flower==2.0.1  # Celery monitoring
 
 # HTTP requests
 requests==2.31.0
