@@ -54,11 +54,14 @@ class Config:
         return os.getenv('DEEPSEEK_API_KEY')
     
     # 默认AI模型配置
-    DEFAULT_AI_PROVIDER = os.getenv('DEFAULT_AI_PROVIDER', 'gemini')
+    DEFAULT_AI_PROVIDER = os.getenv('DEFAULT_AI_PROVIDER', 'deepseek')
     GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
     OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
     QWEN_MODEL = os.getenv('QWEN_MODEL', 'qwen-turbo')
     DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')
+    
+    # 管理员配置
+    ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@equitycompass.com')
     
     # 支付网关配置
     STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')

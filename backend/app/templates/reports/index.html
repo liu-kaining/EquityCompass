@@ -73,14 +73,11 @@
                             <div class="custom-select filter-select">
                                 <select class="form-select" name="model" id="modelFilter">
                                     <option value="">🤖 全部模型</option>
-                                    <option value="gemini" {% if request.args.get('model') == 'gemini' %}selected{% endif %}>
-                                        🤖 Gemini
+                                    <option value="deepseek" {% if request.args.get('model') == 'deepseek' %}selected{% endif %}>
+                                        🚀 DeepSeek
                                     </option>
                                     <option value="qwen" {% if request.args.get('model') == 'qwen' %}selected{% endif %}>
                                         🌟 Qwen
-                                    </option>
-                                    <option value="deepseek" {% if request.args.get('model') == 'deepseek' %}selected{% endif %}>
-                                        🚀 DeepSeek
                                     </option>
                                 </select>
                             </div>
@@ -112,20 +109,29 @@
                         </h5>
                         <p class="text-muted mb-0 small">共 {{ reports|length }} 份分析报告</p>
                     </div>
-                    <div class="d-flex gap-3">
-                        <button class="btn btn-outline-primary report-action-btn" id="batchExportBtn" onclick="toggleBatchMode()">
-                            <i class="fas fa-download me-2"></i>批量导出
-                        </button>
-                        <button class="btn btn-success report-action-btn" id="confirmExportBtn" onclick="confirmBatchExport()" style="display: none;">
-                            <i class="fas fa-check me-2"></i>确认导出
-                        </button>
-                        <button class="btn btn-secondary report-action-btn" id="cancelBatchBtn" onclick="cancelBatchMode()" style="display: none;">
-                            <i class="fas fa-times me-2"></i>取消
-                        </button>
-                        <a href="{{ url_for('analysis.index') }}" class="btn btn-primary report-action-btn">
-                            <i class="fas fa-plus me-2"></i>新建分析
-                        </a>
-                    </div>
+                            <div class="d-flex gap-3">
+            {% if session.user_id %}
+                <button class="btn btn-outline-primary report-action-btn" id="batchExportBtn" onclick="toggleBatchMode()">
+                    <i class="fas fa-download me-2"></i>批量导出
+                </button>
+                <button class="btn btn-success report-action-btn" id="confirmExportBtn" onclick="confirmBatchExport()" style="display: none;">
+                    <i class="fas fa-check me-2"></i>确认导出
+                </button>
+                <button class="btn btn-secondary report-action-btn" id="cancelBatchBtn" onclick="cancelBatchMode()" style="display: none;">
+                    <i class="fas fa-times me-2"></i>取消
+                </button>
+                <a href="{{ url_for('analysis.index') }}" class="btn btn-primary report-action-btn">
+                    <i class="fas fa-plus me-2"></i>新建分析
+                </a>
+            {% else %}
+                <div class="alert alert-info mb-0" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>访客模式</strong> - 您可以查看报告，但需要
+                    <a href="{{ url_for('auth.login') }}" class="alert-link">登录</a>
+                    才能进行AI分析和导出功能
+                </div>
+            {% endif %}
+        </div>
                 </div>
                 
                 {% if reports %}

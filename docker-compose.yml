@@ -9,9 +9,19 @@ services:
     environment:
       - FLASK_ENV=production
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-your-secret-key-here}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-jwt-secret-key-here}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-pro}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-3.5-turbo}
       - QWEN_API_KEY=${QWEN_API_KEY}
+      - QWEN_MODEL=${QWEN_MODEL:-qwen-plus}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
+      - DEFAULT_AI_PROVIDER=${DEFAULT_AI_PROVIDER:-deepseek}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@equitycompass.com}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///dev.db}
+      - SEND_EMAIL=${SEND_EMAIL:-False}
     volumes:
       - equitycompass_data:/app/data
       - equitycompass_logs:/app/logs
@@ -21,7 +31,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
+    depends_on: []
 
 volumes:
   equitycompass_data:

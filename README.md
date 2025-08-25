@@ -2,12 +2,12 @@
 
 ## 项目简介
 
-EquityCompass 是一个基于人工智能的股票分析平台，集成了多个先进的AI模型（Gemini、Qwen、DeepSeek），为用户提供专业的股票基本面和技术面分析报告。平台采用现代化的Web界面，支持实时分析、报告管理、PDF导出等功能。
+EquityCompass 是一个基于人工智能的股票分析平台，集成了多个先进的AI模型（DeepSeek、Qwen），为用户提供专业的股票基本面和技术面分析报告。平台采用现代化的Web界面，支持实时分析、报告管理、PDF导出等功能。
 
 ## 🚀 核心功能
 
 ### 1. 智能股票分析
-- **多AI模型支持**: 集成Gemini、Qwen、DeepSeek三大AI模型
+- **多AI模型支持**: 集成DeepSeek、Qwen两大AI模型
 - **双分析模式**: 基本面分析 + 技术面分析
 - **实时分析**: 支持单个股票和批量分析
 - **异步处理**: 后台任务处理，支持进度跟踪
@@ -88,22 +88,19 @@ cp backend/env.example .env
 docker-compose up -d
 ```
 
-4. **初始化数据库和导入数据**
+4. **启动服务**
 ```bash
-# 进入容器
-docker exec -it equitycompass-app bash
-
-# 初始化数据库
-python app.py init-db
-
-# 导入股票数据
-python scripts/import_stocks.py
-
-# 退出容器
-exit
+docker-compose up -d
 ```
 
-5. **访问应用**
+5. **查看启动日志**
+```bash
+docker-compose logs -f equitycompass
+```
+
+**注意**: 首次启动时会自动执行数据库初始化和股票数据导入，无需手动操作。
+
+6. **访问应用**
 打开浏览器访问: http://localhost:5001
 
 #### Docker命令参考

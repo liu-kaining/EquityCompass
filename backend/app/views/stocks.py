@@ -22,7 +22,6 @@ def get_stock_service():
     return StockDataService(db.session)
 
 @stocks_bp.route('/')
-@login_required
 def index():
     """股票池页面"""
     try:
@@ -60,14 +59,31 @@ def index():
         end = start + per_page
         paginated_stocks = stocks[start:end]
         
-        # 获取用户关注列表
+        # 获取用户关注列表（仅登录用户）
         user_id = session.get('user_id')
-        watchlist_data = service.get_user_watchlist(user_id)
-        watchlist_codes = {item['stock']['code'] for item in watchlist_data['watchlist']}
-        
-        # 标记已关注的股票
-        for stock in paginated_stocks:
-            stock['is_watching'] = stock['code'] in watchlist_codes
+        if user_id:
+            watchlist_data = service.get_user_watchlist(user_id)
+            watchlist_codes = {item['stock']['code'] for item in watchlist_data['watchlist']}
+            
+            # 标记已关注的股票
+            for stock in paginated_stocks:
+                stock['is_watching'] = stock['code'] in watchlist_codes
+            
+            watchlist_summary = {
+                'count': len(watchlist_data['watchlist']),
+                'remaining_slots': 20 - len(watchlist_data['watchlist']),
+                'max_count': 20
+            }
+        else:
+            # 访客模式
+            for stock in paginated_stocks:
+                stock['is_watching'] = False
+            
+            watchlist_summary = {
+                'count': 0,
+                'remaining_slots': 20,
+                'max_count': 20
+            }
         
         pagination = {
             'page': page,
@@ -76,12 +92,6 @@ def index():
             'pages': (total + per_page - 1) // per_page,
             'market': market,
             'search': search
-        }
-        
-        watchlist_summary = {
-            'count': len(watchlist_data['watchlist']),
-            'remaining_slots': 20 - len(watchlist_data['watchlist']),
-            'max_count': 20
         }
         
         return render_template('stocks/index.html', 
@@ -166,7 +176,6 @@ def add_custom():
     return render_template('stocks/add_custom.html')
 
 @stocks_bp.route('/<code>')
-@login_required
 def detail(code):
     """股票详情页面"""
     try:
@@ -179,19 +188,27 @@ def detail(code):
                                  stock_code=code,
                                  error="股票不存在")
         
-        # 检查用户是否已关注
+        # 检查用户是否已关注（仅登录用户）
         user_id = session.get('user_id')
-        watchlist_data = service.get_user_watchlist(user_id)
-        watchlist_codes = {item['stock']['code'] for item in watchlist_data['watchlist']}
-        stock['is_watching'] = stock['code'] in watchlist_codes
-        
-        # 获取关注列表统计信息
-        watchlist_data = service.get_user_watchlist(user_id)
-        watchlist_summary = {
-            'count': len(watchlist_data['watchlist']),
-            'remaining_slots': 20 - len(watchlist_data['watchlist']),
-            'max_count': 20
-        }
+        if user_id:
+            watchlist_data = service.get_user_watchlist(user_id)
+            watchlist_codes = {item['stock']['code'] for item in watchlist_data['watchlist']}
+            stock['is_watching'] = stock['code'] in watchlist_codes
+            
+            # 获取关注列表统计信息
+            watchlist_summary = {
+                'count': len(watchlist_data['watchlist']),
+                'remaining_slots': 20 - len(watchlist_data['watchlist']),
+                'max_count': 20
+            }
+        else:
+            # 访客模式
+            stock['is_watching'] = False
+            watchlist_summary = {
+                'count': 0,
+                'remaining_slots': 20,
+                'max_count': 20
+            }
         
         return render_template('stocks/detail.html', 
                              stock=stock, 

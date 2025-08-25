@@ -408,7 +408,7 @@ class LLMProviderFactory:
     @staticmethod
     def get_available_providers() -> List[str]:
         """获取可用的Provider列表"""
-        return ['gemini', 'qwen', 'deepseek']
+        return ['qwen', 'deepseek']
     
     @staticmethod
     def test_provider(provider_type: str, config: Dict[str, Any]) -> bool:

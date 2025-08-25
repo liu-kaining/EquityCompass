@@ -137,34 +137,7 @@ body {
     transform: translateY(0);
 }
 
-.dev-mode {
-    margin-bottom: 25px;
-    padding: 15px;
-    background: #f7fafc;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-}
 
-.dev-toggle .btn-link {
-    color: #667eea;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.dev-accounts {
-    margin-top: 10px;
-}
-
-.dev-account-list {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.dev-login-btn {
-    font-size: 12px;
-    padding: 6px 12px;
-}
 
 .auth-features {
     display: flex;
@@ -266,27 +239,7 @@ body {
             </button>
         </form>
 
-        <!-- Development Mode -->
-        <div class="dev-mode">
-            <div class="dev-toggle">
-                <button class="btn btn-link btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#devAccounts">
-                    <i class="fas fa-code"></i> 开发模式
-                </button>
-            </div>
-            <div class="collapse" id="devAccounts">
-                <div class="dev-accounts">
-                    <p class="text-muted mb-2">快速登录测试账号：</p>
-                    <div class="dev-account-list">
-                        <button type="button" class="btn btn-outline-secondary btn-sm dev-login-btn" data-email="admin@dev.com">
-                            <i class="fas fa-user-shield"></i> 管理员账户
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm dev-login-btn" data-email="user@dev.com">
-                            <i class="fas fa-user"></i> 普通用户
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Features -->
         <div class="auth-features">
@@ -360,33 +313,7 @@ body {
     transform: translate(-50%, -50%);
 }
 
-.dev-mode {
-    margin-bottom: 25px;
-}
 
-.dev-toggle {
-    text-align: center;
-}
-
-.dev-accounts {
-    background: #f7fafc;
-    border-radius: 12px;
-    padding: 15px;
-    margin-top: 10px;
-}
-
-.dev-account-list {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.dev-login-btn {
-    border-radius: 8px;
-    font-size: 12px;
-    padding: 6px 12px;
-}
 
 .auth-features {
     display: grid;
@@ -455,26 +382,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnText = sendCodeBtn.querySelector('.btn-text');
     const btnSpinner = sendCodeBtn.querySelector('.btn-spinner');
     
-    // Dev login buttons
-    const devLoginBtns = document.querySelectorAll('.dev-login-btn');
-    devLoginBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const email = this.dataset.email;
-            emailInput.value = email;
-            loginForm.submit();
-        });
-    });
+
     
     // Form submission
     loginForm.addEventListener('submit', function(e) {
         const email = emailInput.value.trim();
         
-        // For dev emails, submit directly
-        if (email === 'admin@dev.com' || email === 'user@dev.com') {
-            return; // Let form submit normally
-        }
-        
-        // Prevent default for normal emails to use AJAX
+        // Prevent default to use AJAX
         e.preventDefault();
         
         // Validate email

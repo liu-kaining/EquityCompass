@@ -270,15 +270,15 @@ class AnalysisService:
                 }
                 logger.info(f"DeepSeek配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}")
             else:
-                # 默认使用Gemini
+                # 默认使用DeepSeek
                 provider_config = {
-                    'name': 'gemini',
-                    'api_key': os.getenv('GEMINI_API_KEY'),
-                    'model': os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'),
+                    'name': 'deepseek',
+                    'api_key': os.getenv('DEEPSEEK_API_KEY'),
+                    'model': os.getenv('DEEPSEEK_MODEL', 'deepseek-chat'),
                     'max_tokens': 6000,  # 增加token限制，确保生成完整报告
                     'temperature': 0.7
                 }
-                logger.info(f"默认Gemini配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}")
+                logger.info(f"默认DeepSeek配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}")
             
             # 如果没有API密钥，返回模拟数据
             if not provider_config['api_key']:
@@ -817,7 +817,7 @@ class AnalysisService:
             
         except Exception as e:
             logger.error(f"创建批量分析任务失败: {str(e)}")
-            raise
+            raise e
     
     def _send_batch_analysis_completion_email(self, task_data: Dict[str, Any]):
         """发送批量分析完成邮件"""
@@ -1072,3 +1072,43 @@ class AnalysisService:
         except Exception as e:
             logger.error(f"启动批量分析任务重试失败: {str(e)}")
             raise e
+
+    def delete_analysis_report(self, stock_code: str, report_id: str) -> bool:
+        """删除分析报告"""
+        try:
+            logger.info(f"删除分析报告 - 股票代码: {stock_code}, 报告ID: {report_id}")
+            
+            # 遍历所有日期目录，查找包含该report_id的文件
+            if os.path.exists(self.reports_dir):
+                for date_dir in sorted(os.listdir(self.reports_dir), reverse=True):
+                    date_path = os.path.join(self.reports_dir, date_dir)
+                    if not os.path.isdir(date_path):
+                        continue
+                    
+                    for filename in os.listdir(date_path):
+                        if filename.endswith('.json') and report_id in filename:
+                            report_file = os.path.join(date_path, filename)
+                            logger.info(f"找到要删除的报告文件: {report_file}")
+                            
+                            try:
+                                # 删除文件
+                                os.remove(report_file)
+                                logger.info(f"成功删除报告文件: {report_file}")
+                                
+                                # 检查目录是否为空，如果为空则删除目录
+                                if not os.listdir(date_path):
+                                    os.rmdir(date_path)
+                                    logger.info(f"删除空目录: {date_path}")
+                                
+                                return True
+                                
+                            except Exception as e:
+                                logger.error(f"删除报告文件失败: {report_file}, {str(e)}")
+                                return False
+            
+            logger.warning(f"未找到report_id为 {report_id} 的报告文件")
+            return False
+            
+        except Exception as e:
+            logger.error(f"删除分析报告失败: {str(e)}")
+            return False

@@ -23,22 +23,18 @@ def login():
             response.headers['Expires'] = '0'
             return response
         
-        # 开发阶段：管理员后门登录
-        if email == 'admin@dev.com':
+
+
+        # 检查是否为管理员邮箱
+        from app.config import DevelopmentConfig
+        config = DevelopmentConfig()
+        if email == config.ADMIN_EMAIL:
+            # 管理员邮箱直接登录，无需验证码
             session['user_id'] = 999
             session['user_email'] = email
             session['is_admin'] = True
-            session['access_token'] = 'dev_admin_token'
-            flash('管理员开发模式登录成功！', 'success')
-            return redirect(url_for('dashboard.index'))
-
-        # 开发阶段：普通用户后门登录
-        if email == 'user@dev.com':
-            session['user_id'] = 1
-            session['user_email'] = email
-            session['is_admin'] = False
-            session['access_token'] = 'dev_user_token'
-            flash('开发模式登录成功！', 'success')
+            session['access_token'] = 'admin_token'
+            flash('管理员登录成功！', 'success')
             return redirect(url_for('dashboard.index'))
 
         # 正常流程：使用AJAX发送验证码，这里直接跳转到验证页面

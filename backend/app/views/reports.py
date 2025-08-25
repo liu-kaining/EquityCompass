@@ -57,7 +57,6 @@ def convert_to_beijing_time(utc_timestamp):
         return utc_timestamp  # 如果转换失败，返回原值
 
 @reports_bp.route('/')
-@login_required
 def index():
     """报告列表页面"""
     from app import db
@@ -166,7 +165,6 @@ def index():
                          min=min)
 
 @reports_bp.route('/<stock_code>')
-@login_required
 def detail(stock_code):
     """报告详情页面"""
     from app import db
@@ -367,21 +365,20 @@ def export_pdf(stock_code):
                     display: grid;
                     grid-template-columns: 1fr 1fr;
                     gap: 15px;
-                    margin-bottom: 20px;
+                    margin-top: 20px;
                 }}
                 
                 .info-item {{
-                    padding: 12px;
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 10px;
                     background: #f8f9fa;
-                    border-radius: 8px;
-                    border-left: 4px solid #4f46e5;
+                    border-radius: 5px;
                 }}
                 
                 .info-label {{
                     font-weight: bold;
-                    color: #4f46e5;
-                    display: block;
-                    margin-bottom: 5px;
+                    color: #666;
                 }}
                 
                 .info-value {{
@@ -396,73 +393,71 @@ def export_pdf(stock_code):
                     color: #4f46e5;
                     margin-top: 25px;
                     margin-bottom: 15px;
-                    font-weight: bold;
-                }}
-                
-                .content h1 {{
-                    font-size: 20px;
-                }}
-                
-                .content h2 {{
-                    font-size: 18px;
-                }}
-                
-                .content h3 {{
-                    font-size: 16px;
                 }}
                 
                 .content p {{
                     margin-bottom: 15px;
-                    text-align: justify;
                 }}
                 
                 .content ul, .content ol {{
                     margin-bottom: 15px;
-                    padding-left: 25px;
+                    padding-left: 20px;
                 }}
                 
                 .content li {{
-                    margin-bottom: 8px;
-                }}
-                
-                .content strong {{
-                    color: #4f46e5;
-                    font-weight: bold;
+                    margin-bottom: 5px;
                 }}
                 
                 .content code {{
                     background: #f1f3f4;
-                    padding: 2px 6px;
-                    border-radius: 4px;
+                    padding: 2px 4px;
+                    border-radius: 3px;
                     font-family: 'Courier New', monospace;
+                }}
+                
+                .content pre {{
+                    background: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 5px;
+                    overflow-x: auto;
+                    margin: 15px 0;
+                }}
+                
+                .content table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 15px 0;
+                }}
+                
+                .content th, .content td {{
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }}
+                
+                .content th {{
+                    background: #f8f9fa;
+                    font-weight: bold;
                 }}
                 
                 .footer {{
                     margin-top: 40px;
-                    text-align: center;
-                    font-size: 12px;
-                    color: #999;
-                    border-top: 1px solid #eee;
                     padding-top: 20px;
+                    border-top: 1px solid #eee;
+                    text-align: center;
+                    color: #666;
+                    font-size: 12px;
                 }}
             </style>
         </head>
         <body>
             <div class="header">
-                <div class="title">股票分析报告</div>
-                <div class="subtitle">AI驱动的智能投资分析</div>
+                <div class="title">{report.get('stock_name', '')} ({report.get('stock_code', '')})</div>
+                <div class="subtitle">AI智能分析报告</div>
             </div>
             
             <div class="info-section">
                 <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">股票代码</span>
-                        <span class="info-value">{report.get('stock_code', '')}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">公司名称</span>
-                        <span class="info-value">{report.get('stock_name', '')}</span>
-                    </div>
                     <div class="info-item">
                         <span class="info-label">分析日期</span>
                         <span class="info-value">{report.get('analysis_date', '')}</span>
@@ -494,13 +489,52 @@ def export_pdf(stock_code):
         </html>
         """
         
-        # 使用playwright生成PDF
-        with sync_playwright() as p:
-            browser = p.chromium.launch()
-            page = browser.new_page()
-            page.set_content(html_content)
-            page.pdf(path=pdf_path, format='A4', margin={'top': '2cm', 'right': '2cm', 'bottom': '2cm', 'left': '2cm'})
-            browser.close()
+        # 使用playwright生成PDF，添加更多错误处理
+        try:
+            with sync_playwright() as p:
+                # 启动浏览器，添加生产环境参数
+                browser = p.chromium.launch(
+                    headless=True,
+                    args=[
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-gpu',
+                        '--no-first-run',
+                        '--no-zygote',
+                        '--single-process',
+                        '--disable-extensions'
+                    ]
+                )
+                
+                page = browser.new_page()
+                page.set_content(html_content)
+                
+                # 等待内容加载完成
+                page.wait_for_load_state('networkidle')
+                
+                # 生成PDF
+                page.pdf(
+                    path=pdf_path, 
+                    format='A4', 
+                    margin={'top': '2cm', 'right': '2cm', 'bottom': '2cm', 'left': '2cm'},
+                    print_background=True
+                )
+                
+                browser.close()
+                
+        except Exception as playwright_error:
+            # 如果Playwright失败，记录详细错误信息
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Playwright PDF生成失败: {str(playwright_error)}")
+            
+            # 尝试使用备用方法（如果有的话）
+            raise Exception(f"PDF生成失败: {str(playwright_error)}")
+        
+        # 检查PDF文件是否生成成功
+        if not os.path.exists(pdf_path) or os.path.getsize(pdf_path) == 0:
+            raise Exception("PDF文件生成失败或文件为空")
         
         # 生成文件名
         filename = f"{report.get('stock_code', '')}_{report.get('analysis_date', '')}_分析报告.pdf"
@@ -514,11 +548,17 @@ def export_pdf(stock_code):
         )
         
     except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"PDF导出失败: {str(e)}")
         return jsonify({'success': False, 'error': f'PDF生成失败: {str(e)}'})
     finally:
         # 清理临时文件
         if 'pdf_path' in locals() and os.path.exists(pdf_path):
-            os.unlink(pdf_path)
+            try:
+                os.unlink(pdf_path)
+            except:
+                pass
 
 @reports_bp.route('/batch-export', methods=['POST'])
 @login_required
@@ -751,12 +791,33 @@ def batch_export():
                     pdf_path = tmp_file.name
                 
                 try:
-                    # 使用playwright生成PDF
+                    # 使用playwright生成PDF，添加生产环境参数
                     with sync_playwright() as p:
-                        browser = p.chromium.launch()
+                        browser = p.chromium.launch(
+                            headless=True,
+                            args=[
+                                '--no-sandbox',
+                                '--disable-setuid-sandbox',
+                                '--disable-dev-shm-usage',
+                                '--disable-gpu',
+                                '--no-first-run',
+                                '--no-zygote',
+                                '--single-process',
+                                '--disable-extensions'
+                            ]
+                        )
                         page = browser.new_page()
                         page.set_content(html_content)
-                        page.pdf(path=pdf_path, format='A4', margin={'top': '2cm', 'right': '2cm', 'bottom': '2cm', 'left': '2cm'})
+                        
+                        # 等待内容加载完成
+                        page.wait_for_load_state('networkidle')
+                        
+                        page.pdf(
+                            path=pdf_path, 
+                            format='A4', 
+                            margin={'top': '2cm', 'right': '2cm', 'bottom': '2cm', 'left': '2cm'},
+                            print_background=True
+                        )
                         browser.close()
                     
                     # 生成文件名
@@ -784,3 +845,48 @@ def batch_export():
         
     except Exception as e:
         return jsonify({'success': False, 'error': f'批量导出失败: {str(e)}'})
+
+
+@reports_bp.route('/<stock_code>/delete', methods=['POST'])
+@login_required
+def delete_report(stock_code):
+    """删除报告（仅管理员）"""
+    from app import db
+    
+    # 检查用户权限
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'error': '权限不足，只有管理员可以删除报告'})
+    
+    # 获取用户ID
+    user_id = session.get('user_id')
+    
+    # 获取请求数据
+    data = request.get_json()
+    report_id = data.get('report_id', '')
+    
+    if not report_id:
+        return jsonify({'success': False, 'error': '缺少报告ID'})
+    
+    try:
+        # 获取分析服务
+        analysis_service = AnalysisService(db.session)
+        
+        # 获取报告详情（用于确认报告存在）
+        report = analysis_service.get_analysis_report(stock_code, '', report_id)
+        
+        if not report:
+            return jsonify({'success': False, 'error': '报告不存在'})
+        
+        # 删除报告文件
+        success = analysis_service.delete_analysis_report(stock_code, report_id)
+        
+        if success:
+            return jsonify({'success': True, 'message': '报告删除成功'})
+        else:
+            return jsonify({'success': False, 'error': '删除报告失败'})
+            
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"删除报告失败: {str(e)}")
+        return jsonify({'success': False, 'error': f'删除报告失败: {str(e)}'})

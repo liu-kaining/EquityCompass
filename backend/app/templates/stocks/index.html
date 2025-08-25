@@ -13,7 +13,7 @@
 </div>
 
 <!-- 统计信息 -->
-{% if watchlist_summary %}
+{% if session.user_id and watchlist_summary %}
 <div class="row mb-4">
     <div class="col-12">
         <div class="card glass-effect">
@@ -90,9 +90,18 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <a href="{{ url_for('stocks.add_custom') }}" class="btn btn-success">
-                    <i class="fas fa-plus me-2"></i>添加自定义股票
-                </a>
+                {% if session.user_id %}
+                    <a href="{{ url_for('stocks.add_custom') }}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>添加自定义股票
+                    </a>
+                {% else %}
+                    <div class="alert alert-info mb-0" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>访客模式</strong> - 
+                        <a href="{{ url_for('auth.login') }}" class="alert-link">登录</a>
+                        后可添加自定义股票
+                    </div>
+                {% endif %}
             </div>
             <div class="text-center">
                 <div class="pagination-info">
@@ -159,18 +168,24 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if stock.is_watching %}
-                                            <button class="btn btn-sm btn-outline-danger watch-btn" 
-                                                    data-stock-code="{{ stock.code }}"
-                                                    data-action="remove">
-                                                <i class="fas fa-bookmark me-1"></i>取消关注
-                                            </button>
+                                        {% if session.user_id %}
+                                            {% if stock.is_watching %}
+                                                <button class="btn btn-sm btn-outline-danger watch-btn" 
+                                                        data-stock-code="{{ stock.code }}"
+                                                        data-action="remove">
+                                                    <i class="fas fa-bookmark me-1"></i>取消关注
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-outline-success watch-btn" 
+                                                        data-stock-code="{{ stock.code }}"
+                                                        data-action="add">
+                                                    <i class="fas fa-bookmark me-1"></i>关注
+                                                </button>
+                                            {% endif %}
                                         {% else %}
-                                            <button class="btn btn-sm btn-outline-success watch-btn" 
-                                                    data-stock-code="{{ stock.code }}"
-                                                    data-action="add">
-                                                <i class="fas fa-bookmark me-1"></i>关注
-                                            </button>
+                                            <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-sign-in-alt me-1"></i>登录关注
+                                            </a>
                                         {% endif %}
                                     </td>
                                 </tr>

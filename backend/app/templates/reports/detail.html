@@ -31,12 +31,26 @@
                     </div>
                     <div class="col-md-4 text-end">
                         <div class="d-flex gap-3 justify-content-end">
-                            <button class="btn btn-outline-primary report-action-btn" onclick="downloadReport()">
-                                <i class="fas fa-download me-2"></i>导出PDF
-                            </button>
-                            <a href="{{ url_for('analysis.index') }}?stock={{ report.stock_code }}" class="btn btn-primary report-action-btn">
-                                <i class="fas fa-redo me-2"></i>重新分析
-                            </a>
+                            {% if session.user_id %}
+                                <button class="btn btn-outline-primary report-action-btn" onclick="downloadReport()">
+                                    <i class="fas fa-download me-2"></i>导出PDF
+                                </button>
+                                <a href="{{ url_for('analysis.index') }}?stock={{ report.stock_code }}" class="btn btn-primary report-action-btn">
+                                    <i class="fas fa-redo me-2"></i>重新分析
+                                </a>
+                                {% if session.is_admin %}
+                                <button class="btn btn-danger report-action-btn" onclick="confirmDeleteReport()">
+                                    <i class="fas fa-trash me-2"></i>删除报告
+                                </button>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-info mb-0" role="alert">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>访客模式</strong> - 
+                                    <a href="{{ url_for('auth.login') }}" class="alert-link">登录</a>
+                                    后可导出和分析
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -650,6 +664,54 @@ function downloadReport() {
         button.innerHTML = originalText;
         button.disabled = false;
     }, 2000);
+}
+
+function confirmDeleteReport() {
+    // 二次确认对话框
+    if (confirm('⚠️ 确定要删除这份报告吗？\n\n此操作不可撤销，报告将被永久删除。')) {
+        deleteReport();
+    }
+}
+
+function deleteReport() {
+    const stockCode = '{{ report.stock_code }}';
+    const reportId = '{{ report.id }}';
+    
+    // 显示删除中状态
+    const deleteBtn = event.target;
+    const originalText = deleteBtn.innerHTML;
+    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>删除中...';
+    deleteBtn.disabled = true;
+    
+    // 发送删除请求
+    fetch(`/reports/${stockCode}/delete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            report_id: reportId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 删除成功，显示成功消息并跳转
+            alert('✅ 报告删除成功！');
+            window.location.href = '{{ url_for("reports.index") }}';
+        } else {
+            // 删除失败，显示错误消息
+            alert('❌ 删除失败：' + (data.error || '未知错误'));
+            deleteBtn.innerHTML = originalText;
+            deleteBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('删除报告时出错:', error);
+        alert('❌ 删除失败：网络错误，请稍后重试');
+        deleteBtn.innerHTML = originalText;
+        deleteBtn.disabled = false;
+    });
 }
 </script>
 {% endblock %}
