@@ -5,7 +5,7 @@ services:
     build: .
     container_name: equitycompass-app
     ports:
-      - "5001:5001"
+      - "5002:5002"
     environment:
       - FLASK_ENV=production
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-your-secret-key-here}
@@ -27,7 +27,7 @@ services:
       - equitycompass_logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+      test: ["CMD", "curl", "-f", "http://localhost:5002/"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -74,7 +74,7 @@ if __name__ == '__main__':
     # 开发环境启动
     app.run(
         host='0.0.0.0',
-        port=5001,  # 改为5001端口避免冲突
+        port=5002,  # 使用5002端口
         debug=True,
         threaded=True
     )

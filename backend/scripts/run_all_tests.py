@@ -12,7 +12,7 @@ import sys
 # 添加项目根目录到Python路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-BASE_URL = "http://localhost:5001"
+BASE_URL = "http://localhost:5002"
 
 def test_connection():
     """测试服务器连接"""

@@ -101,7 +101,7 @@ docker-compose logs -f equitycompass
 **注意**: 首次启动时会自动执行数据库初始化和股票数据导入，无需手动操作。
 
 6. **访问应用**
-打开浏览器访问: http://localhost:5001
+打开浏览器访问: http://localhost:5002
 
 #### Docker命令参考
 ```bash
@@ -166,7 +166,7 @@ python app.py
 ```
 
 7. **访问应用**
-打开浏览器访问: http://localhost:5001
+打开浏览器访问: http://localhost:5002
 
 ### 环境配置
 
