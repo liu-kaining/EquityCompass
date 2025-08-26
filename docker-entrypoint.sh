@@ -15,6 +15,14 @@ from app.services.data.database_service import DatabaseService
 
 app = create_app(os.getenv("FLASK_ENV", "production"))
 with app.app_context():
+    # 确保所有模型都被导入
+    from app.models import *
+    
+    # 创建所有表
+    db.create_all()
+    print("✅ 数据库表创建完成")
+    
+    # 初始化数据
     db_service = DatabaseService(db.session)
     db_service.initialize_database()
     print("✅ 数据库结构初始化完成")
@@ -28,7 +36,7 @@ PY
 else
     echo "✅ 数据库已初始化，跳过初始化步骤"
 fi
-
+z
 # 正式环境用 gunicorn 启动，避免 app.run()
 echo "🌐 启动 Flask 应用..."
 #exec gunicorn app:app -b 0.0.0.0:${PORT:-5002}

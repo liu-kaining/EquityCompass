@@ -85,17 +85,17 @@ cp backend/env.example .env
 
 3. **使用Docker Compose启动**
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 4. **启动服务**
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 5. **查看启动日志**
 ```bash
-docker-compose logs -f equitycompass
+docker compose logs -f equitycompass
 ```
 
 **注意**: 首次启动时会自动执行数据库初始化和股票数据导入，无需手动操作。
@@ -106,19 +106,19 @@ docker-compose logs -f equitycompass
 #### Docker命令参考
 ```bash
 # 启动服务
-docker-compose up -d
+docker compose up -d
 
 # 查看日志
-docker-compose logs -f
+docker compose logs -f
 
 # 停止服务
-docker-compose down
+docker compose down
 
 # 重新构建镜像
-docker-compose build --no-cache
+docker compose build --no-cache
 
 # 查看容器状态
-docker-compose ps
+docker compose ps
 ```
 
 ### 方式二：本地开发环境
@@ -233,19 +233,19 @@ nano .env  # 编辑配置文件
 #### 3. 启动服务
 ```bash
 # 构建并启动
-docker-compose up -d --build
+docker compose up -d --build
 
 # 查看启动状态
-docker-compose ps
+docker compose ps
 
 # 查看日志
-docker-compose logs -f
+docker compose logs -f
 ```
 
 #### 4. 数据初始化
 ```bash
 # 进入容器执行初始化
-docker exec -it equitycompass-app python app.py init-db
+docker exec -it equitycompass-app python scripts/init_db.py
 docker exec -it equitycompass-app python scripts/import_stocks.py
 ```
 
@@ -254,24 +254,24 @@ docker exec -it equitycompass-app python scripts/import_stocks.py
 #### 常用命令
 ```bash
 # 启动服务
-docker-compose up -d
+docker compose up -d
 
 # 停止服务
-docker-compose down
+docker compose down
 
 # 重启服务
-docker-compose restart
+docker compose restart
 
 # 查看日志
-docker-compose logs -f equitycompass
+docker compose logs -f equitycompass
 
 # 进入容器
 docker exec -it equitycompass-app bash
 
 # 更新代码后重新构建
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
+docker compose down
+docker compose build --no-cache
+docker compose up -d
 ```
 
 #### 数据持久化
