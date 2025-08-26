@@ -3,22 +3,25 @@
 智策股析 - 应用启动入口
 """
 import os
-from app import create_app, db
-from app.models import (
-    User, UserPlan, Stock, UserWatchlist, AnalysisTask, 
-    PromptTemplate, ReportIndex, EmailSubscription, 
-    PaymentTransaction, Admin, SystemConfig
-)
+import sys
 
-# 创建Flask应用
-app = create_app(os.getenv('FLASK_ENV', 'development'))
+# 设置环境变量
+os.environ.setdefault('FLASK_ENV', 'production')
 
-@app.shell_context_processor
-def make_shell_context():
-    """Flask shell上下文"""
+# 导入应用工厂函数
+from app import create_app
+
+# 创建Flask应用实例
+app = create_app(os.getenv('FLASK_ENV', 'production'))
+
+# 延迟导入模型，避免循环导入
+def get_models():
+    from app.models import (
+        User, UserPlan, Stock, UserWatchlist, AnalysisTask, 
+        PromptTemplate, ReportIndex, EmailSubscription, 
+        PaymentTransaction, Admin, SystemConfig
+    )
     return {
-        'db': db,
-        'app': app,
         'User': User,
         'UserPlan': UserPlan,
         'Stock': Stock,
@@ -32,9 +35,21 @@ def make_shell_context():
         'SystemConfig': SystemConfig,
     }
 
+@app.shell_context_processor
+def make_shell_context():
+    """Flask shell上下文"""
+    from app import db
+    models = get_models()
+    return {
+        'db': db,
+        'app': app,
+        **models
+    }
+
 @app.cli.command()
 def init_db():
     """初始化数据库"""
+    from app import db
     from app.services.data.database_service import DatabaseService
     
     with app.app_context():
@@ -46,6 +61,7 @@ def init_db():
 @app.cli.command() 
 def seed_db():
     """填充初始数据"""
+    from app import db
     from app.services.data.database_service import DatabaseService
     
     with app.app_context():
@@ -58,10 +74,10 @@ def seed_db():
 def reset_db():
     """重置数据库（危险操作）"""
     import click
+    from app import db
+    from app.services.data.database_service import DatabaseService
     
     if click.confirm('确定要重置数据库吗？这将删除所有数据！'):
-        from app.services.data.database_service import DatabaseService
-        
         with app.app_context():
             db_service = DatabaseService(db.session)
             db_service.reset_database()
@@ -74,7 +90,7 @@ if __name__ == '__main__':
     # 开发环境启动
     app.run(
         host='0.0.0.0',
-        port=5002,  # 使用5002端口
+        port=5002,
         debug=True,
         threaded=True
     )
