@@ -8,11 +8,17 @@ import sys
 # 设置环境变量
 os.environ.setdefault('FLASK_ENV', 'production')
 
-# 导入应用工厂函数
-from app import create_app
+# 创建Flask应用实例 - 避免循环导入
+def create_app_instance():
+    """创建Flask应用实例"""
+    from app import create_app
+    return create_app(os.getenv('FLASK_ENV', 'production'))
 
-# 创建Flask应用实例
-app = create_app(os.getenv('FLASK_ENV', 'production'))
+# 创建应用实例
+app = create_app_instance()
+
+# 确保app对象可以被gunicorn找到
+__all__ = ['app']
 
 # 延迟导入模型，避免循环导入
 def get_models():
