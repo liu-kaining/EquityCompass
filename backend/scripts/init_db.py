@@ -16,6 +16,9 @@ def init_database():
     """初始化数据库"""
     print("🚀 开始初始化数据库...")
     
+    # 设置环境变量
+    os.environ.setdefault('FLASK_ENV', 'production')
+    
     # 创建应用上下文
     app = create_app(os.getenv("FLASK_ENV", "production"))
     

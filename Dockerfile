@@ -31,14 +31,17 @@ RUN pip install --no-cache-dir \
         -i https://pypi.tuna.tsinghua.edu.cn/simple \
         -r requirements.txt
 
-# Playwright & Chromium
-RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple playwright && \
+# Playwright & Chromium（单独安装避免依赖冲突）
+RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple playwright==1.54.0 && \
     playwright install chromium && \
     playwright install-deps chromium
 
 # 复制代码与启动脚本
 COPY backend/ .
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+
+# 确保requirements.txt存在
+RUN test -f requirements.txt || (echo "requirements.txt not found" && exit 1)
 
 # 创建目录并赋权
 RUN mkdir -p data/reports data/tasks data/usage logs && \

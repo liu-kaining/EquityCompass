@@ -18,6 +18,9 @@ from app.models.stock import Stock
 
 def import_stocks():
     """导入股票数据"""
+    # 设置环境变量
+    os.environ.setdefault('FLASK_ENV', 'production')
+    
     app = create_app()
     
     with app.app_context():
