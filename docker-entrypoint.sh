@@ -31,4 +31,5 @@ fi
 
 # 正式环境用 gunicorn 启动，避免 app.run()
 echo "🌐 启动 Flask 应用..."
-exec gunicorn app:app -b 0.0.0.0:${PORT:-5002}
+#exec gunicorn app:app -b 0.0.0.0:${PORT:-5002}
+exec gunicorn "app:create_app()" -b 0.0.0.0:${PORT:-5002} --preload
