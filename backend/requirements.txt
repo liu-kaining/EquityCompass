@@ -7,8 +7,8 @@ Flask-JWT-Extended==4.5.3
 PyJWT==2.8.0
 
 # Database
-SQLAlchemy==2.0.21
-psycopg2-binary==2.9.7  # PostgreSQL adapter for production
+SQLAlchemy>=2.0.30
+# psycopg2-binary==2.9.7  # PostgreSQL adapter for production (commented for SQLite development)
 
 
 # HTTP requests

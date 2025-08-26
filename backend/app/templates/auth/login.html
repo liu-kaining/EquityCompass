@@ -322,8 +322,13 @@ document.addEventListener('DOMContentLoaded', function() {
             setLoadingState(false);
             
             if (data.success) {
-                // Redirect to verification page
-                window.location.href = `/auth/verify?email=${encodeURIComponent(email)}`;
+                if (data.data && data.data.is_admin) {
+                    // 管理员直接登录，跳转到仪表板
+                    window.location.href = data.data.redirect_url;
+                } else {
+                    // 普通用户，跳转到验证页面
+                    window.location.href = `/auth/verify?email=${encodeURIComponent(email)}`;
+                }
             } else {
                 showError(emailInput, data.message || '发送验证码失败，请稍后重试');
             }

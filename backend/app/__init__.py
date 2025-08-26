@@ -60,6 +60,13 @@ def create_app(config_name='development'):
     jwt.init_app(app)
     mail.init_app(app)
     
+    # 导入所有模型以确保表被创建
+    from app.models import (
+        User, UserPlan, Stock, UserWatchlist, AnalysisTask, 
+        PromptTemplate, ReportIndex, EmailSubscription, 
+        PaymentTransaction, Admin, SystemConfig
+    )
+    
     # 注册Web页面蓝图
     from app.views.main import main_bp
     from app.views.auth import auth_bp
