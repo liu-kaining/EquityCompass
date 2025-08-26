@@ -40,8 +40,9 @@ RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple playw
 COPY backend/ .
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 
-# 确保requirements.txt存在
+# 确保关键文件存在
 RUN test -f requirements.txt || (echo "requirements.txt not found" && exit 1)
+RUN test -f scripts/import_stocks.py || (echo "import_stocks.py not found" && exit 1)
 
 # 创建目录并赋权
 RUN mkdir -p data/reports data/tasks data/usage logs && \
