@@ -3,23 +3,32 @@ set -e
 
 echo "🚀 智策股析 - Docker启动脚本"
 
-# 检查是否需要初始化数据库
+# 如果首次启动，则初始化数据库
 if [ ! -f "/app/data/.db_initialized" ]; then
     echo "📊 首次启动，初始化数据库..."
-    
-    # 初始化数据库结构
-    python app.py init-db
-    
+
+    # 直接 Python 调用初始化
+    python - <<'PY'
+import os
+from app import create_app, db
+from app.services.data.database_service import DatabaseService
+
+app = create_app(os.getenv("FLASK_ENV", "production"))
+with app.app_context():
+    db_service = DatabaseService(db.session)
+    db_service.initialize_database()
+    print("✅ 数据库结构初始化完成")
+PY
+
     # 导入股票数据
     python scripts/import_stocks.py
-    
-    # 标记数据库已初始化
+
     touch /app/data/.db_initialized
     echo "✅ 数据库初始化完成"
 else
     echo "✅ 数据库已初始化，跳过初始化步骤"
 fi
 
-# 启动Flask应用
-echo "🌐 启动Flask应用..."
-exec python app.py
+# 正式环境用 gunicorn 启动，避免 app.run()
+echo "🌐 启动 Flask 应用..."
+exec gunicorn app:app -b 0.0.0.0:${PORT:-5002}
