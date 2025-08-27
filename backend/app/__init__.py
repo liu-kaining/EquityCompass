@@ -109,3 +109,11 @@ def create_app(config_name='development'):
 
     
     return app
+
+# 为gunicorn创建应用实例
+def create_app_for_gunicorn():
+    """为gunicorn创建应用实例"""
+    return create_app('production')
+
+# 导出应用实例供gunicorn使用
+app = create_app_for_gunicorn()
