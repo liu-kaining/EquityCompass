@@ -518,24 +518,17 @@ class QwenProvider(LLMProvider):
             
             logger.info(f"开始处理 qwen-deep-research 流式响应（支持反问确认）- 股票: {stock_code}")
             
-            # 调用流式API
+            # 第一步：获取反问确认问题
+            logger.info("第一步：获取反问确认问题")
             responses = Generation.call(**api_params)
             
             current_phase = None
             phase_content = ""
-            final_content = ""
-            research_goal = ""
-            web_sites = []
             confirmation_questions = ""
             
             for response in responses:
-                # 检查响应状态码
                 if hasattr(response, 'status_code') and response.status_code != 200:
                     logger.error(f"qwen-deep-research HTTP返回码：{response.status_code}")
-                    if hasattr(response, 'code'):
-                        logger.error(f"错误码：{response.code}")
-                    if hasattr(response, 'message'):
-                        logger.error(f"错误信息：{response.message}")
                     continue
                 
                 if hasattr(response, 'output') and response.output:
@@ -543,9 +536,7 @@ class QwenProvider(LLMProvider):
                     phase = message.get('phase')
                     content = message.get('content', '')
                     status = message.get('status')
-                    extra = message.get('extra', {})
                     
-                    # 阶段变化检测
                     if phase != current_phase:
                         if current_phase and phase_content:
                             logger.info(f"qwen-deep-research {current_phase} 阶段完成")
@@ -553,44 +544,98 @@ class QwenProvider(LLMProvider):
                         phase_content = ""
                         logger.info(f"qwen-deep-research 进入 {phase} 阶段")
                     
-                    # 累积阶段内容
                     if content:
                         phase_content += content
-                        final_content += content
                         
                         # 如果是反问确认阶段，记录问题
                         if phase == "answer" and status == "typing":
                             confirmation_questions += content
                     
-                    # 处理WebResearch阶段的特殊信息
-                    if phase == "WebResearch":
-                        if extra.get('deep_research', {}).get('research'):
-                            research_info = extra['deep_research']['research']
-                            
-                            # 处理streamingQueries状态
-                            if status == "streamingQueries":
-                                if 'researchGoal' in research_info:
-                                    goal = research_info['researchGoal']
-                                    if goal and goal != research_goal:
-                                        research_goal = goal
-                                        logger.info(f"qwen-deep-research 研究目标: {goal}")
-                            
-                            # 处理streamingWebResult状态
-                            elif status == "streamingWebResult":
-                                if 'webSites' in research_info:
-                                    sites = research_info['webSites']
-                                    if sites and len(sites) > len(web_sites):
-                                        web_sites = sites
-                                        logger.info(f"qwen-deep-research 发现 {len(sites)} 个网站")
-                    
-                    # 检查是否完成
+                    # 检查反问确认是否完成
                     if status == "finished" and phase == "answer":
-                        logger.info(f"qwen-deep-research 最终报告生成完成")
+                        logger.info("反问确认阶段完成")
                         break
             
-            # 如果没有获取到内容，使用阶段内容
-            if not final_content and phase_content:
-                final_content = phase_content
+            # 第二步：自动回答反问问题并继续分析
+            if confirmation_questions:
+                logger.info("第二步：自动回答反问问题并继续分析")
+                
+                # 构建自动回答
+                auto_response = """基于您的分析需求，我提供以下确认信息：
+
+1. 投资时间框架：我希望分析涵盖短期（6个月）、中期（1-2年）和长期（3-5年）三个时间维度，重点关注中长期投资价值，但也要包含短期交易机会的识别。
+
+2. 财务分析重点：请重点分析自由现金流折现（DCF）、ROIC趋势、毛利率和净利率变化、资本回报率等关键指标，同时包含相对估值法（P/E、P/S、EV/EBITDA）的对比分析。
+
+3. 行业分析范围：请深入分析公司与主要竞争对手在生态系统、技术创新、市场份额等方面的对比，特别关注公司在高端市场的护城河效应。
+
+4. 技术面分析：请结合短期技术指标（支撑阻力、动量指标）和长期趋势结构（周线级别波浪理论、机构持仓变化）进行多维度分析。
+
+5. 风险因素：请重点关注供应链风险、监管风险、技术颠覆风险、地缘政治风险等关键不确定性因素。
+
+请基于以上确认信息，生成一份极其详细、专业的投资分析报告。"""
+                
+                # 构建包含反问问题和自动回答的完整对话
+                full_conversation = [
+                    {'role': 'user', 'content': api_params['messages'][0]['content']},
+                    {'role': 'assistant', 'content': confirmation_questions},
+                    {'role': 'user', 'content': auto_response}
+                ]
+                
+                # 发送包含自动回答的请求
+                follow_up_params = {
+                    'model': self.model,
+                    'messages': full_conversation,
+                    'stream': True,
+                    'parameters': {
+                        'max_tokens': 15000,
+                        'temperature': 0.7
+                    }
+                }
+                
+                logger.info("发送包含自动回答的请求...")
+                follow_up_responses = Generation.call(**follow_up_params)
+                
+                final_content = ""
+                research_goal = ""
+                web_sites = []
+                
+                for response in follow_up_responses:
+                    if hasattr(response, 'status_code') and response.status_code != 200:
+                        continue
+                    
+                    if hasattr(response, 'output') and response.output:
+                        message = response.output.get('message', {})
+                        phase = message.get('phase')
+                        content = message.get('content', '')
+                        status = message.get('status')
+                        extra = message.get('extra', {})
+                        
+                        if content:
+                            final_content += content
+                        
+                        # 处理WebResearch阶段的特殊信息
+                        if phase == "WebResearch":
+                            if extra.get('deep_research', {}).get('research'):
+                                research_info = extra['deep_research']['research']
+                                
+                                if status == "streamingQueries":
+                                    if 'researchGoal' in research_info:
+                                        goal = research_info['researchGoal']
+                                        if goal and goal != research_goal:
+                                            research_goal = goal
+                                            logger.info(f"qwen-deep-research 研究目标: {goal}")
+                                
+                                elif status == "streamingWebResult":
+                                    if 'webSites' in research_info:
+                                        sites = research_info['webSites']
+                                        if sites and len(sites) > len(web_sites):
+                                            web_sites = sites
+                                            logger.info(f"qwen-deep-research 发现 {len(sites)} 个网站")
+                        
+                        if status == "finished" and phase == "answer":
+                            logger.info("最终报告生成完成")
+                            break
             
             # 构建完整的报告内容
             complete_report = ""
@@ -610,7 +655,7 @@ class QwenProvider(LLMProvider):
                 'content': complete_report,
                 'provider': 'qwen',
                 'model': self.model,
-                'tokens_used': None,  # 流式响应可能没有token信息
+                'tokens_used': None,
                 'response_time': response_time,
                 'timestamp': datetime.utcnow().isoformat(),
                 'research_goal': research_goal,
