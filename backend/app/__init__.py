@@ -63,8 +63,8 @@ def create_app(config_name='development'):
     # 导入所有模型以确保表被创建
     from app.models import (
         User, UserPlan, Stock, UserWatchlist, AnalysisTask, 
-        PromptTemplate, ReportIndex, EmailSubscription, 
-        PaymentTransaction, Admin, SystemConfig
+        PromptTemplate, ReportIndex, ReportStatistics, ReportViewLog, ReportDownloadLog,
+        EmailSubscription, PaymentTransaction, Admin, SystemConfig
     )
     
     # 注册Web页面蓝图
@@ -80,6 +80,7 @@ def create_app(config_name='development'):
     from app.api.stocks_api import stocks_api_bp
     from app.api.analysis_api import analysis_api_bp
     from app.api.health import health_bp
+    from app.api.report_statistics_api import report_statistics_bp
     
     # Web页面路由
     app.register_blueprint(main_bp)
@@ -94,6 +95,7 @@ def create_app(config_name='development'):
     app.register_blueprint(stocks_api_bp, url_prefix='/api/stocks')
     app.register_blueprint(analysis_api_bp, url_prefix='/api/analysis')
     app.register_blueprint(health_bp, url_prefix='/api/health')
+    app.register_blueprint(report_statistics_bp, url_prefix='/api/report-statistics')
     
 
     

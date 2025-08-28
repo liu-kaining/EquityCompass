@@ -89,6 +89,9 @@ class ReportIndex(db.Model):
     generated_at = db.Column(db.DateTime, default=datetime.utcnow)
     generated_by_task_id = db.Column(db.BigInteger, db.ForeignKey('analysis_tasks.id'))
     
+    # 关系
+    statistics = db.relationship('ReportStatistics', backref='report', uselist=False)
+    
     # 唐一约束
     __table_args__ = (db.UniqueConstraint('stock_id', 'analysis_date'),)
     
@@ -103,5 +106,129 @@ class ReportIndex(db.Model):
             'file_path': self.file_path,
             'summary': self.summary,
             'generated_at': self.generated_at.isoformat() if self.generated_at else None,
-            'stock': self.stock.to_dict() if self.stock else None
+            'stock': self.stock.to_dict() if self.stock else None,
+            'statistics': self.statistics.to_dict() if self.statistics else None
+        }
+
+
+class ReportStatistics(db.Model):
+    """报告统计表"""
+    __tablename__ = 'report_statistics'
+    
+    id = db.Column(db.BigInteger, primary_key=True)
+    report_id = db.Column(db.BigInteger, db.ForeignKey('report_index.id'), nullable=False, unique=True)
+    view_count = db.Column(db.Integer, default=0, comment='浏览次数')
+    download_count = db.Column(db.Integer, default=0, comment='下载次数')
+    share_count = db.Column(db.Integer, default=0, comment='分享次数')
+    favorite_count = db.Column(db.Integer, default=0, comment='收藏次数')
+    last_viewed_at = db.Column(db.DateTime, comment='最后浏览时间')
+    last_downloaded_at = db.Column(db.DateTime, comment='最后下载时间')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<ReportStatistics {self.report_id}:{self.view_count}views>'
+    
+    def to_dict(self):
+        """转换为字典"""
+        return {
+            'id': self.id,
+            'view_count': self.view_count,
+            'download_count': self.download_count,
+            'share_count': self.share_count,
+            'favorite_count': self.favorite_count,
+            'last_viewed_at': self.last_viewed_at.isoformat() if self.last_viewed_at else None,
+            'last_downloaded_at': self.last_downloaded_at.isoformat() if self.last_downloaded_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+    
+    def increment_view(self):
+        """增加浏览次数"""
+        self.view_count += 1
+        self.last_viewed_at = datetime.utcnow()
+        db.session.commit()
+    
+    def increment_download(self):
+        """增加下载次数"""
+        self.download_count += 1
+        self.last_downloaded_at = datetime.utcnow()
+        db.session.commit()
+    
+    def increment_share(self):
+        """增加分享次数"""
+        self.share_count += 1
+        db.session.commit()
+    
+    def increment_favorite(self):
+        """增加收藏次数"""
+        self.favorite_count += 1
+        db.session.commit()
+
+
+class ReportViewLog(db.Model):
+    """报告浏览日志表"""
+    __tablename__ = 'report_view_logs'
+    
+    id = db.Column(db.BigInteger, primary_key=True)
+    report_id = db.Column(db.BigInteger, db.ForeignKey('report_index.id'), nullable=False)
+    user_id = db.Column(db.BigInteger, db.ForeignKey('users.id'), nullable=True, comment='用户ID，可为空（匿名浏览）')
+    ip_address = db.Column(db.String(45), comment='IP地址')
+    user_agent = db.Column(db.String(500), comment='用户代理')
+    referer = db.Column(db.String(500), comment='来源页面')
+    view_duration = db.Column(db.Integer, comment='浏览时长（秒）')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # 关系
+    report = db.relationship('ReportIndex', backref='view_logs')
+    user = db.relationship('User', backref='report_views')
+    
+    def __repr__(self):
+        return f'<ReportViewLog {self.report_id}:{self.user_id}>'
+    
+    def to_dict(self):
+        """转换为字典"""
+        return {
+            'id': self.id,
+            'report_id': self.report_id,
+            'user_id': self.user_id,
+            'ip_address': self.ip_address,
+            'user_agent': self.user_agent,
+            'referer': self.referer,
+            'view_duration': self.view_duration,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+
+class ReportDownloadLog(db.Model):
+    """报告下载日志表"""
+    __tablename__ = 'report_download_logs'
+    
+    id = db.Column(db.BigInteger, primary_key=True)
+    report_id = db.Column(db.BigInteger, db.ForeignKey('report_index.id'), nullable=False)
+    user_id = db.Column(db.BigInteger, db.ForeignKey('users.id'), nullable=True, comment='用户ID，可为空（匿名下载）')
+    ip_address = db.Column(db.String(45), comment='IP地址')
+    user_agent = db.Column(db.String(500), comment='用户代理')
+    download_format = db.Column(db.String(20), comment='下载格式：PDF/ZIP')
+    file_size = db.Column(db.BigInteger, comment='文件大小（字节）')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # 关系
+    report = db.relationship('ReportIndex', backref='download_logs')
+    user = db.relationship('User', backref='report_downloads')
+    
+    def __repr__(self):
+        return f'<ReportDownloadLog {self.report_id}:{self.download_format}>'
+    
+    def to_dict(self):
+        """转换为字典"""
+        return {
+            'id': self.id,
+            'report_id': self.report_id,
+            'user_id': self.user_id,
+            'ip_address': self.ip_address,
+            'user_agent': self.user_agent,
+            'download_format': self.download_format,
+            'file_size': self.file_size,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }

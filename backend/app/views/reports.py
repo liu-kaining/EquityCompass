@@ -847,6 +847,12 @@ def batch_export():
         return jsonify({'success': False, 'error': f'批量导出失败: {str(e)}'})
 
 
+@reports_bp.route('/statistics')
+@login_required
+def statistics():
+    """报告统计页面"""
+    return render_template('reports/statistics.html')
+
 @reports_bp.route('/<stock_code>/delete', methods=['POST'])
 @login_required
 def delete_report(stock_code):

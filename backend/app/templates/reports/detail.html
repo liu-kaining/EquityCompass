@@ -131,6 +131,49 @@
                     </div>
                     {% endif %}
                     {% endif %}
+                    
+                    <!-- 报告统计信息 -->
+                    <hr class="my-3">
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>浏览次数：</strong></div>
+                        <div class="col-6">
+                            <span id="view-count">-</span>
+                            <i class="fas fa-eye text-primary ms-1"></i>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>下载次数：</strong></div>
+                        <div class="col-6">
+                            <span id="download-count">-</span>
+                            <i class="fas fa-download text-success ms-1"></i>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>分享次数：</strong></div>
+                        <div class="col-6">
+                            <span id="share-count">-</span>
+                            <i class="fas fa-share-alt text-info ms-1"></i>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>收藏次数：</strong></div>
+                        <div class="col-6">
+                            <span id="favorite-count">-</span>
+                            <i class="fas fa-heart text-danger ms-1"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="mt-3">
+                        <div class="btn-group w-100" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="recordShare()" title="分享报告">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="recordFavorite()" title="收藏报告">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -584,6 +627,12 @@ marked.setOptions({
 
 // 解析Markdown内容
 document.addEventListener('DOMContentLoaded', function() {
+    // 记录页面浏览
+    recordView();
+    
+    // 加载报告统计信息
+    loadReportStatistics();
+    
     const markdownContent = document.getElementById('markdownContent');
     if (markdownContent) {
         let markdownText = markdownContent.innerHTML;
@@ -645,6 +694,9 @@ function downloadReport() {
     const originalText = button.innerHTML;
     button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>生成中...';
     button.disabled = true;
+    
+    // 记录下载统计
+    recordDownload();
     
     // 构建PDF下载URL
     const url = `{{ url_for('reports.export_pdf', stock_code=report.stock_code) }}?report_id={{ report.id }}`;
@@ -712,6 +764,175 @@ function deleteReport() {
         deleteBtn.innerHTML = originalText;
         deleteBtn.disabled = false;
     });
+}
+
+// 记录下载
+function recordDownload() {
+    const reportId = '{{ report.id }}';
+    
+    fetch('/api/report-statistics/record-download', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            report_id: reportId,
+            format: 'PDF',
+            file_size: 0
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 更新显示
+            const downloadCount = document.getElementById('download-count');
+            const currentCount = parseInt(downloadCount.textContent) || 0;
+            downloadCount.textContent = currentCount + 1;
+            
+            console.log('下载记录成功');
+        }
+    })
+    .catch(error => {
+        console.error('记录下载失败:', error);
+    });
+}
+
+// 记录页面浏览
+function recordView() {
+    const reportId = '{{ report.id }}';
+    const viewDuration = 0; // 初始浏览时长
+    
+    fetch('/api/report-statistics/record-view', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            report_id: reportId,
+            view_duration: viewDuration
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('浏览记录成功');
+        }
+    })
+    .catch(error => {
+        console.error('记录浏览失败:', error);
+    });
+}
+
+// 加载报告统计信息
+function loadReportStatistics() {
+    const reportId = '{{ report.id }}';
+    
+    fetch(`/api/report-statistics/report/${reportId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                document.getElementById('view-count').textContent = data.data.view_count || 0;
+                document.getElementById('download-count').textContent = data.data.download_count || 0;
+                document.getElementById('share-count').textContent = data.data.share_count || 0;
+                document.getElementById('favorite-count').textContent = data.data.favorite_count || 0;
+            }
+        })
+        .catch(error => {
+            console.error('加载统计信息失败:', error);
+        });
+}
+
+// 记录分享
+function recordShare() {
+    const reportId = '{{ report.id }}';
+    
+    fetch('/api/report-statistics/record-share', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            report_id: reportId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 更新显示
+            const shareCount = document.getElementById('share-count');
+            const currentCount = parseInt(shareCount.textContent) || 0;
+            shareCount.textContent = currentCount + 1;
+            
+            // 显示成功提示
+            showToast('分享记录成功！', 'success');
+        }
+    })
+    .catch(error => {
+        console.error('记录分享失败:', error);
+        showToast('分享记录失败', 'error');
+    });
+}
+
+// 记录收藏
+function recordFavorite() {
+    const reportId = '{{ report.id }}';
+    
+    fetch('/api/report-statistics/record-favorite', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            report_id: reportId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 更新显示
+            const favoriteCount = document.getElementById('favorite-count');
+            const currentCount = parseInt(favoriteCount.textContent) || 0;
+            favoriteCount.textContent = currentCount + 1;
+            
+            // 显示成功提示
+            showToast('收藏记录成功！', 'success');
+        }
+    })
+    .catch(error => {
+        console.error('记录收藏失败:', error);
+        showToast('收藏记录失败', 'error');
+    });
+}
+
+// 显示提示信息
+function showToast(message, type = 'info') {
+    const toastDiv = document.createElement('div');
+    toastDiv.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+    toastDiv.setAttribute('role', 'alert');
+    toastDiv.setAttribute('aria-live', 'assertive');
+    toastDiv.setAttribute('aria-atomic', 'true');
+    
+    toastDiv.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    
+    // 添加到页面
+    const container = document.querySelector('.container-fluid');
+    container.appendChild(toastDiv);
+    
+    // 显示toast
+    const toast = new bootstrap.Toast(toastDiv);
+    toast.show();
+    
+    // 自动移除
+    setTimeout(() => {
+        toastDiv.remove();
+    }, 3000);
 }
 </script>
 {% endblock %}
