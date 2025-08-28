@@ -225,21 +225,30 @@ class QwenProvider(LLMProvider):
                 logger.info("使用 qwen-deep-research 模型进行深入研究分析")
                 
                 # 构建研究提示词
-                research_prompt = f"""你是一位顶级的股票分析师，拥有20年以上的投资经验。请对股票 {stock_info.get('name', '')} ({stock_info.get('code', '')}) 进行极其深入、详细、专业的投资分析。
+                research_prompt = f"""请对股票 {stock_info.get('name', '')} ({stock_info.get('code', '')}) 进行极其深入、详细、专业的投资分析。
 
-要求：
-1. 报告必须非常详细，至少3000-5000字
-2. 包含大量具体数据、图表分析和专业术语
-3. 从多个维度进行全面分析：基本面、技术面、行业分析、风险评估等
-4. 提供具体的投资建议和操作策略
-5. 使用专业的金融分析框架和方法论
-6. 包含定量分析和定性分析
-7. 提供风险提示和免责声明
+研究目标：生成一份机构级别的专业投资分析报告，内容必须非常详细（至少3000-5000字），包含大量具体数据、专业术语和深度分析。
+
+分析维度：
+1. 公司概况与商业模式深度分析
+2. 财务健康度与盈利能力量化评估
+3. 行业地位与竞争优势分析
+4. 技术面分析与市场情绪评估
+5. 风险评估与不确定性分析
+6. 投资建议与操作策略
+7. 风险提示与免责声明
+
+分析要求：
+- 使用专业的金融分析框架和方法论
+- 包含定量分析和定性分析
+- 提供具体的投资建议和操作策略
+- 使用大量专业术语和数据支撑
+- 报告结构清晰，逻辑严密
 
 请基于以下信息进行深入分析：
 {formatted_prompt}
 
-请生成一份机构级别的专业投资分析报告。"""
+请在反问确认阶段就提供详细的分析框架和关键问题，然后在研究阶段生成极其详细、专业的投资分析报告。"""
                 
                 api_params = {
                     'model': self.model,
@@ -251,8 +260,8 @@ class QwenProvider(LLMProvider):
                     }
                 }
                 
-                # 处理流式响应
-                return self._process_deep_research_response(api_params, stock_code, response_time=0)
+                # 处理流式响应 - 支持反问确认流程
+                return self._process_deep_research_response_with_confirmation(api_params, stock_code, response_time=0)
             else:
                 # 其他模型使用原有方式
                 api_params = {
@@ -490,6 +499,123 @@ class QwenProvider(LLMProvider):
                 'timestamp': datetime.utcnow().isoformat(),
                 'research_goal': research_goal,
                 'web_sites': web_sites
+            }
+            
+        except Exception as e:
+            logger.error(f"qwen-deep-research 处理失败: {str(e)}")
+            return {
+                'success': False,
+                'error': str(e),
+                'provider': 'qwen',
+                'model': self.model,
+                'timestamp': datetime.utcnow().isoformat()
+            }
+    
+    def _process_deep_research_response_with_confirmation(self, api_params: Dict[str, Any], stock_code: str, response_time: float) -> Dict[str, Any]:
+        """处理 qwen-deep-research 模型的流式响应，支持反问确认流程"""
+        try:
+            from dashscope import Generation
+            
+            logger.info(f"开始处理 qwen-deep-research 流式响应（支持反问确认）- 股票: {stock_code}")
+            
+            # 调用流式API
+            responses = Generation.call(**api_params)
+            
+            current_phase = None
+            phase_content = ""
+            final_content = ""
+            research_goal = ""
+            web_sites = []
+            confirmation_questions = ""
+            
+            for response in responses:
+                # 检查响应状态码
+                if hasattr(response, 'status_code') and response.status_code != 200:
+                    logger.error(f"qwen-deep-research HTTP返回码：{response.status_code}")
+                    if hasattr(response, 'code'):
+                        logger.error(f"错误码：{response.code}")
+                    if hasattr(response, 'message'):
+                        logger.error(f"错误信息：{response.message}")
+                    continue
+                
+                if hasattr(response, 'output') and response.output:
+                    message = response.output.get('message', {})
+                    phase = message.get('phase')
+                    content = message.get('content', '')
+                    status = message.get('status')
+                    extra = message.get('extra', {})
+                    
+                    # 阶段变化检测
+                    if phase != current_phase:
+                        if current_phase and phase_content:
+                            logger.info(f"qwen-deep-research {current_phase} 阶段完成")
+                        current_phase = phase
+                        phase_content = ""
+                        logger.info(f"qwen-deep-research 进入 {phase} 阶段")
+                    
+                    # 累积阶段内容
+                    if content:
+                        phase_content += content
+                        final_content += content
+                        
+                        # 如果是反问确认阶段，记录问题
+                        if phase == "answer" and status == "typing":
+                            confirmation_questions += content
+                    
+                    # 处理WebResearch阶段的特殊信息
+                    if phase == "WebResearch":
+                        if extra.get('deep_research', {}).get('research'):
+                            research_info = extra['deep_research']['research']
+                            
+                            # 处理streamingQueries状态
+                            if status == "streamingQueries":
+                                if 'researchGoal' in research_info:
+                                    goal = research_info['researchGoal']
+                                    if goal and goal != research_goal:
+                                        research_goal = goal
+                                        logger.info(f"qwen-deep-research 研究目标: {goal}")
+                            
+                            # 处理streamingWebResult状态
+                            elif status == "streamingWebResult":
+                                if 'webSites' in research_info:
+                                    sites = research_info['webSites']
+                                    if sites and len(sites) > len(web_sites):
+                                        web_sites = sites
+                                        logger.info(f"qwen-deep-research 发现 {len(sites)} 个网站")
+                    
+                    # 检查是否完成
+                    if status == "finished" and phase == "answer":
+                        logger.info(f"qwen-deep-research 最终报告生成完成")
+                        break
+            
+            # 如果没有获取到内容，使用阶段内容
+            if not final_content and phase_content:
+                final_content = phase_content
+            
+            # 构建完整的报告内容
+            complete_report = ""
+            
+            # 如果有反问确认问题，添加到报告中
+            if confirmation_questions:
+                complete_report += f"## 分析确认问题\n\n{confirmation_questions}\n\n"
+                complete_report += "## 详细分析报告\n\n"
+            
+            # 添加最终分析内容
+            complete_report += final_content
+            
+            logger.info(f"qwen-deep-research 分析成功 - 股票: {stock_code}, 内容长度: {len(complete_report)} 字符")
+            
+            return {
+                'success': True,
+                'content': complete_report,
+                'provider': 'qwen',
+                'model': self.model,
+                'tokens_used': None,  # 流式响应可能没有token信息
+                'response_time': response_time,
+                'timestamp': datetime.utcnow().isoformat(),
+                'research_goal': research_goal,
+                'web_sites': web_sites,
+                'confirmation_questions': confirmation_questions
             }
             
         except Exception as e:
