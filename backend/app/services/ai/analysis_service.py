@@ -270,7 +270,7 @@ class AnalysisService:
                     'model': os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner'),
                     'max_tokens': 8000,  # 增加token限制，确保生成完整报告
                     'temperature': 0.7,
-                    'enable_deep_thinking': True,  # 启用深度思考
+                    'enable_deep_thinking': False,  # 暂时禁用深度思考
                     'thinking_steps': int(os.getenv('DEEPSEEK_THINKING_STEPS', '3'))  # 思考步数
                 }
                 logger.info(f"DeepSeek配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}, 深度思考={provider_config['enable_deep_thinking']}, 思考步数={provider_config['thinking_steps']}")
@@ -282,7 +282,7 @@ class AnalysisService:
                     'model': os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner'),
                     'max_tokens': 8000,  # 增加token限制，确保生成完整报告
                     'temperature': 0.7,
-                    'enable_deep_thinking': True,  # 启用深度思考
+                    'enable_deep_thinking': False,  # 暂时禁用深度思考
                     'thinking_steps': int(os.getenv('DEEPSEEK_THINKING_STEPS', '3'))  # 思考步数
                 }
                 logger.info(f"默认DeepSeek配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}, 深度思考={provider_config['enable_deep_thinking']}, 思考步数={provider_config['thinking_steps']}")
