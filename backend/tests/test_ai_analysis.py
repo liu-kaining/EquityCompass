@@ -55,13 +55,13 @@ def test_ai_analysis():
                     provider_config = {
                         'name': 'qwen',
                         'api_key': os.getenv('QWEN_API_KEY'),
-                        'model': 'qwen-plus'
+                        'model': 'qwen-max'
                     }
                 elif provider_name == 'deepseek':
                     provider_config = {
                         'name': 'deepseek',
                         'api_key': os.getenv('DEEPSEEK_API_KEY'),
-                        'model': 'deepseek-chat'
+                        'model': 'deepseek-reasoner'
                     }
                 else:
                     print(f"  ❌ 不支持的提供商: {provider_name}")

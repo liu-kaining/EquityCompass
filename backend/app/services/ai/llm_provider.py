@@ -20,7 +20,7 @@ class LLMProvider(ABC):
         self.name = config.get('name', 'unknown')
         self.api_key = config.get('api_key')
         self.model = config.get('model', 'default')
-        self.max_tokens = config.get('max_tokens', 2000)
+        self.max_tokens = config.get('max_tokens', 8000)
         self.temperature = config.get('temperature', 0.7)
     
     @abstractmethod
@@ -183,10 +183,15 @@ class GeminiProvider(LLMProvider):
 
 
 class QwenProvider(LLMProvider):
-    """阿里云通义千问 Provider"""
+    """阿里云通义千问 Provider - 支持深度思考和全网搜索"""
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
+        # 深度思考和全网搜索相关配置
+        self.enable_deep_thinking = config.get('enable_deep_thinking', True)
+        self.enable_web_search = config.get('enable_web_search', True)
+        self.thinking_steps = config.get('thinking_steps', 3)  # 思考步数
+        
         try:
             import dashscope
             dashscope.api_key = self.api_key
@@ -213,13 +218,63 @@ class QwenProvider(LLMProvider):
             # 调用Qwen API
             from dashscope import Generation
             logger.info(f"发送请求到Qwen API...")
-            response = Generation.call(
-                model=self.model,
-                prompt=formatted_prompt,
-                max_tokens=self.max_tokens,
-                temperature=self.temperature,
-                result_format='message'  # 使用message格式
-            )
+            
+            # 准备API调用参数 - 使用正确的 DashScope 格式
+            api_params = {
+                'model': self.model,
+                'prompt': formatted_prompt,  # 使用 prompt 参数
+                'parameters': {
+                    'max_tokens': self.max_tokens,
+                    'temperature': self.temperature,
+                    'result_format': 'message'
+                }
+            }
+            
+            # 如果启用深度思考或全网搜索，添加工具参数
+            if self.enable_deep_thinking or self.enable_web_search:
+                api_params['parameters']['tools'] = []
+                
+                # 如果启用深度思考，添加相关参数
+                if self.enable_deep_thinking:
+                    api_params['parameters']['tools'].append({
+                        'type': 'function',
+                        'function': {
+                            'name': 'deep_thinking',
+                            'description': '启用深度思考模式，让模型进行多步推理',
+                            'parameters': {
+                                'type': 'object',
+                                'properties': {
+                                    'thinking_steps': {
+                                        'type': 'integer',
+                                        'description': '思考步数',
+                                        'default': self.thinking_steps
+                                    }
+                                }
+                            }
+                        }
+                    })
+                
+                # 如果启用全网搜索，添加搜索参数
+                if self.enable_web_search:
+                    api_params['parameters']['tools'].append({
+                        'type': 'function',
+                        'function': {
+                            'name': 'web_search',
+                            'description': '启用全网搜索功能，获取最新信息',
+                            'parameters': {
+                                'type': 'object',
+                                'properties': {
+                                    'query': {
+                                        'type': 'string',
+                                        'description': '搜索查询',
+                                        'default': f"{stock_info.get('name', '')} {stock_info.get('code', '')} 股票分析 最新消息"
+                                    }
+                                }
+                            }
+                        }
+                    })
+            
+            response = Generation.call(**api_params)
             
             end_time = time.time()
             response_time = end_time - start_time
@@ -229,14 +284,22 @@ class QwenProvider(LLMProvider):
                 logger.info(f"Qwen API返回成功 - 股票: {stock_code}")
                 
                 # 从response中提取文本内容
-                if hasattr(response, 'output') and hasattr(response.output, 'choices'):
-                    content = response.output.choices[0].message.content
-                elif hasattr(response, 'output') and hasattr(response.output, 'text'):
-                    content = response.output.text
-                else:
-                    content = str(response.output)
-                
-                logger.info(f"Qwen分析成功 - 股票: {stock_code}, 内容长度: {len(content)} 字符")
+                try:
+                    if hasattr(response, 'output') and response.output:
+                        if hasattr(response.output, 'choices') and response.output.choices:
+                            content = response.output.choices[0].message.content
+                        elif hasattr(response.output, 'text') and response.output.text:
+                            content = response.output.text
+                        else:
+                            content = str(response.output)
+                    else:
+                        # 尝试直接访问 response 的属性
+                        content = str(response)
+                    
+                    logger.info(f"Qwen分析成功 - 股票: {stock_code}, 内容长度: {len(content)} 字符")
+                except Exception as e:
+                    logger.error(f"解析Qwen响应失败: {str(e)}")
+                    content = f"Qwen分析完成，但解析响应时出现问题: {str(e)}"
                 
                 return {
                     'success': True,
@@ -265,12 +328,40 @@ class QwenProvider(LLMProvider):
         """测试Qwen连接"""
         try:
             from dashscope import Generation
-            response = Generation.call(
-                model=self.model,
-                prompt="Hello",
-                max_tokens=10,
-                result_format='message'
-            )
+            
+            # 基础测试参数 - 使用正确的 DashScope 格式
+            api_params = {
+                'model': self.model,
+                'prompt': "Hello",  # 使用 prompt 参数
+                'parameters': {
+                    'max_tokens': 10,
+                    'result_format': 'message'
+                }
+            }
+            
+            # 如果启用深度思考，添加测试参数
+            if self.enable_deep_thinking:
+                api_params['parameters']['tools'] = [
+                    {
+                        'type': 'function',
+                        'function': {
+                            'name': 'deep_thinking',
+                            'description': '启用深度思考模式',
+                            'parameters': {
+                                'type': 'object',
+                                'properties': {
+                                    'thinking_steps': {
+                                        'type': 'integer',
+                                        'description': '思考步数',
+                                        'default': 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            
+            response = Generation.call(**api_params)
             return response.status_code == 200
         except Exception as e:
             logger.error(f"Qwen连接测试失败: {str(e)}")
@@ -278,11 +369,14 @@ class QwenProvider(LLMProvider):
 
 
 class DeepSeekProvider(LLMProvider):
-    """DeepSeek Provider"""
+    """DeepSeek Provider - 支持深度思考模型"""
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.api_url = "https://api.deepseek.com/v1/chat/completions"
+        # 深度思考相关配置
+        self.enable_deep_thinking = config.get('enable_deep_thinking', True)
+        self.thinking_steps = config.get('thinking_steps', 3)  # 思考步数
     
     def generate_analysis(self, prompt: str, stock_info: Dict[str, Any]) -> Dict[str, Any]:
         """使用DeepSeek生成分析报告（同步版本）"""
@@ -306,15 +400,39 @@ class DeepSeekProvider(LLMProvider):
                 'Authorization': f'Bearer {self.api_key}'
             }
             
+            # 基础请求数据
             data = {
                 "model": self.model,
                 "messages": [
-                    {"role": "system", "content": "你是一个专业的股票分析师，请根据提供的信息进行专业的股票分析。"},
+                    {"role": "system", "content": "你是一个专业的股票分析师，请根据提供的信息进行专业的股票分析。请深入思考，提供详细的分析和投资建议。"},
                     {"role": "user", "content": formatted_prompt}
                 ],
                 "max_tokens": self.max_tokens,
                 "temperature": self.temperature
             }
+            
+            # 如果启用深度思考，添加相关参数
+            if self.enable_deep_thinking:
+                data["tools"] = [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "deep_thinking",
+                            "description": "启用深度思考模式，让模型进行多步推理",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "thinking_steps": {
+                                        "type": "integer",
+                                        "description": "思考步数",
+                                        "default": self.thinking_steps
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+                data["tool_choice"] = {"type": "function", "function": {"name": "deep_thinking"}}
             
             logger.info(f"发送请求到DeepSeek API...")
             # 调用DeepSeek API
@@ -368,11 +486,35 @@ class DeepSeekProvider(LLMProvider):
                 'Authorization': f'Bearer {self.api_key}'
             }
             
+            # 基础测试数据
             data = {
                 "model": self.model,
                 "messages": [{"role": "user", "content": "Hello"}],
                 "max_tokens": 10
             }
+            
+            # 如果启用深度思考，添加测试参数
+            if self.enable_deep_thinking:
+                data["tools"] = [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "deep_thinking",
+                            "description": "启用深度思考模式",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "thinking_steps": {
+                                        "type": "integer",
+                                        "description": "思考步数",
+                                        "default": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+                data["tool_choice"] = {"type": "function", "function": {"name": "deep_thinking"}}
             
             response = requests.post(self.api_url, headers=headers, json=data, timeout=30)
             

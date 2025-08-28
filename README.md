@@ -8,32 +8,55 @@ EquityCompass 是一个基于人工智能的股票分析平台，集成了多个
 
 ### 1. 智能股票分析
 - **多AI模型支持**: 集成DeepSeek、Qwen两大AI模型
+- **深度思考功能**: DeepSeek Reasoner支持多步推理，Qwen Max支持深度思考
+- **全网搜索功能**: Qwen Max支持实时搜索最新市场信息和新闻
 - **双分析模式**: 基本面分析 + 技术面分析
 - **实时分析**: 支持单个股票和批量分析
 - **异步处理**: 后台任务处理，支持进度跟踪
 
-### 2. 报告管理系统
+### 2. AI模型特性
+
+#### DeepSeek Reasoner
+- **深度思考**: 支持多步推理，提供更深入的分析
+- **模型**: deepseek-reasoner
+- **特点**: 专业推理能力，适合复杂分析场景
+- **Token限制**: 8000 tokens
+
+#### Qwen Max
+- **深度思考**: 支持多步推理，提供更深入的分析
+- **全网搜索**: 实时搜索最新市场信息、新闻和动态
+- **模型**: qwen-max
+- **特点**: 结合深度思考和实时信息，提供最全面的分析
+- **Token限制**: 8000 tokens
+
+#### Google Gemini
+- **基础分析**: 提供快速的基础分析功能
+- **模型**: gemini-2.0-flash
+- **特点**: 响应速度快，适合快速分析
+- **Token限制**: 8000 tokens
+
+### 3. 报告管理系统
 - **报告存储**: 自动保存所有分析报告
 - **历史查看**: 查看同一公司的历史分析报告
 - **报告详情**: 完整的报告内容展示
 - **分页浏览**: 支持大量报告的分页显示
 
-### 3. 导出功能
+### 4. 导出功能
 - **PDF导出**: 单个报告导出为PDF，保持网页样式
 - **批量导出**: 多选报告批量导出为ZIP压缩包
 - **中文支持**: 完美支持中文显示和排版
 
-### 4. 用户管理
+### 5. 用户管理
 - **每日限制**: 普通用户每日10次分析限制
 - **管理员权限**: 管理员无限制使用
 - **使用统计**: 实时显示当日使用情况
 
-### 5. 股票管理
+### 6. 股票管理
 - **内置股票池**: 包含主流股票数据
 - **自定义股票**: 支持添加自定义股票
 - **股票分类**: 内置股票vs自定义股票区分
 
-### 6. 任务管理
+### 7. 任务管理
 - **任务队列**: 异步任务处理系统
 - **状态跟踪**: 实时任务状态更新
 - **重试机制**: 自动重试失败任务（最多5次）
@@ -44,7 +67,10 @@ EquityCompass 是一个基于人工智能的股票分析平台，集成了多个
 ### 后端技术栈
 - **框架**: Flask (Python)
 - **数据库**: SQLite + SQLAlchemy ORM
-- **AI集成**: Google Gemini、阿里云Qwen、DeepSeek API
+- **AI集成**: 
+  - DeepSeek Reasoner (深度思考模型)
+  - 阿里云Qwen Max (深度思考 + 全网搜索)
+  - Google Gemini (基础分析)
 - **PDF生成**: Playwright + Markdown
 - **异步处理**: Python threading
 - **日志系统**: Python logging
@@ -179,7 +205,11 @@ cp env.example .env
 - `FLASK_SECRET_KEY`: Flask密钥
 - `GEMINI_API_KEY`: Google Gemini API密钥
 - `QWEN_API_KEY`: 阿里云Qwen API密钥
+- `QWEN_MODEL`: Qwen模型名称 (默认: qwen-max)
+- `QWEN_THINKING_STEPS`: Qwen深度思考步数 (默认: 3)
 - `DEEPSEEK_API_KEY`: DeepSeek API密钥
+- `DEEPSEEK_MODEL`: DeepSeek模型名称 (默认: deepseek-reasoner)
+- `DEEPSEEK_THINKING_STEPS`: DeepSeek深度思考步数 (默认: 3)
 
 ## 📁 项目结构
 
@@ -315,6 +345,9 @@ python app.py reset-db
 
 ### 1. 股票分析
 - 选择股票和AI模型
+  - **DeepSeek Reasoner**: 深度思考，适合复杂分析
+  - **Qwen Max**: 深度思考 + 全网搜索，最全面的分析
+  - **Google Gemini**: 快速基础分析
 - 选择分析类型（基本面/技术面）
 - 提交分析请求
 - 查看实时进度
@@ -359,6 +392,16 @@ python app.py reset-db
 
 ## 📝 更新日志
 
+### v1.1.0 (2025-08-28)
+- ✅ 升级 DeepSeek 模型至 deepseek-reasoner (支持深度思考)
+- ✅ 升级 Qwen 模型至 qwen-max (支持深度思考 + 全网搜索)
+- ✅ 实现 DeepSeek 深度思考功能 (多步推理)
+- ✅ 实现 Qwen 深度思考功能 (多步推理)
+- ✅ 实现 Qwen 全网搜索功能 (实时获取最新市场信息)
+- ✅ 优化 Token 限制至 8000 (支持更详细的分析报告)
+- ✅ 完善 AI 模型配置和参数管理
+- ✅ 添加深度思考和全网搜索的测试脚本
+
 ### v1.0.0 (2025-08-23)
 - ✅ 完成核心分析功能
 - ✅ 实现PDF导出功能
@@ -385,9 +428,9 @@ python app.py reset-db
 感谢以下开源项目和服务：
 - Flask - Web框架
 - Bootstrap - UI框架
-- Google Gemini - AI模型
-- 阿里云Qwen - AI模型
-- DeepSeek - AI模型
+- Google Gemini - 基础AI分析
+- 阿里云Qwen Max - 深度思考 + 全网搜索
+- DeepSeek Reasoner - 深度思考推理
 - Playwright - PDF生成
 
 ---

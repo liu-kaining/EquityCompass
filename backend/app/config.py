@@ -57,8 +57,10 @@ class Config:
     DEFAULT_AI_PROVIDER = os.getenv('DEFAULT_AI_PROVIDER', 'deepseek')
     GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
     OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
-    QWEN_MODEL = os.getenv('QWEN_MODEL', 'qwen-turbo')
-    DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')
+    QWEN_MODEL = os.getenv('QWEN_MODEL', 'qwen-max')
+    DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner')
+    DEEPSEEK_THINKING_STEPS = int(os.getenv('DEEPSEEK_THINKING_STEPS', '3'))
+    QWEN_THINKING_STEPS = int(os.getenv('QWEN_THINKING_STEPS', '3'))
     
     # 管理员配置
     ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@equitycompass.com')

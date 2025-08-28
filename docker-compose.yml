@@ -13,9 +13,9 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-3.5-turbo}
       - QWEN_API_KEY=${QWEN_API_KEY}
-      - QWEN_MODEL=${QWEN_MODEL:-qwen-plus}
+      - QWEN_MODEL=${QWEN_MODEL:-qwen-max}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
-      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-reasoner}
       - DEFAULT_AI_PROVIDER=${DEFAULT_AI_PROVIDER:-deepseek}
       - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@equitycompass.com}
       - DATABASE_URL=${DATABASE_URL:-sqlite:///dev.db}

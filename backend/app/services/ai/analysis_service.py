@@ -247,7 +247,7 @@ class AnalysisService:
                     'name': 'gemini',
                     'api_key': os.getenv('GEMINI_API_KEY'),
                     'model': os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'),
-                    'max_tokens': 6000,  # 增加token限制，确保生成完整报告
+                    'max_tokens': 8000,  # 增加token限制，确保生成完整报告
                     'temperature': 0.7
                 }
                 logger.info(f"Gemini配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}")
@@ -255,30 +255,37 @@ class AnalysisService:
                 provider_config = {
                     'name': 'qwen',
                     'api_key': os.getenv('QWEN_API_KEY'),
-                    'model': os.getenv('QWEN_MODEL', 'qwen-turbo'),
-                    'max_tokens': 6000,  # 增加token限制，确保生成完整报告
-                    'temperature': 0.7
+                    'model': os.getenv('QWEN_MODEL', 'qwen-max'),
+                    'max_tokens': 8000,  # 增加token限制，确保生成完整报告
+                    'temperature': 0.7,
+                    'enable_deep_thinking': True,  # 启用深度思考
+                    'enable_web_search': True,  # 启用全网搜索
+                    'thinking_steps': int(os.getenv('QWEN_THINKING_STEPS', '3'))  # 思考步数
                 }
-                logger.info(f"Qwen配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}")
+                logger.info(f"Qwen配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}, 深度思考={provider_config['enable_deep_thinking']}, 全网搜索={provider_config['enable_web_search']}, 思考步数={provider_config['thinking_steps']}")
             elif ai_provider == 'deepseek':
                 provider_config = {
                     'name': 'deepseek',
                     'api_key': os.getenv('DEEPSEEK_API_KEY'),
-                    'model': os.getenv('DEEPSEEK_MODEL', 'deepseek-chat'),
-                    'max_tokens': 6000,  # 增加token限制，确保生成完整报告
-                    'temperature': 0.7
+                    'model': os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner'),
+                    'max_tokens': 8000,  # 增加token限制，确保生成完整报告
+                    'temperature': 0.7,
+                    'enable_deep_thinking': True,  # 启用深度思考
+                    'thinking_steps': int(os.getenv('DEEPSEEK_THINKING_STEPS', '3'))  # 思考步数
                 }
-                logger.info(f"DeepSeek配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}")
+                logger.info(f"DeepSeek配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}, 深度思考={provider_config['enable_deep_thinking']}, 思考步数={provider_config['thinking_steps']}")
             else:
                 # 默认使用DeepSeek
                 provider_config = {
                     'name': 'deepseek',
                     'api_key': os.getenv('DEEPSEEK_API_KEY'),
-                    'model': os.getenv('DEEPSEEK_MODEL', 'deepseek-chat'),
-                    'max_tokens': 6000,  # 增加token限制，确保生成完整报告
-                    'temperature': 0.7
+                    'model': os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner'),
+                    'max_tokens': 8000,  # 增加token限制，确保生成完整报告
+                    'temperature': 0.7,
+                    'enable_deep_thinking': True,  # 启用深度思考
+                    'thinking_steps': int(os.getenv('DEEPSEEK_THINKING_STEPS', '3'))  # 思考步数
                 }
-                logger.info(f"默认DeepSeek配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}")
+                logger.info(f"默认DeepSeek配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}, 深度思考={provider_config['enable_deep_thinking']}, 思考步数={provider_config['thinking_steps']}")
             
             # 如果没有API密钥，返回模拟数据
             if not provider_config['api_key']:
