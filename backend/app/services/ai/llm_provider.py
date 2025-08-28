@@ -413,18 +413,19 @@ class DeepSeekProvider(LLMProvider):
             
             # 如果启用深度思考，添加相关参数
             if self.enable_deep_thinking:
+                # 尝试不同的深度思考参数格式
                 data["tools"] = [
                     {
                         "type": "function",
                         "function": {
-                            "name": "deep_thinking",
-                            "description": "启用深度思考模式，让模型进行多步推理",
+                            "name": "reasoning",
+                            "description": "启用推理模式",
                             "parameters": {
                                 "type": "object",
                                 "properties": {
-                                    "thinking_steps": {
+                                    "steps": {
                                         "type": "integer",
-                                        "description": "思考步数",
+                                        "description": "推理步数",
                                         "default": self.thinking_steps
                                     }
                                 }
@@ -432,7 +433,8 @@ class DeepSeekProvider(LLMProvider):
                         }
                     }
                 ]
-                data["tool_choice"] = {"type": "function", "function": {"name": "deep_thinking"}}
+                # 不强制使用工具，让模型自己决定
+                # data["tool_choice"] = {"type": "function", "function": {"name": "reasoning"}}
             
             logger.info(f"发送请求到DeepSeek API...")
             # 调用DeepSeek API
