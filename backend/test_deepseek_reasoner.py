@@ -56,28 +56,10 @@ def test_deepseek_reasoner():
                 "temperature": 0.7
             }
             
-            # 如果是 reasoner 模型，添加深度思考参数
+            # 如果是 reasoner 模型，使用内置推理能力
             if model == 'deepseek-reasoner':
-                data["tools"] = [
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": "deep_thinking",
-                            "description": "启用深度思考模式",
-                            "parameters": {
-                                "type": "object",
-                                "properties": {
-                                    "thinking_steps": {
-                                        "type": "integer",
-                                        "description": "思考步数",
-                                        "default": 3
-                                    }
-                                }
-                            }
-                        }
-                    }
-                ]
-                data["tool_choice"] = {"type": "function", "function": {"name": "deep_thinking"}}
+                data["messages"][0]["content"] = "你是一个专业的股票分析师，请根据提供的信息进行专业的股票分析。请深入思考，进行多步推理，提供详细的分析和投资建议。"
+                print("🔧 使用 DeepSeek Reasoner 内置推理能力")
             
             print(f"📤 发送请求到 {url}")
             print(f"📋 请求数据: {json.dumps(data, indent=2, ensure_ascii=False)}")

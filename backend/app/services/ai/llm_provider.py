@@ -413,28 +413,10 @@ class DeepSeekProvider(LLMProvider):
             
             # 如果启用深度思考，添加相关参数
             if self.enable_deep_thinking:
-                # 尝试不同的深度思考参数格式
-                data["tools"] = [
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": "reasoning",
-                            "description": "启用推理模式",
-                            "parameters": {
-                                "type": "object",
-                                "properties": {
-                                    "steps": {
-                                        "type": "integer",
-                                        "description": "推理步数",
-                                        "default": self.thinking_steps
-                                    }
-                                }
-                            }
-                        }
-                    }
-                ]
-                # 不强制使用工具，让模型自己决定
-                # data["tool_choice"] = {"type": "function", "function": {"name": "reasoning"}}
+                # deepseek-reasoner 不支持 Function Calling，直接使用其推理能力
+                # 在系统消息中强调深度思考
+                data["messages"][0]["content"] = "你是一个专业的股票分析师，请根据提供的信息进行专业的股票分析。请深入思考，进行多步推理，提供详细的分析和投资建议。"
+                logger.info("DeepSeek Reasoner 使用内置推理能力，无需工具调用")
             
             logger.info(f"发送请求到DeepSeek API...")
             # 调用DeepSeek API
@@ -448,7 +430,26 @@ class DeepSeekProvider(LLMProvider):
                 result = response.json()
                 logger.info(f"DeepSeek API返回成功 - 股票: {stock_code}")
                 
-                content = result['choices'][0]['message']['content']
+                message = result['choices'][0]['message']
+                content = ""
+                
+                # 处理不同的响应格式
+                if 'content' in message and message['content']:
+                    # 基础响应格式
+                    content = message['content']
+                elif 'reasoning_content' in message and message['reasoning_content']:
+                    # 推理内容格式
+                    content = message['reasoning_content']
+                elif 'tool_calls' in message and message['tool_calls']:
+                    # 工具调用格式 - 需要处理 tool_calls
+                    logger.info(f"检测到工具调用，需要进一步处理")
+                    # 对于工具调用，我们需要发送后续请求来获取最终结果
+                    # 暂时返回一个提示信息
+                    content = "深度思考模式已启用，正在处理推理结果..."
+                else:
+                    logger.warning(f"DeepSeek响应格式未知: {message}")
+                    content = "响应格式异常，请检查API配置"
+                
                 logger.info(f"DeepSeek分析成功 - 股票: {stock_code}, 内容长度: {len(content)} 字符")
                 
                 return {
