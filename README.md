@@ -7,8 +7,9 @@ EquityCompass 是一个基于人工智能的股票分析平台，集成了多个
 ## 🚀 核心功能
 
 ### 1. 智能股票分析
-- **多AI模型支持**: 集成DeepSeek、Qwen两大AI模型
-- **深度思考功能**: DeepSeek Reasoner支持多步推理，Qwen Max支持深度思考
+- **多AI模型支持**: 集成DeepSeek、Qwen、Gemini三大AI模型
+- **默认模型**: Qwen Deep Research (研究型智能体)
+- **深度思考功能**: DeepSeek Reasoner支持多步推理，Qwen Deep Research支持深入研究
 - **全网搜索功能**: Qwen Max支持实时搜索最新市场信息和新闻
 - **双分析模式**: 基本面分析 + 技术面分析
 - **实时分析**: 支持单个股票和批量分析
@@ -22,12 +23,13 @@ EquityCompass 是一个基于人工智能的股票分析平台，集成了多个
 - **特点**: 专业推理能力，适合复杂分析场景
 - **Token限制**: 8000 tokens
 
-#### Qwen Max
-- **深度思考**: 支持多步推理，提供更深入的分析
+#### Qwen Deep Research
+- **深入研究**: 研究型智能体，可拆解复杂问题，结合互联网搜索进行推理分析
 - **全网搜索**: 实时搜索最新市场信息、新闻和动态
-- **模型**: qwen-max
-- **特点**: 结合深度思考和实时信息，提供最全面的分析
-- **Token限制**: 8000 tokens
+- **多阶段分析**: 反问确认 → 研究规划 → 网络搜索 → 报告生成
+- **模型**: qwen-deep-research
+- **特点**: 专业研究能力，提供最全面和深入的分析报告
+- **Token限制**: 支持长文本分析
 
 #### Google Gemini
 - **基础分析**: 提供快速的基础分析功能
@@ -69,7 +71,7 @@ EquityCompass 是一个基于人工智能的股票分析平台，集成了多个
 - **数据库**: SQLite + SQLAlchemy ORM
 - **AI集成**: 
   - DeepSeek Reasoner (深度思考模型)
-  - 阿里云Qwen Max (深度思考 + 全网搜索)
+  - 阿里云Qwen Deep Research (研究型智能体 + 全网搜索)
   - Google Gemini (基础分析)
 - **PDF生成**: Playwright + Markdown
 - **异步处理**: Python threading
@@ -205,7 +207,7 @@ cp env.example .env
 - `FLASK_SECRET_KEY`: Flask密钥
 - `GEMINI_API_KEY`: Google Gemini API密钥
 - `QWEN_API_KEY`: 阿里云Qwen API密钥
-- `QWEN_MODEL`: Qwen模型名称 (默认: qwen-max)
+- `QWEN_MODEL`: Qwen模型名称 (默认: qwen-deep-research)
 - `QWEN_THINKING_STEPS`: Qwen深度思考步数 (默认: 3)
 - `DEEPSEEK_API_KEY`: DeepSeek API密钥
 - `DEEPSEEK_MODEL`: DeepSeek模型名称 (默认: deepseek-reasoner)

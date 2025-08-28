@@ -55,7 +55,7 @@ class AnalysisService:
         logger.info(f"创建分析任务: {task_id}")
         return task_id
     
-    def run_analysis(self, stock_code: str, user_id: int, analysis_type: str = 'fundamental', ai_provider: str = 'gemini') -> Dict[str, Any]:
+    def run_analysis(self, stock_code: str, user_id: int, analysis_type: str = 'fundamental', ai_provider: str = 'qwen') -> Dict[str, Any]:
         """运行分析（同步版本）"""
         try:
             # 获取股票信息
@@ -233,7 +233,7 @@ class AnalysisService:
             'retry_count': 0
         }
     
-    def _generate_analysis_report(self, stock, analysis_type: str = 'fundamental', ai_provider: str = 'gemini') -> Dict[str, Any]:
+    def _generate_analysis_report(self, stock, analysis_type: str = 'fundamental', ai_provider: str = 'qwen') -> Dict[str, Any]:
         """生成分析报告"""
         try:
             from app.services.ai.llm_provider import LLMProviderFactory
@@ -247,7 +247,7 @@ class AnalysisService:
                     'name': 'gemini',
                     'api_key': os.getenv('GEMINI_API_KEY'),
                     'model': os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'),
-                    'max_tokens': 8000,  # 增加token限制，确保生成完整报告
+                    'max_tokens': 15000,  # 大幅增加token限制，确保生成详细报告
                     'temperature': 0.7
                 }
                 logger.info(f"Gemini配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}")
@@ -255,8 +255,8 @@ class AnalysisService:
                 provider_config = {
                     'name': 'qwen',
                     'api_key': os.getenv('QWEN_API_KEY'),
-                    'model': os.getenv('QWEN_MODEL', 'qwen-max'),
-                    'max_tokens': 8000,  # 增加token限制，确保生成完整报告
+                    'model': os.getenv('QWEN_MODEL', 'qwen-deep-research'),
+                    'max_tokens': 15000,  # 大幅增加token限制，确保生成详细报告
                     'temperature': 0.7,
                     'enable_deep_thinking': True,  # 启用深度思考
                     'enable_web_search': True,  # 启用全网搜索
@@ -268,24 +268,25 @@ class AnalysisService:
                     'name': 'deepseek',
                     'api_key': os.getenv('DEEPSEEK_API_KEY'),
                     'model': os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner'),
-                    'max_tokens': 8000,  # 增加token限制，确保生成完整报告
+                    'max_tokens': 15000,  # 大幅增加token限制，确保生成详细报告
                     'temperature': 0.7,
                     'enable_deep_thinking': True,  # 重新启用深度思考
                     'thinking_steps': int(os.getenv('DEEPSEEK_THINKING_STEPS', '3'))  # 思考步数
                 }
                 logger.info(f"DeepSeek配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}, 深度思考={provider_config['enable_deep_thinking']}, 思考步数={provider_config['thinking_steps']}")
             else:
-                # 默认使用DeepSeek
+                # 默认使用Qwen
                 provider_config = {
-                    'name': 'deepseek',
-                    'api_key': os.getenv('DEEPSEEK_API_KEY'),
-                    'model': os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner'),
-                    'max_tokens': 8000,  # 增加token限制，确保生成完整报告
+                    'name': 'qwen',
+                    'api_key': os.getenv('QWEN_API_KEY'),
+                    'model': os.getenv('QWEN_MODEL', 'qwen-deep-research'),
+                    'max_tokens': 15000,  # 大幅增加token限制，确保生成详细报告
                     'temperature': 0.7,
-                    'enable_deep_thinking': False,  # 暂时禁用深度思考
-                    'thinking_steps': int(os.getenv('DEEPSEEK_THINKING_STEPS', '3'))  # 思考步数
+                    'enable_deep_thinking': True,  # 启用深度思考
+                    'enable_web_search': True,  # 启用全网搜索
+                    'thinking_steps': int(os.getenv('QWEN_THINKING_STEPS', '3'))  # 思考步数
                 }
-                logger.info(f"默认DeepSeek配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}, 深度思考={provider_config['enable_deep_thinking']}, 思考步数={provider_config['thinking_steps']}")
+                logger.info(f"默认Qwen配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}, 深度思考={provider_config['enable_deep_thinking']}, 全网搜索={provider_config['enable_web_search']}, 思考步数={provider_config['thinking_steps']}")
             
             # 如果没有API密钥，返回模拟数据
             if not provider_config['api_key']:
@@ -686,7 +687,7 @@ class AnalysisService:
             raise e
 
     def create_batch_analysis_task(self, user_id: int, user_email: str, stocks: List[Dict], 
-                                  analysis_type: str = 'fundamental', ai_provider: str = 'gemini') -> str:
+                                  analysis_type: str = 'fundamental', ai_provider: str = 'qwen') -> str:
         """创建批量分析任务"""
         try:
             import threading

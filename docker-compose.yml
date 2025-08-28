@@ -13,7 +13,7 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-3.5-turbo}
       - QWEN_API_KEY=${QWEN_API_KEY}
-      - QWEN_MODEL=${QWEN_MODEL:-qwen-max}
+      - QWEN_MODEL=${QWEN_MODEL:-qwen-deep-research}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
       - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-reasoner}
       - DEFAULT_AI_PROVIDER=${DEFAULT_AI_PROVIDER:-deepseek}

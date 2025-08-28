@@ -57,7 +57,7 @@ def analyze_stock():
         data = request.get_json()
         stock_code = data.get('stock_code', '').strip().upper()
         analysis_type = data.get('analysis_type', 'fundamental')  # fundamental, technical
-        ai_provider = data.get('ai_provider', 'gemini')  # gemini, qwen, deepseek
+        ai_provider = data.get('ai_provider', 'qwen')  # gemini, qwen, deepseek
         
         if not stock_code:
             return error_response("股票代码不能为空")
@@ -195,7 +195,7 @@ def batch_analyze():
         
         stocks = data.get('stocks', [])
         analysis_type = data.get('analysis_type', 'fundamental')
-        ai_provider = data.get('ai_provider', 'gemini')
+        ai_provider = data.get('ai_provider', 'qwen')
         
         if not stocks:
             return jsonify({'success': False, 'message': '请选择要分析的股票'}), 400
