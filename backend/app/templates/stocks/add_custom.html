@@ -288,10 +288,19 @@ $(document).ready(function() {
         
         // 市场与代码匹配验证
         if (market === 'HK' && !code.includes('.HK')) {
-            if (!confirm('港股代码通常包含 .HK 后缀，是否继续添加？')) {
-                e.preventDefault();
-                return false;
-            }
+            showConfirmModal(
+                '确认添加港股',
+                '港股代码通常包含 .HK 后缀，是否继续添加？\n\n建议使用标准格式：如 00700.HK',
+                function() {
+                    // 继续提交表单
+                    return true;
+                },
+                function() {
+                    // 取消提交
+                    e.preventDefault();
+                    return false;
+                }
+            );
         }
         
         // 显示提交状态

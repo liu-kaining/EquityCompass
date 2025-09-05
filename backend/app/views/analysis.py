@@ -69,6 +69,10 @@ def tasks():
         from app.services.ai.analysis_service import AnalysisService
         
         user_id = session.get('user_id')
+        # 确保user_id是整数类型
+        if user_id:
+            user_id = int(user_id)
+        
         analysis_service = AnalysisService(db.session)
         
         # 获取分页参数
@@ -112,4 +116,7 @@ def tasks():
         return render_template('analysis/tasks.html', tasks=paginated_tasks, pagination=pagination)
         
     except Exception as e:
+        print(f"ERROR: 任务管理页面异常: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return render_template('analysis/tasks.html', tasks=[], pagination=None)

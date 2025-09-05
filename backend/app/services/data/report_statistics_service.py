@@ -85,17 +85,6 @@ class ReportStatisticsService:
             self.session.rollback()
             return False
     
-    def record_share(self, report_id: int) -> bool:
-        """记录报告分享"""
-        try:
-            statistics = self.get_or_create_statistics(report_id)
-            statistics.increment_share()
-            logger.info(f"记录报告分享 - 报告ID: {report_id}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"记录报告分享失败: {str(e)}")
-            return False
     
     def record_favorite(self, report_id: int) -> bool:
         """记录报告收藏"""
@@ -211,10 +200,6 @@ class ReportStatisticsService:
                 ReportIndex.generated_at >= start_date
             ).scalar()
             
-            # 总分享次数
-            total_shares = self.session.query(func.sum(ReportStatistics.share_count)).join(ReportIndex).filter(
-                ReportIndex.generated_at >= start_date
-            ).scalar()
             
             # 总收藏次数
             total_favorites = self.session.query(func.sum(ReportStatistics.favorite_count)).join(ReportIndex).filter(
@@ -225,7 +210,6 @@ class ReportStatisticsService:
                 'total_reports': total_reports or 0,
                 'total_views': total_views or 0,
                 'total_downloads': total_downloads or 0,
-                'total_shares': total_shares or 0,
                 'total_favorites': total_favorites or 0,
                 'period_days': days
             }
@@ -256,8 +240,14 @@ class ReportStatisticsService:
             
             result = []
             for date, views, downloads in daily_stats:
+                # 处理日期格式，确保返回字符串
+                if hasattr(date, 'isoformat'):
+                    date_str = date.isoformat()
+                else:
+                    date_str = str(date)
+                
                 result.append({
-                    'date': date.isoformat(),
+                    'date': date_str,
                     'views': views or 0,
                     'downloads': downloads or 0
                 })
@@ -267,3 +257,22 @@ class ReportStatisticsService:
         except Exception as e:
             logger.error(f"获取每日统计失败: {str(e)}")
             return []
+    
+    def clear_all_statistics(self) -> bool:
+        """清空所有统计数据"""
+        try:
+            # 清空所有统计表
+            self.session.query(ReportStatistics).delete()
+            self.session.query(ReportViewLog).delete()
+            self.session.query(ReportDownloadLog).delete()
+            
+            # 提交事务
+            self.session.commit()
+            
+            logger.info("所有统计数据已清空")
+            return True
+            
+        except Exception as e:
+            logger.error(f"清空统计数据失败: {str(e)}")
+            self.session.rollback()
+            return False

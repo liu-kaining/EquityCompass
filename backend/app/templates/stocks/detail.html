@@ -186,11 +186,6 @@
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <button class="btn btn-outline-warning w-100" id="shareBtn">
-                            <i class="fas fa-share me-2"></i>分享
-                        </button>
-                    </div>
-                    <div class="col-md-3 mb-3">
                         <button class="btn btn-outline-secondary w-100" id="exportBtn">
                             <i class="fas fa-download me-2"></i>导出信息
                         </button>
@@ -331,9 +326,13 @@ $(document).ready(function() {
         // 检查confirmAction函数是否存在
         if (typeof confirmAction === 'undefined') {
             // 使用原生confirm作为备选
-            if (confirm(`确定要取消关注 ${stockCode} 吗？`)) {
-                performRemoveAction(btn, stockCode);
-            }
+            showConfirmModal(
+                '确认取消关注',
+                `您确定要取消关注 ${stockCode} 吗？\n\n取消关注后将不再显示在关注列表中。`,
+                function() {
+                    performRemoveAction(btn, stockCode);
+                }
+            );
         } else {
             // 使用自定义确认弹窗
             confirmAction(
@@ -383,23 +382,6 @@ $(document).ready(function() {
         });
     }
     
-    // 分享功能
-    $('#shareBtn').click(function() {
-        const url = window.location.href;
-        const title = '{{ stock.code }} - {{ stock.name }}';
-        
-        if (navigator.share) {
-            navigator.share({
-                title: title,
-                url: url
-            });
-        } else {
-            // 复制链接到剪贴板
-            navigator.clipboard.writeText(url).then(function() {
-                showToast('success', '链接已复制到剪贴板');
-            });
-        }
-    });
     
     // 导出股票信息
     $('#exportBtn').click(function() {

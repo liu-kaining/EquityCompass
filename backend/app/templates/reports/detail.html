@@ -148,32 +148,7 @@
                             <i class="fas fa-download text-success ms-1"></i>
                         </div>
                     </div>
-                    <div class="row mb-2">
-                        <div class="col-6"><strong>分享次数：</strong></div>
-                        <div class="col-6">
-                            <span id="share-count">-</span>
-                            <i class="fas fa-share-alt text-info ms-1"></i>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-6"><strong>收藏次数：</strong></div>
-                        <div class="col-6">
-                            <span id="favorite-count">-</span>
-                            <i class="fas fa-heart text-danger ms-1"></i>
-                        </div>
-                    </div>
                     
-                    <!-- 操作按钮 -->
-                    <div class="mt-3">
-                        <div class="btn-group w-100" role="group">
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="recordShare()" title="分享报告">
-                                <i class="fas fa-share-alt"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="recordFavorite()" title="收藏报告">
-                                <i class="fas fa-heart"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
             
@@ -719,10 +694,14 @@ function downloadReport() {
 }
 
 function confirmDeleteReport() {
-    // 二次确认对话框
-    if (confirm('⚠️ 确定要删除这份报告吗？\n\n此操作不可撤销，报告将被永久删除。')) {
-        deleteReport();
-    }
+    // 使用自定义确认弹窗
+    showConfirmModal(
+        '确认删除报告',
+        '您确定要删除此报告吗？\n\n报告ID: {{ report.id }}\n\n警告：删除后报告及相关数据将无法恢复！',
+        function() {
+            deleteReport();
+        }
+    );
 }
 
 function deleteReport() {
@@ -749,18 +728,20 @@ function deleteReport() {
     .then(data => {
         if (data.success) {
             // 删除成功，显示成功消息并跳转
-            alert('✅ 报告删除成功！');
-            window.location.href = '{{ url_for("reports.index") }}';
+            showToast('success', '报告删除成功！');
+            setTimeout(() => {
+                window.location.href = '{{ url_for("reports.index") }}';
+            }, 1000);
         } else {
             // 删除失败，显示错误消息
-            alert('❌ 删除失败：' + (data.error || '未知错误'));
+            showToast('error', '删除失败：' + (data.error || '未知错误'));
             deleteBtn.innerHTML = originalText;
             deleteBtn.disabled = false;
         }
     })
     .catch(error => {
         console.error('删除报告时出错:', error);
-        alert('❌ 删除失败：网络错误，请稍后重试');
+        showToast('error', '删除失败：网络错误，请稍后重试');
         deleteBtn.innerHTML = originalText;
         deleteBtn.disabled = false;
     });
@@ -768,7 +749,11 @@ function deleteReport() {
 
 // 记录下载
 function recordDownload() {
-    const reportId = '{{ report.id }}';
+    const reportId = '{{ report.db_id }}';
+    if (!reportId) {
+        console.log('没有数据库报告ID，跳过下载记录');
+        return;
+    }
     
     fetch('/api/report-statistics/record-download', {
         method: 'POST',
@@ -799,7 +784,11 @@ function recordDownload() {
 
 // 记录页面浏览
 function recordView() {
-    const reportId = '{{ report.id }}';
+    const reportId = '{{ report.db_id }}';
+    if (!reportId) {
+        console.log('没有数据库报告ID，跳过浏览记录');
+        return;
+    }
     const viewDuration = 0; // 初始浏览时长
     
     fetch('/api/report-statistics/record-view', {
@@ -825,7 +814,11 @@ function recordView() {
 
 // 加载报告统计信息
 function loadReportStatistics() {
-    const reportId = '{{ report.id }}';
+    const reportId = '{{ report.db_id }}';
+    if (!reportId) {
+        console.log('没有数据库报告ID，跳过统计信息加载');
+        return;
+    }
     
     fetch(`/api/report-statistics/report/${reportId}`)
         .then(response => response.json())
@@ -833,8 +826,6 @@ function loadReportStatistics() {
             if (data.success && data.data) {
                 document.getElementById('view-count').textContent = data.data.view_count || 0;
                 document.getElementById('download-count').textContent = data.data.download_count || 0;
-                document.getElementById('share-count').textContent = data.data.share_count || 0;
-                document.getElementById('favorite-count').textContent = data.data.favorite_count || 0;
             }
         })
         .catch(error => {
@@ -842,67 +833,7 @@ function loadReportStatistics() {
         });
 }
 
-// 记录分享
-function recordShare() {
-    const reportId = '{{ report.id }}';
-    
-    fetch('/api/report-statistics/record-share', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            report_id: reportId
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // 更新显示
-            const shareCount = document.getElementById('share-count');
-            const currentCount = parseInt(shareCount.textContent) || 0;
-            shareCount.textContent = currentCount + 1;
-            
-            // 显示成功提示
-            showToast('分享记录成功！', 'success');
-        }
-    })
-    .catch(error => {
-        console.error('记录分享失败:', error);
-        showToast('分享记录失败', 'error');
-    });
-}
 
-// 记录收藏
-function recordFavorite() {
-    const reportId = '{{ report.id }}';
-    
-    fetch('/api/report-statistics/record-favorite', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            report_id: reportId
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // 更新显示
-            const favoriteCount = document.getElementById('favorite-count');
-            const currentCount = parseInt(favoriteCount.textContent) || 0;
-            favoriteCount.textContent = currentCount + 1;
-            
-            // 显示成功提示
-            showToast('收藏记录成功！', 'success');
-        }
-    })
-    .catch(error => {
-        console.error('记录收藏失败:', error);
-        showToast('收藏记录失败', 'error');
-    });
-}
 
 // 显示提示信息
 function showToast(message, type = 'info') {

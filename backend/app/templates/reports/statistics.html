@@ -9,9 +9,9 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3 mb-0">📊 报告统计</h1>
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-primary" onclick="loadGlobalStats()">全局统计</button>
-                    <button type="button" class="btn btn-outline-primary" onclick="loadUserStats()">个人统计</button>
-                    <button type="button" class="btn btn-outline-primary" onclick="loadPopularReports()">热门报告</button>
+                    <button type="button" class="btn btn-outline-danger" onclick="showClearAllModal()">
+                        <i class="fas fa-trash me-1"></i>一键清空
+                    </button>
                 </div>
             </div>
         </div>
@@ -71,13 +71,6 @@
             <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">总分享次数</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-shares">-</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-share-alt fa-2x text-gray-300"></i>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -125,48 +118,40 @@
         </div>
     </div>
 
-    <!-- 个人统计表格 -->
-    <div class="row" id="user-stats-section" style="display: none;">
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-dark">个人统计详情</h6>
+</div>
+
+<!-- 清空统计确认弹窗 -->
+<div class="modal fade" id="clearAllModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass-effect">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-trash-alt me-2"></i>确认清空统计
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="user-stats-table">
-                            <thead>
-                                <tr>
-                                    <th>统计项目</th>
-                                    <th>数值</th>
-                                    <th>说明</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>浏览的报告数</td>
-                                    <td id="user-viewed-reports">-</td>
-                                    <td>您浏览过的不同报告数量</td>
-                                </tr>
-                                <tr>
-                                    <td>下载的报告数</td>
-                                    <td id="user-downloaded-reports">-</td>
-                                    <td>您下载过的不同报告数量</td>
-                                </tr>
-                                <tr>
-                                    <td>总浏览次数</td>
-                                    <td id="user-total-views">-</td>
-                                    <td>您的所有浏览记录总数</td>
-                                </tr>
-                                <tr>
-                                    <td>总下载次数</td>
-                                    <td id="user-total-downloads">-</td>
-                                    <td>您的所有下载记录总数</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <h6 class="mb-3">您确定要清空所有统计数据吗？</h6>
+                <div class="alert alert-danger mt-3 mb-0" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>警告：</strong>清空后所有统计数据将无法恢复！包括：
+                    <ul class="mb-0 mt-2 text-start">
+                        <li>所有报告的浏览次数</li>
+                        <li>所有报告的下载次数</li>
+                        <li>所有历史统计数据</li>
+                    </ul>
                 </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>取消
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmClearAll">
+                    <i class="fas fa-trash me-1"></i>确认清空
+                </button>
             </div>
         </div>
     </div>
@@ -183,6 +168,11 @@ document.addEventListener('DOMContentLoaded', function() {
     loadGlobalStats();
     loadDailyStats(7);
     loadPopularReports();
+    
+    // 绑定清空确认按钮事件
+    document.getElementById('confirmClearAll').addEventListener('click', function() {
+        clearAllStatistics();
+    });
 });
 
 // 加载全局统计
@@ -194,10 +184,6 @@ function loadGlobalStats() {
                 document.getElementById('total-reports').textContent = data.data.total_reports;
                 document.getElementById('total-views').textContent = data.data.total_views;
                 document.getElementById('total-downloads').textContent = data.data.total_downloads;
-                document.getElementById('total-shares').textContent = data.data.total_shares;
-                
-                // 隐藏个人统计区域
-                document.getElementById('user-stats-section').style.display = 'none';
             }
         })
         .catch(error => {
@@ -206,26 +192,6 @@ function loadGlobalStats() {
         });
 }
 
-// 加载个人统计
-function loadUserStats() {
-    fetch('/api/report-statistics/user-stats?days=30')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('user-viewed-reports').textContent = data.data.viewed_reports;
-                document.getElementById('user-downloaded-reports').textContent = data.data.downloaded_reports;
-                document.getElementById('user-total-views').textContent = data.data.total_views;
-                document.getElementById('user-total-downloads').textContent = data.data.total_downloads;
-                
-                // 显示个人统计区域
-                document.getElementById('user-stats-section').style.display = 'block';
-            }
-        })
-        .catch(error => {
-            console.error('加载个人统计失败:', error);
-            showAlert('加载个人统计失败', 'danger');
-        });
-}
 
 // 加载每日统计
 function loadDailyStats(days = 7) {
@@ -320,6 +286,51 @@ function loadPopularReports() {
             console.error('加载热门报告失败:', error);
             showAlert('加载热门报告失败', 'danger');
         });
+}
+
+// 显示清空确认弹窗
+function showClearAllModal() {
+    $('#clearAllModal').modal('show');
+}
+
+// 清空所有统计数据
+function clearAllStatistics() {
+    const $btn = $('#confirmClearAll');
+    const originalText = $btn.html();
+    
+    // 显示加载状态
+    $btn.html('<i class="fas fa-spinner fa-spin me-1"></i>清空中...');
+    $btn.prop('disabled', true);
+    
+    // 发送清空请求
+    fetch('/api/report-statistics/clear-all', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('所有统计数据已清空', 'success');
+            $('#clearAllModal').modal('hide');
+            // 重新加载统计数据
+            loadGlobalStats();
+            loadDailyStats(7);
+            loadPopularReports();
+        } else {
+            showAlert(data.message || '清空统计数据失败', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('清空统计数据失败:', error);
+        showAlert('清空统计数据失败: ' + error, 'danger');
+    })
+    .finally(() => {
+        // 恢复按钮状态
+        $btn.html(originalText);
+        $btn.prop('disabled', false);
+    });
 }
 
 // 显示提示信息

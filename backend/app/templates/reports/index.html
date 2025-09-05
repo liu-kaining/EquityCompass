@@ -332,7 +332,7 @@ function confirmBatchExport() {
     const selectedReports = document.querySelectorAll('.report-select-checkbox:checked');
     
     if (selectedReports.length === 0) {
-        alert('请至少选择一个报告进行导出');
+        showToast('warning', '请至少选择一个报告进行导出');
         return;
     }
     
@@ -382,7 +382,7 @@ function confirmBatchExport() {
     })
     .catch(error => {
         console.error('导出错误:', error);
-        alert('导出失败，请重试');
+        showToast('error', '导出失败，请重试');
         
         // 恢复按钮状态
         confirmBtn.innerHTML = originalText;

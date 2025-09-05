@@ -61,7 +61,7 @@ def index():
     """报告列表页面"""
     from app import db
     
-    # 获取用户ID
+    # 获取用户ID（可选，用于标记用户关注的股票）
     user_id = session.get('user_id')
     
     # 获取查询参数
@@ -75,8 +75,13 @@ def index():
     # 获取分析服务
     analysis_service = AnalysisService(db.session)
     
-    # 获取用户报告（不限制数量，用于筛选）
-    all_reports = analysis_service.get_user_reports(user_id, limit=1000)
+    # 获取所有报告（不限制数量，用于筛选）
+    if user_id:
+        # 如果用户已登录，获取用户报告（包含关注标记）
+        all_reports = analysis_service.get_user_reports(user_id, limit=1000)
+    else:
+        # 如果用户未登录，获取所有报告
+        all_reports = analysis_service.get_all_reports(limit=1000)
     
     # 应用筛选
     if stock_filter:
@@ -215,8 +220,61 @@ def detail(stock_code):
     print(f"报告ID: {report_id}")
     print(f"报告数据: {report}")
     
+    # 获取数据库中的报告ID（用于统计功能）
+    db_report_id = None
+    try:
+        from app.models.analysis import ReportIndex
+        from app.models.stock import Stock
+        
+        # 获取股票信息
+        stock = Stock.query.filter_by(code=stock_code).first()
+        if stock:
+            # 根据report_id构建文件路径来查找对应的数据库记录
+            original_report_id = report.get('report_id', '')
+            if original_report_id:
+                # 构建可能的文件路径
+                analysis_date = report.get('analysis_date', '')
+                provider = report.get('provider', 'deepseek')
+                analysis_type = report.get('analysis_type', 'fundamental')
+                
+                # 尝试不同的文件路径格式
+                possible_paths = [
+                    f"data/reports/{analysis_date}/{original_report_id}_{provider}_{analysis_type}.json",
+                    f"data/reports/{analysis_date}/{original_report_id}.json",
+                    f"data/reports/{stock_code}_{original_report_id}_{provider}_{analysis_type}.json",
+                    f"data/reports/{stock_code}_{original_report_id}.json"
+                ]
+                
+                print(f"查找报告ID: {original_report_id}, 股票: {stock_code}")
+                for file_path in possible_paths:
+                    print(f"尝试文件路径: {file_path}")
+                    db_report = ReportIndex.query.filter_by(
+                        stock_id=stock.id,
+                        file_path=file_path
+                    ).first()
+                    if db_report:
+                        db_report_id = db_report.id
+                        print(f"找到数据库报告ID: {db_report_id}, 文件路径: {file_path}")
+                        break
+                
+                # 如果还是没找到，尝试根据analysis_date查找（兼容旧逻辑）
+                if not db_report_id:
+                    print(f"按文件路径未找到，尝试按日期查找: {analysis_date}")
+                    db_report = ReportIndex.query.filter_by(
+                        stock_id=stock.id,
+                        analysis_date=analysis_date
+                    ).first()
+                    if db_report:
+                        db_report_id = db_report.id
+                        print(f"数据库报告ID: {db_report_id} (按日期查找)")
+        else:
+            print(f"未找到股票: {stock_code}")
+    except Exception as e:
+        print(f"获取数据库报告ID失败: {e}")
+    
     formatted_report = {
         'id': report_id,
+        'db_id': db_report_id,  # 数据库中的ID，用于统计功能
         'stock_code': report.get('stock_code', ''),
         'stock_name': report.get('stock_name', ''),
         'market': report.get('market', ''),

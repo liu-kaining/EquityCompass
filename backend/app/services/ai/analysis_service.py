@@ -66,6 +66,13 @@ class AnalysisService:
             # 生成分析报告
             report_data = self._generate_analysis_report(stock, analysis_type, ai_provider)
             
+            # 检查分析是否成功
+            if not report_data.get('success', True):  # 默认True是为了兼容旧代码
+                return {
+                    'success': False,
+                    'error': report_data.get('error', '分析失败')
+                }
+            
             # 保存报告
             self.save_analysis_report(stock_code, report_data)
             
@@ -346,14 +353,15 @@ class AnalysisService:
                     }
                 }
             else:
-                # 如果AI分析失败，返回错误信息
+                # 如果AI分析失败，不生成报告，直接返回失败状态
                 logger.error(f"AI分析失败 - 股票: {stock.code}, 提供商: {ai_provider}, 错误: {result.get('error', '未知错误')}")
                 return {
+                    'success': False,
+                    'error': result.get('error', '未知错误'),
                     'stock_code': stock.code,
                     'stock_name': stock.name,
                     'market': stock.market,
                     'analysis_date': datetime.utcnow().strftime('%Y-%m-%d'),
-                    'content': f"# {stock.name} ({stock.code}) 分析报告\n\n## 分析失败\n\nAI分析服务暂时不可用，请稍后重试。\n\n错误信息：{result.get('error', '未知错误')}",
                     'provider': ai_provider,
                     'analysis_type': analysis_type,
                     'metadata': {
@@ -365,11 +373,12 @@ class AnalysisService:
         except Exception as e:
             logger.error(f"生成分析报告失败: {str(e)}")
             return {
+                'success': False,
+                'error': str(e),
                 'stock_code': stock.code,
                 'stock_name': stock.name,
                 'market': stock.market,
                 'analysis_date': datetime.utcnow().strftime('%Y-%m-%d'),
-                'content': f"# {stock.name} ({stock.code}) 分析报告\n\n## 分析失败\n\n生成分析报告时发生错误：{str(e)}",
                 'provider': 'error',
                 'analysis_type': analysis_type,
                 'metadata': {
@@ -379,7 +388,7 @@ class AnalysisService:
             }
     
     def save_analysis_report(self, stock_code: str, report_data: Dict[str, Any]) -> str:
-        """保存分析报告到文件"""
+        """保存分析报告到文件并注册到数据库"""
         try:
             # 创建日期目录
             date_str = datetime.utcnow().strftime('%Y-%m-%d')
@@ -403,12 +412,56 @@ class AnalysisService:
             with open(report_file, 'w', encoding='utf-8') as f:
                 json.dump(report_data, f, ensure_ascii=False, indent=2)
             
+            # 注册到数据库
+            self._register_report_to_database(stock_code, report_data, report_file)
+            
             logger.info(f"保存分析报告: {report_file}")
             return report_file
             
         except Exception as e:
             logger.error(f"保存分析报告失败: {str(e)}")
             raise
+    
+    def _register_report_to_database(self, stock_code: str, report_data: Dict[str, Any], report_file: str):
+        """将报告注册到数据库"""
+        try:
+            from app.models.analysis import ReportIndex
+            from app.models.stock import Stock
+            from app import db
+            
+            # 获取股票信息
+            stock = Stock.query.filter_by(code=stock_code).first()
+            if not stock:
+                logger.error(f"未找到股票: {stock_code}")
+                return
+            
+            # 允许同一股票同一天有多个报告，不再检查重复
+            
+            # 创建新的报告索引记录
+            # 处理analysis_date，确保是date对象
+            analysis_date_str = report_data.get('analysis_date', datetime.utcnow().strftime('%Y-%m-%d'))
+            if isinstance(analysis_date_str, str):
+                from datetime import date
+                analysis_date = datetime.strptime(analysis_date_str, '%Y-%m-%d').date()
+            else:
+                analysis_date = analysis_date_str
+            
+            report_index = ReportIndex(
+                stock_id=stock.id,
+                analysis_date=analysis_date,
+                file_path=report_file,
+                summary=report_data.get('content', '')[:500] if report_data.get('content') else '',  # 截取前500字符作为摘要
+                generated_at=datetime.utcnow()
+            )
+            
+            db.session.add(report_index)
+            db.session.commit()
+            
+            logger.info(f"成功注册报告到数据库: {stock_code} - {report_data.get('analysis_date')}")
+            
+        except Exception as e:
+            logger.error(f"注册报告到数据库失败: {str(e)}")
+            # 不抛出异常，避免影响报告保存
     
     def get_analysis_report(self, stock_code: str, date: str = None, report_id: str = None) -> Optional[Dict[str, Any]]:
         """获取分析报告"""
@@ -431,14 +484,16 @@ class AnalysisService:
                             continue
                         
                         for filename in os.listdir(date_path):
-                            if filename.endswith('.json') and report_id in filename:
+                            if filename.endswith('.json'):
                                 report_file = os.path.join(date_path, filename)
-                                logger.info(f"找到报告文件: {report_file}")
                                 try:
                                     with open(report_file, 'r', encoding='utf-8') as f:
                                         report_data = json.load(f)
-                                        logger.info(f"成功读取报告文件: {report_file}")
-                                        return report_data
+                                        # 检查文件中的report_id是否匹配
+                                        if report_data.get('report_id') == report_id:
+                                            logger.info(f"找到报告文件: {report_file}")
+                                            logger.info(f"成功读取报告文件: {report_file}")
+                                            return report_data
                                 except Exception as e:
                                     logger.error(f"读取报告文件失败: {report_file}, {str(e)}")
                 
@@ -523,29 +578,38 @@ class AnalysisService:
                     
                     for file_name in os.listdir(date_path):
                         if file_name.endswith('.json'):
-                            # 解析文件名：股票代码_时间戳_毫秒数_模型_分析类型.json
+                            # 解析文件名：股票代码_时间戳_毫秒数_模型_分析类型.json 或 股票代码_描述_序号.json
                             parts = file_name.replace('.json', '').split('_')
                             if len(parts) >= 5:
+                                # 标准格式：股票代码_时间戳_毫秒数_模型_分析类型.json
                                 stock_code = parts[0]
-                                timestamp = parts[1]
-                                milliseconds = parts[2]  # 毫秒数，不显示给用户
+                                timestamp = f"{parts[1]}_{parts[2]}"  # 重新组合时间戳
                                 ai_provider = parts[3]
                                 analysis_type = parts[4]
+                            elif len(parts) >= 3:
+                                # 简化格式：股票代码_描述_序号.json
+                                stock_code = parts[0]
+                                timestamp = parts[1] if len(parts) > 1 else 'test'
+                                ai_provider = 'qwen-deep-research'  # 默认模型
+                                analysis_type = 'comprehensive'  # 默认分析类型
+                            else:
+                                # 跳过格式不正确的文件
+                                continue
                                 
-                                report_file = os.path.join(date_path, file_name)
-                                try:
-                                    with open(report_file, 'r', encoding='utf-8') as f:
-                                        report_data = json.load(f)
-                                        report_data['date'] = date_dir
-                                        report_data['stock_code'] = stock_code
-                                        report_data['ai_provider'] = ai_provider
-                                        report_data['analysis_type'] = analysis_type
-                                        report_data['timestamp'] = timestamp
-                                        # 标记是否为用户关注的股票
-                                        report_data['is_watched'] = stock_code in user_stocks
-                                        reports.append(report_data)
-                                except Exception as e:
-                                    logger.error(f"读取报告文件失败: {report_file}, {str(e)}")
+                            report_file = os.path.join(date_path, file_name)
+                            try:
+                                with open(report_file, 'r', encoding='utf-8') as f:
+                                    report_data = json.load(f)
+                                    report_data['date'] = date_dir
+                                    report_data['stock_code'] = stock_code
+                                    report_data['ai_provider'] = ai_provider
+                                    report_data['analysis_type'] = analysis_type
+                                    report_data['timestamp'] = timestamp
+                                    # 标记是否为用户关注的股票
+                                    report_data['is_watched'] = stock_code in user_stocks
+                                    reports.append(report_data)
+                            except Exception as e:
+                                logger.error(f"读取报告文件失败: {report_file}, {str(e)}")
                     
                     if len(reports) >= limit:
                         break
@@ -557,6 +621,65 @@ class AnalysisService:
             
         except Exception as e:
             logger.error(f"获取用户报告失败: {str(e)}")
+            return []
+
+    def get_all_reports(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """获取所有分析报告（不需要登录）"""
+        try:
+            reports = []
+            
+            # 遍历报告目录，获取所有报告
+            if os.path.exists(self.reports_dir):
+                for date_dir in sorted(os.listdir(self.reports_dir), reverse=True):
+                    date_path = os.path.join(self.reports_dir, date_dir)
+                    if not os.path.isdir(date_path):
+                        continue
+                    
+                    for file_name in os.listdir(date_path):
+                        if file_name.endswith('.json'):
+                            # 解析文件名：股票代码_时间戳_毫秒数_模型_分析类型.json 或 股票代码_描述_序号.json
+                            parts = file_name.replace('.json', '').split('_')
+                            if len(parts) >= 5:
+                                # 标准格式：股票代码_时间戳_毫秒数_模型_分析类型.json
+                                stock_code = parts[0]
+                                timestamp = f"{parts[1]}_{parts[2]}"  # 重新组合时间戳
+                                ai_provider = parts[3]
+                                analysis_type = parts[4]
+                            elif len(parts) >= 3:
+                                # 简化格式：股票代码_描述_序号.json
+                                stock_code = parts[0]
+                                timestamp = parts[1] if len(parts) > 1 else 'test'
+                                ai_provider = 'qwen-deep-research'  # 默认模型
+                                analysis_type = 'comprehensive'  # 默认分析类型
+                            else:
+                                # 跳过格式不正确的文件
+                                continue
+                                
+                            report_file = os.path.join(date_path, file_name)
+                            try:
+                                with open(report_file, 'r', encoding='utf-8') as f:
+                                    report_data = json.load(f)
+                                    report_data['date'] = date_dir
+                                    report_data['stock_code'] = stock_code
+                                    report_data['ai_provider'] = ai_provider
+                                    report_data['analysis_type'] = analysis_type
+                                    report_data['timestamp'] = timestamp
+                                    # 未登录用户，不标记关注状态
+                                    report_data['is_watched'] = False
+                                    reports.append(report_data)
+                            except Exception as e:
+                                logger.error(f"读取报告文件失败: {report_file}, {str(e)}")
+                    
+                    if len(reports) >= limit:
+                        break
+            
+            # 按创建时间排序，最新的在前
+            reports.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+            
+            return reports[:limit]
+            
+        except Exception as e:
+            logger.error(f"获取所有报告失败: {str(e)}")
             return []
 
     def get_global_reports_count(self) -> int:
@@ -601,6 +724,7 @@ class AnalysisService:
         try:
             import threading
             import time
+            from app.services.ai.task_manager import task_manager
             
             # 生成任务ID
             task_id = f"single_{stock_code}_{user_id}_{int(time.time())}"
@@ -643,6 +767,18 @@ class AnalysisService:
                         with open(task_file, 'w', encoding='utf-8') as f:
                             json.dump(task_data, f, ensure_ascii=False, indent=2)
                         
+                        # 检查是否被暂停或停止
+                        if not task_manager.wait_if_paused(task_id):
+                            logger.info(f"任务 {task_id} 被停止，退出执行")
+                            task_data['status'] = 'stopped'
+                            task_data['stopped_at'] = datetime.utcnow().isoformat()
+                            with open(task_file, 'w', encoding='utf-8') as f:
+                                json.dump(task_data, f, ensure_ascii=False, indent=2)
+                            
+                            # 从任务管理器中注销被停止的任务
+                            task_manager.unregister_task(task_id)
+                            return
+                        
                         # 执行分析（带重试机制）
                         result = self._run_analysis_with_retry(stock_code, user_id, analysis_type, ai_provider, task_data, task_file)
                         
@@ -663,6 +799,9 @@ class AnalysisService:
                         with open(task_file, 'w', encoding='utf-8') as f:
                             json.dump(task_data, f, ensure_ascii=False, indent=2)
                         
+                        # 从任务管理器中注销已完成的任务
+                        task_manager.unregister_task(task_id)
+                        
                         logger.info(f"单个分析任务完成: {task_id}")
                     
                 except Exception as e:
@@ -673,11 +812,17 @@ class AnalysisService:
                     task_data['failed_at'] = datetime.utcnow().isoformat()
                     with open(task_file, 'w', encoding='utf-8') as f:
                         json.dump(task_data, f, ensure_ascii=False, indent=2)
+                    
+                    # 从任务管理器中注销失败的任务
+                    task_manager.unregister_task(task_id)
             
             # 启动后台线程
             analysis_thread = threading.Thread(target=run_single_analysis)
             analysis_thread.daemon = True
             analysis_thread.start()
+            
+            # 注册到任务管理器
+            task_manager.register_task(task_id, analysis_thread, 'single_analysis')
             
             logger.info(f"单个分析任务已创建: {task_id}")
             return task_id
@@ -692,6 +837,7 @@ class AnalysisService:
         try:
             import threading
             import time
+            from app.services.ai.task_manager import task_manager
             
             # 生成任务ID
             task_id = f"batch_{user_id}_{int(time.time())}"
@@ -738,6 +884,18 @@ class AnalysisService:
                         # 逐个分析股票
                         for i, stock in enumerate(stocks):
                             try:
+                                # 检查是否被暂停或停止
+                                if not task_manager.wait_if_paused(task_id):
+                                    logger.info(f"任务 {task_id} 被停止，退出执行")
+                                    task_data['status'] = 'stopped'
+                                    task_data['stopped_at'] = datetime.utcnow().isoformat()
+                                    with open(task_file, 'w', encoding='utf-8') as f:
+                                        json.dump(task_data, f, ensure_ascii=False, indent=2)
+                                    
+                                    # 从任务管理器中注销被停止的任务
+                                    task_manager.unregister_task(task_id)
+                                    return
+                                
                                 stock_code = stock['code']
                                 logger.info(f"分析股票 {i+1}/{len(stocks)}: {stock_code}")
                                 
@@ -802,6 +960,9 @@ class AnalysisService:
                         with open(task_file, 'w', encoding='utf-8') as f:
                             json.dump(task_data, f, ensure_ascii=False, indent=2)
                         
+                        # 从任务管理器中注销已完成的任务
+                        task_manager.unregister_task(task_id)
+                        
                         # 发送完成邮件通知
                         self._send_batch_analysis_completion_email(task_data)
                         
@@ -814,11 +975,17 @@ class AnalysisService:
                     task_data['failed_at'] = datetime.utcnow().isoformat()
                     with open(task_file, 'w', encoding='utf-8') as f:
                         json.dump(task_data, f, ensure_ascii=False, indent=2)
+                    
+                    # 从任务管理器中注销失败的任务
+                    task_manager.unregister_task(task_id)
             
             # 启动后台线程
             analysis_thread = threading.Thread(target=run_batch_analysis)
             analysis_thread.daemon = True
             analysis_thread.start()
+            
+            # 注册到任务管理器
+            task_manager.register_task(task_id, analysis_thread, 'batch_analysis')
             
             logger.info(f"批量分析任务已创建: {task_id}")
             return task_id
@@ -1120,3 +1287,205 @@ class AnalysisService:
         except Exception as e:
             logger.error(f"删除分析报告失败: {str(e)}")
             return False
+    
+    def pause_task(self, task_id: str, user_id: int) -> bool:
+        """暂停任务"""
+        try:
+            from app.services.ai.task_manager import task_manager
+            
+            task_file = os.path.join(self.reports_dir, f"{task_id}.task.json")
+            
+            if not os.path.exists(task_file):
+                logger.warning(f"任务文件不存在: {task_file}")
+                return False
+            
+            # 读取任务数据
+            with open(task_file, 'r', encoding='utf-8') as f:
+                task_data = json.load(f)
+            
+            # 检查用户权限
+            if task_data.get('user_id') != user_id:
+                logger.warning(f"用户 {user_id} 无权限操作任务 {task_id}")
+                return False
+            
+            # 检查任务状态
+            current_status = task_data.get('status')
+            if current_status not in ['pending', 'running']:
+                logger.warning(f"任务 {task_id} 状态为 {current_status}，无法暂停")
+                return False
+            
+            # 使用任务管理器暂停任务
+            if task_manager.pause_task(task_id):
+                # 更新任务文件状态
+                task_data['status'] = 'paused'
+                task_data['paused_at'] = datetime.utcnow().isoformat()
+                task_data['updated_at'] = datetime.utcnow().isoformat()
+                
+                # 保存任务数据
+                with open(task_file, 'w', encoding='utf-8') as f:
+                    json.dump(task_data, f, ensure_ascii=False, indent=2)
+                
+                logger.info(f"任务 {task_id} 已暂停")
+                return True
+            else:
+                # 如果任务管理器暂停失败（可能任务不在管理器中），直接更新文件状态
+                logger.warning(f"任务管理器暂停任务失败: {task_id}，尝试直接更新文件状态")
+                task_data['status'] = 'paused'
+                task_data['paused_at'] = datetime.utcnow().isoformat()
+                task_data['updated_at'] = datetime.utcnow().isoformat()
+                
+                # 保存任务数据
+                with open(task_file, 'w', encoding='utf-8') as f:
+                    json.dump(task_data, f, ensure_ascii=False, indent=2)
+                
+                logger.info(f"任务 {task_id} 已暂停（直接更新文件状态）")
+                return True
+            
+        except Exception as e:
+            logger.error(f"暂停任务失败: {str(e)}")
+            return False
+    
+    def resume_task(self, task_id: str, user_id: int) -> bool:
+        """恢复任务"""
+        try:
+            from app.services.ai.task_manager import task_manager
+            
+            task_file = os.path.join(self.reports_dir, f"{task_id}.task.json")
+            
+            if not os.path.exists(task_file):
+                logger.warning(f"任务文件不存在: {task_file}")
+                return False
+            
+            # 读取任务数据
+            with open(task_file, 'r', encoding='utf-8') as f:
+                task_data = json.load(f)
+            
+            # 检查用户权限
+            if task_data.get('user_id') != user_id:
+                logger.warning(f"用户 {user_id} 无权限操作任务 {task_id}")
+                return False
+            
+            # 检查任务状态
+            current_status = task_data.get('status')
+            if current_status != 'paused':
+                logger.warning(f"任务 {task_id} 状态为 {current_status}，无法恢复")
+                return False
+            
+            # 使用任务管理器恢复任务
+            if task_manager.resume_task(task_id):
+                # 更新任务文件状态
+                task_data['status'] = 'running'
+                task_data['resumed_at'] = datetime.utcnow().isoformat()
+                task_data['updated_at'] = datetime.utcnow().isoformat()
+                
+                # 保存任务数据
+                with open(task_file, 'w', encoding='utf-8') as f:
+                    json.dump(task_data, f, ensure_ascii=False, indent=2)
+                
+                logger.info(f"任务 {task_id} 已恢复")
+                return True
+            else:
+                # 如果任务管理器恢复失败（可能任务不在管理器中），直接更新文件状态
+                logger.warning(f"任务管理器恢复任务失败: {task_id}，尝试直接更新文件状态")
+                task_data['status'] = 'running'
+                task_data['resumed_at'] = datetime.utcnow().isoformat()
+                task_data['updated_at'] = datetime.utcnow().isoformat()
+                
+                # 保存任务数据
+                with open(task_file, 'w', encoding='utf-8') as f:
+                    json.dump(task_data, f, ensure_ascii=False, indent=2)
+                
+                logger.info(f"任务 {task_id} 已恢复（直接更新文件状态）")
+                return True
+            
+        except Exception as e:
+            logger.error(f"恢复任务失败: {str(e)}")
+            return False
+    
+    def delete_task(self, task_id: str, user_id: int) -> bool:
+        """删除任务"""
+        try:
+            from app.services.ai.task_manager import task_manager
+            
+            task_file = os.path.join(self.reports_dir, f"{task_id}.task.json")
+            
+            if not os.path.exists(task_file):
+                logger.warning(f"任务文件不存在: {task_file}")
+                return False
+            
+            # 读取任务数据
+            with open(task_file, 'r', encoding='utf-8') as f:
+                task_data = json.load(f)
+            
+            # 检查用户权限
+            if task_data.get('user_id') != user_id:
+                logger.warning(f"用户 {user_id} 无权限操作任务 {task_id}")
+                return False
+            
+            # 如果任务正在运行或暂停，先停止任务
+            current_status = task_data.get('status')
+            if current_status in ['pending', 'running', 'paused']:
+                logger.info(f"任务 {task_id} 状态为 {current_status}，先停止任务")
+                task_manager.stop_task(task_id)
+                task_manager.unregister_task(task_id)
+            
+            # 删除任务文件
+            os.remove(task_file)
+            
+            # 删除相关的报告文件（如果有的话）
+            try:
+                # 获取任务相关的股票代码
+                stocks = task_data.get('stocks', [])
+                if not stocks and task_data.get('stock_code'):
+                    # 单个分析任务
+                    stocks = [{'code': task_data.get('stock_code')}]
+                
+                # 删除相关报告文件
+                for stock in stocks:
+                    stock_code = stock.get('code')
+                    if stock_code:
+                        self._delete_task_reports(task_id, stock_code)
+                        
+            except Exception as e:
+                logger.warning(f"删除任务相关报告文件时出错: {str(e)}")
+            
+            logger.info(f"任务 {task_id} 已删除")
+            return True
+            
+        except Exception as e:
+            logger.error(f"删除任务失败: {str(e)}")
+            return False
+    
+    def _delete_task_reports(self, task_id: str, stock_code: str):
+        """删除任务相关的报告文件"""
+        try:
+            reports_dir = 'data/reports'
+            if not os.path.exists(reports_dir):
+                return
+            
+            # 遍历所有日期目录
+            for date_dir in os.listdir(reports_dir):
+                date_path = os.path.join(reports_dir, date_dir)
+                if not os.path.isdir(date_path):
+                    continue
+                
+                # 查找匹配的报告文件
+                for filename in os.listdir(date_path):
+                    if filename.startswith(f'{stock_code}_') and filename.endswith('.json'):
+                        file_path = os.path.join(date_path, filename)
+                        
+                        # 读取文件内容，检查是否属于该任务
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                report_data = json.load(f)
+                            
+                            # 如果报告属于该任务，删除文件
+                            if report_data.get('task_id') == task_id:
+                                os.remove(file_path)
+                                logger.info(f"删除任务相关报告文件: {file_path}")
+                                
+                        except Exception as e:
+                            logger.warning(f"读取报告文件失败: {file_path}, {str(e)}")
+                            
+        except Exception as e:
+            logger.error(f"删除任务相关报告文件失败: {str(e)}")

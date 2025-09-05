@@ -27,15 +27,29 @@ def login():
 
         # 检查是否为管理员邮箱
         from app.config import DevelopmentConfig
+        from app.services.data.database_service import DatabaseService
+        from app import db
+        
         config = DevelopmentConfig()
         if email == config.ADMIN_EMAIL:
             # 管理员邮箱直接登录，无需验证码
-            session['user_id'] = 999
-            session['user_email'] = email
-            session['is_admin'] = True
-            session['access_token'] = 'admin_token'
-            flash('管理员登录成功！', 'success')
-            return redirect(url_for('dashboard.index'))
+            # 从数据库获取实际的用户ID
+            db_service = DatabaseService(db.session)
+            admin_user = db_service.get_user_by_email(email)
+            if admin_user:
+                session['user_id'] = admin_user.id
+                session['user_email'] = email
+                session['is_admin'] = True
+                session['access_token'] = 'admin_token'
+                flash('管理员登录成功！', 'success')
+                return redirect(url_for('dashboard.index'))
+            else:
+                flash('管理员账户不存在，请联系系统管理员', 'error')
+                response = make_response(render_template('auth/login.html'))
+                response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+                response.headers['Pragma'] = 'no-cache'
+                response.headers['Expires'] = '0'
+                return response
 
         # 正常流程：使用AJAX发送验证码，这里直接跳转到验证页面
         return redirect(url_for('auth.verify', email=email))

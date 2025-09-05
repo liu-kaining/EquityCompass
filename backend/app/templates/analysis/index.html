@@ -592,9 +592,13 @@ ${stockList}
                 }
             );
         } else {
-            if (confirm(confirmMessage)) {
-                startBatchAnalysis(analysisType);
-            }
+            showConfirmModal(
+                '确认批量分析',
+                confirmMessage,
+                function() {
+                    startBatchAnalysis(analysisType);
+                }
+            );
         }
     });
     
@@ -786,9 +790,6 @@ ${stockList}
                     <button class="btn btn-outline-secondary me-2" onclick="downloadReport('${stockCode}', '${stockName}')">
                         <i class="fas fa-download me-1"></i>下载报告
                     </button>
-                    <button class="btn btn-outline-info" onclick="shareReport('${stockCode}', '${stockName}')">
-                        <i class="fas fa-share me-1"></i>分享报告
-                    </button>
                 </div>
             </div>
         `;
@@ -818,22 +819,6 @@ ${stockList}
         document.body.removeChild(link);
     }
     
-    function shareReport(stockCode, stockName) {
-        // 分享报告功能
-        const url = `${window.location.origin}/reports/${stockCode}`;
-        if (navigator.share) {
-            navigator.share({
-                title: `${stockName} (${stockCode}) 分析报告`,
-                text: `查看 ${stockName} 的AI分析报告`,
-                url: url
-            });
-        } else {
-            // 复制链接到剪贴板
-            navigator.clipboard.writeText(url).then(function() {
-                showToast('success', '报告链接已复制到剪贴板');
-            });
-        }
-    }
     
     function getAnalysisTypeName(type) {
         const types = {

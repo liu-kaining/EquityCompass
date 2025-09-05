@@ -355,3 +355,93 @@ def get_user_usage():
     except Exception as e:
         logger.error(f"获取用户使用量失败: {str(e)}")
         return jsonify({'success': False, 'message': f'获取使用量失败: {str(e)}'}), 500
+
+@analysis_api_bp.route('/task-pause/<task_id>', methods=['POST'])
+@login_required
+def pause_task(task_id):
+    """强制暂停任务"""
+    try:
+        user_id = session.get('user_id')
+        analysis_service = AnalysisService(db.session)
+        
+        # 获取任务信息
+        task_data = analysis_service.get_task_status(task_id, user_id)
+        
+        if not task_data:
+            return error_response('任务不存在或无权限访问', 'NOT_FOUND')
+        
+        # 检查任务状态，只有进行中的任务才能暂停
+        if task_data.get('status') not in ['pending', 'running']:
+            return error_response('只有等待中或进行中的任务才能暂停', 'INVALID_STATUS')
+        
+        # 暂停任务
+        success = analysis_service.pause_task(task_id, user_id)
+        
+        if success:
+            return success_response(message='任务已暂停')
+        else:
+            return error_response('OPERATION_FAILED', '暂停任务失败')
+        
+    except Exception as e:
+        logger.error(f"暂停任务失败: {str(e)}")
+        return error_response('INTERNAL_ERROR', f'暂停任务失败: {str(e)}')
+
+@analysis_api_bp.route('/task-resume/<task_id>', methods=['POST'])
+@login_required
+def resume_task(task_id):
+    """恢复任务"""
+    try:
+        user_id = session.get('user_id')
+        analysis_service = AnalysisService(db.session)
+        
+        # 获取任务信息
+        task_data = analysis_service.get_task_status(task_id, user_id)
+        
+        if not task_data:
+            return error_response('NOT_FOUND', '任务不存在')
+        
+        # 检查任务状态，只有暂停的任务才能恢复
+        if task_data.get('status') != 'paused':
+            return error_response('只有暂停的任务才能恢复', 'INVALID_STATUS')
+        
+        # 恢复任务
+        success = analysis_service.resume_task(task_id, user_id)
+        
+        if success:
+            return success_response(message='任务已恢复')
+        else:
+            return error_response('OPERATION_FAILED', '恢复任务失败')
+        
+    except Exception as e:
+        logger.error(f"恢复任务失败: {str(e)}")
+        return error_response('INTERNAL_ERROR', f'恢复任务失败: {str(e)}')
+
+@analysis_api_bp.route('/task-delete/<task_id>', methods=['DELETE'])
+@login_required
+def delete_task(task_id):
+    """删除任务"""
+    try:
+        user_id = session.get('user_id')
+        analysis_service = AnalysisService(db.session)
+        
+        # 获取任务信息
+        task_data = analysis_service.get_task_status(task_id, user_id)
+        
+        if not task_data:
+            return error_response('NOT_FOUND', '任务不存在或无权限访问')
+        
+        # 检查任务状态，只有已完成或失败的任务才能删除
+        if task_data.get('status') in ['pending', 'running']:
+            return error_response('INVALID_STATUS', '进行中的任务无法删除，请先暂停任务')
+        
+        # 删除任务
+        success = analysis_service.delete_task(task_id, user_id)
+        
+        if success:
+            return success_response(message='任务已删除')
+        else:
+            return error_response('OPERATION_FAILED', '删除任务失败')
+        
+    except Exception as e:
+        logger.error(f"删除任务失败: {str(e)}")
+        return error_response('INTERNAL_ERROR', f'删除任务失败: {str(e)}')

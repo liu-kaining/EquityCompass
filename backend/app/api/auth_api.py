@@ -50,24 +50,36 @@ def send_verification_code():
         
         # 检查是否为管理员邮箱
         from app.config import DevelopmentConfig
+        from app.models.user import User
+        
         config = DevelopmentConfig()
         if email == config.ADMIN_EMAIL:
             # 管理员邮箱直接登录，无需验证码
             from flask import session
-            session['user_id'] = 999
-            session['user_email'] = email
-            session['is_admin'] = True
-            session['access_token'] = 'admin_token'
             
-            return jsonify({
-                'success': True,
-                'data': {
-                    'is_admin': True,
-                    'message': '管理员登录成功',
-                    'redirect_url': '/dashboard/'
-                },
-                'timestamp': datetime.utcnow().isoformat()
-            }), 200
+            # 从数据库获取实际的用户ID
+            admin_user = User.query.filter_by(email=email).first()
+            if admin_user:
+                session['user_id'] = admin_user.id
+                session['user_email'] = email
+                session['is_admin'] = True
+                session['access_token'] = 'admin_token'
+                
+                return jsonify({
+                    'success': True,
+                    'data': {
+                        'is_admin': True,
+                        'message': '管理员登录成功',
+                        'redirect_url': '/dashboard/'
+                    },
+                    'timestamp': datetime.utcnow().isoformat()
+                }), 200
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'ADMIN_NOT_FOUND',
+                    'message': '管理员账户不存在，请联系系统管理员'
+                }), 400
         
         # 生成验证码
         verification_service = VerificationCodeService()

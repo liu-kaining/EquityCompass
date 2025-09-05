@@ -320,9 +320,13 @@ $(document).ready(function() {
             const stockCode = btn.data('stock-code');
             const row = btn.closest('tr');
             
-            if (confirm(`确定要移除 ${stockCode} 的关注吗？`)) {
-                performRemoveAction(btn, stockCode, row);
-            }
+            showConfirmModal(
+                '确认移除关注',
+                `您确定要移除 ${stockCode} 的关注吗？\n\n移除后将不再显示在关注列表中。`,
+                function() {
+                    performRemoveAction(btn, stockCode, row);
+                }
+            );
         });
     } else {
         console.log('confirmAction函数已定义，使用自定义弹窗');
@@ -350,9 +354,13 @@ $(document).ready(function() {
         
         if (typeof confirmAction === 'undefined') {
             // 使用原生confirm作为备选
-            if (confirm('确定要清空所有关注的股票吗？此操作不可撤销！')) {
-                performClearAction(btn);
-            }
+            showConfirmModal(
+                '确认清空关注列表',
+                '您确定要清空所有关注的股票吗？\n\n此操作不可撤销，所有关注的股票将被移除！',
+                function() {
+                    performClearAction(btn);
+                }
+            );
         } else {
             // 使用自定义确认弹窗
             confirmAction(
