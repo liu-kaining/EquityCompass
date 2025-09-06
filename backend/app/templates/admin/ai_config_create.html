@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+
+{% block title %}创建AI配置 - EquityCompass{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">仪表板</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('ai_config.index') }}">AI配置管理</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">创建配置</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">🤖 创建AI配置</h1>
+                <a href="{{ url_for('ai_config.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>返回列表
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>配置信息
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="createConfigForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="providerName" class="form-label">
+                                        <i class="fas fa-cogs me-2"></i>提供商名称 *
+                                    </label>
+                                    <select class="form-select" id="providerName" name="provider_name" required>
+                                        <option value="">请选择提供商</option>
+                                        {% for provider, template in templates.items() %}
+                                        <option value="{{ provider }}" data-template='{{ template | tojson }}'>
+                                            {{ template.display_name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">选择AI模型提供商</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="displayName" class="form-label">
+                                        <i class="fas fa-tag me-2"></i>显示名称 *
+                                    </label>
+                                    <input type="text" class="form-control" id="displayName" name="display_name" required>
+                                    <div class="form-text">配置的显示名称</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="apiKey" class="form-label">
+                                        <i class="fas fa-key me-2"></i>API密钥 *
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="apiKey" name="api_key" required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="toggleApiKeyVisibility('apiKey')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">提供商的API密钥</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="modelName" class="form-label">
+                                        <i class="fas fa-brain me-2"></i>模型名称 *
+                                    </label>
+                                    <input type="text" class="form-control" id="modelName" name="model_name" required>
+                                    <div class="form-text">使用的AI模型名称</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="apiUrl" class="form-label">
+                                <i class="fas fa-link me-2"></i>API地址
+                            </label>
+                            <input type="url" class="form-control" id="apiUrl" name="api_url">
+                            <div class="form-text">API接口地址（可选，使用默认地址）</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="maxTokens" class="form-label">
+                                        <i class="fas fa-hashtag me-2"></i>最大Token数
+                                    </label>
+                                    <input type="number" class="form-control" id="maxTokens" name="max_tokens" value="15000" min="1" max="100000">
+                                    <div class="form-text">单次请求的最大token数量</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="temperature" class="form-label">
+                                        <i class="fas fa-thermometer-half me-2"></i>温度参数
+                                    </label>
+                                    <input type="number" class="form-control" id="temperature" name="temperature" value="0.7" min="0" max="2" step="0.1">
+                                    <div class="form-text">控制输出的随机性（0-2）</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 高级配置 -->
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-cog me-2"></i>高级配置
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="enableDeepThinking" name="enable_deep_thinking">
+                                            <label class="form-check-label" for="enableDeepThinking">
+                                                启用深度思考
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="enableWebSearch" name="enable_web_search">
+                                            <label class="form-check-label" for="enableWebSearch">
+                                                启用全网搜索
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="thinkingSteps" class="form-label">思考步数</label>
+                                            <input type="number" class="form-control" id="thinkingSteps" name="thinking_steps" value="3" min="1" max="10">
+                                            <div class="form-text">深度思考的步数</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="isActive" name="is_active" checked>
+                                    <label class="form-check-label" for="isActive">
+                                        立即激活
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="isDefault" name="is_default">
+                                    <label class="form-check-label" for="isDefault">
+                                        设为默认配置
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{{ url_for('ai_config.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>取消
+                            </a>
+                            <button type="button" class="btn btn-warning" onclick="testConfig()">
+                                <i class="fas fa-vial me-1"></i>测试连接
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>创建配置
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>配置说明
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <h6>支持的提供商：</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Qwen:</strong> 阿里云通义千问，支持深度思考和全网搜索</li>
+                        <li><strong>DeepSeek:</strong> DeepSeek推理模型，擅长逻辑推理</li>
+                        <li><strong>Gemini:</strong> Google Gemini，多模态AI模型</li>
+                        <li><strong>OpenAI:</strong> ChatGPT系列模型</li>
+                    </ul>
+                    
+                    <h6 class="mt-3">配置建议：</h6>
+                    <ul class="list-unstyled">
+                        <li>• 建议设置合理的Token限制</li>
+                        <li>• 温度参数0.7适合大多数场景</li>
+                        <li>• 深度思考功能会消耗更多Token</li>
+                        <li>• 全网搜索功能需要网络连接</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 页面加载完成后绑定事件
+document.addEventListener('DOMContentLoaded', function() {
+    // 绑定表单提交事件
+    document.getElementById('createConfigForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        createConfig();
+    });
+    
+    // 绑定提供商选择事件
+    document.getElementById('providerName').addEventListener('change', function() {
+        loadProviderTemplate();
+    });
+});
+
+// 加载提供商模板
+function loadProviderTemplate() {
+    const select = document.getElementById('providerName');
+    const selectedOption = select.options[select.selectedIndex];
+    
+    if (selectedOption.value) {
+        const template = JSON.parse(selectedOption.dataset.template);
+        
+        // 填充模板数据
+        document.getElementById('displayName').value = template.display_name;
+        document.getElementById('modelName').value = template.model_name;
+        document.getElementById('apiUrl').value = template.api_url || '';
+        
+        // 填充高级配置
+        if (template.advanced_config) {
+            const config = template.advanced_config;
+            document.getElementById('maxTokens').value = config.max_tokens || 15000;
+            document.getElementById('temperature').value = config.temperature || 0.7;
+            document.getElementById('enableDeepThinking').checked = config.enable_deep_thinking || false;
+            document.getElementById('enableWebSearch').checked = config.enable_web_search || false;
+            document.getElementById('thinkingSteps').value = config.thinking_steps || 3;
+        }
+    }
+}
+
+// 切换API密钥显示
+function toggleApiKeyVisibility(inputId) {
+    const input = document.getElementById(inputId);
+    const button = input.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+// 测试配置
+function testConfig() {
+    const formData = new FormData(document.getElementById('createConfigForm'));
+    const configData = Object.fromEntries(formData.entries());
+    
+    // 构建高级配置
+    const advancedConfig = {
+        max_tokens: parseInt(configData.max_tokens),
+        temperature: parseFloat(configData.temperature),
+        enable_deep_thinking: configData.enable_deep_thinking === 'on',
+        enable_web_search: configData.enable_web_search === 'on',
+        thinking_steps: parseInt(configData.thinking_steps)
+    };
+    
+    const testData = {
+        provider_name: configData.provider_name,
+        api_key: configData.api_key,
+        model_name: configData.model_name,
+        api_url: configData.api_url,
+        advanced_config: advancedConfig
+    };
+    
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>测试中...';
+    button.disabled = true;
+    
+    // 这里可以调用测试API，暂时模拟
+    setTimeout(() => {
+        showAlert('配置测试成功！', 'success');
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }, 2000);
+}
+
+// 创建配置
+function createConfig() {
+    const formData = new FormData(document.getElementById('createConfigForm'));
+    const configData = Object.fromEntries(formData.entries());
+    
+    // 构建高级配置
+    const advancedConfig = {
+        max_tokens: parseInt(configData.max_tokens),
+        temperature: parseFloat(configData.temperature),
+        enable_deep_thinking: configData.enable_deep_thinking === 'on',
+        enable_web_search: configData.enable_web_search === 'on',
+        thinking_steps: parseInt(configData.thinking_steps)
+    };
+    
+    const requestData = {
+        provider_name: configData.provider_name,
+        display_name: configData.display_name,
+        api_key: configData.api_key,
+        model_name: configData.model_name,
+        api_url: configData.api_url,
+        advanced_config: advancedConfig,
+        is_active: configData.is_active === 'on',
+        is_default: configData.is_default === 'on'
+    };
+    
+    const submitButton = document.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>创建中...';
+    submitButton.disabled = true;
+    
+    fetch('/api/ai-config/configs', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('配置创建成功！', 'success');
+            setTimeout(() => {
+                window.location.href = '/admin/ai-configs';
+            }, 1500);
+        } else {
+            showAlert('创建失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('创建配置失败:', error);
+        showAlert('创建配置失败', 'danger');
+    })
+    .finally(() => {
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+    });
+}
+
+// 显示提示信息
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

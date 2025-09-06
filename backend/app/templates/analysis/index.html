@@ -48,20 +48,38 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label for="analysisType" class="form-label">
                                     <i class="fas fa-chart-line me-2"></i>分析类型
                                 </label>
                                 <div class="custom-select analysis-type-select">
-                                    <select class="form-select" id="analysisType">
+                                    <select class="form-select" id="analysisType" onchange="loadPrompts()">
+                                        <option value="">请选择分析类型</option>
                                         <option value="fundamental">📊 基本面分析</option>
                                         <option value="technical">📈 技术面分析</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="promptSelect" class="form-label">
+                                    <i class="fas fa-comment-dots me-2"></i>提示词版本
+                                </label>
+                                <select class="form-select" id="promptSelect" onchange="onPromptChange()" style="font-size: 14px; line-height: 1.4;">
+                                    <option value="">请先选择分析类型</option>
+                                </select>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">选择分析提示词版本</small>
+                                    <button type="button" class="btn btn-sm btn-outline-info" id="previewPromptBtn" 
+                                            onclick="previewSelectedPrompt()" disabled>
+                                        <i class="fas fa-eye me-1"></i>预览
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label for="aiProvider" class="form-label">
                                     <i class="fas fa-robot me-2"></i>AI模型
@@ -74,7 +92,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label class="form-label">快速操作</label>
                                 <div class="d-flex gap-2">
@@ -338,13 +356,141 @@
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
-    let analysisQueue = [];
-    let currentAnalysisIndex = 0;
-    let analysisResults = [];
-    let currentUsageData = null;
-    let pendingAnalysis = null;
+// 全局变量
+let analysisQueue = [];
+let currentAnalysisIndex = 0;
+let analysisResults = [];
+let currentUsageData = null;
+let pendingAnalysis = null;
+
+// 加载提示词列表 - 全局函数
+function loadPrompts() {
+    const analysisType = $('#analysisType').val();
+    console.log('loadPrompts called, analysisType:', analysisType);
     
+    if (!analysisType) {
+        $('#promptSelect').html('<option value="">请先选择分析类型</option>');
+        $('#previewPromptBtn').prop('disabled', true);
+        return;
+    }
+    
+    $('#promptSelect').html('<option value="">加载中...</option>');
+    $('#previewPromptBtn').prop('disabled', true);
+    
+    console.log('Making API request to:', `/api/prompt/prompts/type/${analysisType}`);
+    
+    $.ajax({
+        url: `/api/prompt/prompts/type/${analysisType}`,
+        method: 'GET',
+        success: function(response) {
+            console.log('API response:', response);
+            if (response.success) {
+                updatePromptSelect(response.data.prompts);
+            } else {
+                console.error('获取提示词失败:', response.message);
+                $('#promptSelect').html('<option value="">获取失败</option>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('获取提示词失败:', error);
+            console.error('XHR:', xhr);
+            $('#promptSelect').html('<option value="">获取失败</option>');
+        }
+    });
+}
+
+// 更新提示词选择框 - 全局函数
+function updatePromptSelect(prompts) {
+    console.log('updatePromptSelect called with prompts:', prompts);
+    const select = $('#promptSelect');
+    select.empty();
+    
+    if (prompts.length === 0) {
+        select.append('<option value="">暂无可用提示词</option>');
+        $('#previewPromptBtn').prop('disabled', true);
+        return;
+    }
+    
+    // 添加默认选项
+    select.append('<option value="">使用默认提示词</option>');
+    
+    // 添加提示词选项
+    prompts.forEach(prompt => {
+        const isDefault = prompt.is_default ? ' (默认)' : '';
+        const version = `v${prompt.version}`;
+        const usage = prompt.usage_count > 0 ? ` (使用${prompt.usage_count}次)` : '';
+        const optionText = `${prompt.name} ${version}${isDefault}${usage}`;
+        
+        console.log('Adding option:', optionText);
+        
+        // 安全地序列化提示词数据，避免JSON解析错误
+        const safePromptData = {
+            id: prompt.id,
+            name: prompt.name,
+            version: prompt.version,
+            prompt_type: prompt.prompt_type,
+            description: prompt.description,
+            content: prompt.content,
+            is_active: prompt.is_active,
+            is_default: prompt.is_default,
+            usage_count: prompt.usage_count,
+            created_at: prompt.created_at,
+            updated_at: prompt.updated_at,
+            last_used_at: prompt.last_used_at
+        };
+        
+        select.append(`<option value="${prompt.id}" data-prompt='${JSON.stringify(safePromptData).replace(/'/g, '&#39;')}'>${optionText}</option>`);
+    });
+    
+    // 启用预览按钮
+    $('#previewPromptBtn').prop('disabled', false);
+    
+    console.log('Select box updated, current options:', select.html());
+}
+
+// 提示词选择变化时的处理 - 全局函数
+function onPromptChange() {
+    const selectedPromptId = $('#promptSelect').val();
+    if (selectedPromptId) {
+        $('#previewPromptBtn').prop('disabled', false);
+    } else {
+        $('#previewPromptBtn').prop('disabled', true);
+    }
+}
+
+// 预览选中的提示词 - 全局函数
+function previewSelectedPrompt() {
+    const selectedPromptId = $('#promptSelect').val();
+    if (!selectedPromptId) {
+        showAlert('请先选择一个提示词', 'warning');
+        return;
+    }
+    
+    const selectedOption = $('#promptSelect option:selected');
+    const promptDataString = selectedOption.attr('data-prompt');
+    
+    if (!promptDataString) {
+        showAlert('无法获取提示词详情', 'error');
+        return;
+    }
+    
+    try {
+        // 安全地解析JSON，处理HTML实体
+        const cleanPromptDataString = promptDataString.replace(/&#39;/g, "'");
+        const promptData = JSON.parse(cleanPromptDataString);
+        
+        if (promptData) {
+            showPromptPreview(promptData);
+        } else {
+            showAlert('无法获取提示词详情', 'error');
+        }
+    } catch (error) {
+        console.error('JSON解析错误:', error);
+        showAlert('提示词数据格式错误', 'error');
+    }
+}
+
+$(document).ready(function() {
     // 页面加载时获取使用量
     loadUsageData();
     
@@ -459,7 +605,8 @@ $(document).ready(function() {
             data: JSON.stringify({ 
                 stock_code: stockCode,
                 analysis_type: analysisType,
-                ai_provider: aiProvider
+                ai_provider: aiProvider,
+                prompt_id: $('#promptSelect').val() || null
             }),
             success: function(response) {
                 console.log('分析请求成功:', response);
@@ -672,7 +819,9 @@ ${stockList}
             contentType: 'application/json',
             data: JSON.stringify({ 
                 stock_code: stock.code,
-                analysis_type: analysisType
+                analysis_type: analysisType,
+                ai_provider: $('#aiProvider').val(),
+                prompt_id: $('#promptSelect').val() || null
             }),
             success: function(response) {
                 const result = {
@@ -849,6 +998,175 @@ ${stockList}
             toast.alert('close');
         }, 3000);
     }
+    
+});
+
+// 显示提示词预览弹窗 - 全局函数
+function showPromptPreview(promptData) {
+        const modalHtml = `
+            <div class="modal fade" id="promptPreviewModal" tabindex="-1" aria-labelledby="promptPreviewModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-gradient-primary text-white">
+                            <h5 class="modal-title" id="promptPreviewModalLabel">
+                                <i class="fas fa-eye me-2"></i>提示词预览
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-0">
+                            <!-- 基本信息卡片 -->
+                            <div class="p-3 border-bottom">
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-tag text-primary me-2"></i>
+                                            <div>
+                                                <small class="text-muted d-block">名称</small>
+                                                <strong>${promptData.name}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-code-branch text-primary me-2"></i>
+                                            <div>
+                                                <small class="text-muted d-block">版本</small>
+                                                <strong>v${promptData.version}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-layer-group text-primary me-2"></i>
+                                            <div>
+                                                <small class="text-muted d-block">类型</small>
+                                                <span class="badge bg-info">${promptData.prompt_type === 'fundamental' ? '基础分析' : '技术分析'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-chart-line text-primary me-2"></i>
+                                            <div>
+                                                <small class="text-muted d-block">使用次数</small>
+                                                <strong>${promptData.usage_count}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            ${promptData.description ? `
+                                <!-- 描述信息 -->
+                                <div class="p-3 border-bottom">
+                                    <h6 class="text-primary mb-2">
+                                        <i class="fas fa-comment me-2"></i>描述
+                                    </h6>
+                                    <p class="mb-0 text-muted">${promptData.description}</p>
+                                </div>
+                            ` : ''}
+                            
+                            <!-- 提示词内容 -->
+                            <div class="p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="text-primary mb-0">
+                                        <i class="fas fa-code me-2"></i>提示词内容
+                                    </h6>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="copyPromptContent()">
+                                            <i class="fas fa-copy me-1"></i>复制
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="togglePromptView()">
+                                            <i class="fas fa-expand me-1"></i>全屏
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="border rounded bg-light" style="max-height: 300px; overflow-y: auto;">
+                                    <pre id="promptContent" class="mb-0 p-3" style="white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4;">${promptData.content}</pre>
+                                </div>
+                                <small class="text-muted mt-2 d-block">
+                                    <i class="fas fa-info-circle me-1"></i>字符数: ${promptData.content.length}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-2"></i>关闭
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="useThisPrompt('${promptData.id}')">
+                                <i class="fas fa-check me-2"></i>使用此提示词
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 移除已存在的弹窗
+        $('#promptPreviewModal').remove();
+        
+        // 添加新弹窗
+        $('body').append(modalHtml);
+        
+        // 显示弹窗
+        const modal = new bootstrap.Modal(document.getElementById('promptPreviewModal'));
+        modal.show();
+    }
+
+// 复制提示词内容 - 全局函数
+function copyPromptContent() {
+    const content = document.getElementById('promptContent').textContent;
+    navigator.clipboard.writeText(content).then(() => {
+        showAlert('提示词内容已复制到剪贴板', 'success');
+    }).catch(() => {
+        showAlert('复制失败，请手动选择复制', 'warning');
+    });
+}
+
+// 切换全屏视图 - 全局函数
+function togglePromptView() {
+    const modal = document.getElementById('promptPreviewModal');
+    const modalDialog = modal.querySelector('.modal-dialog');
+    
+    if (modalDialog.classList.contains('modal-fullscreen')) {
+        modalDialog.classList.remove('modal-fullscreen');
+    } else {
+        modalDialog.classList.add('modal-fullscreen');
+    }
+}
+
+// 使用选中的提示词 - 全局函数
+function useThisPrompt(promptId) {
+    $('#promptSelect').val(promptId);
+    $('#promptPreviewModal').modal('hide');
+    showAlert('已选择该提示词', 'success');
+}
+
+$(document).ready(function() {
+    // 页面加载时获取使用量
+    loadUsageData();
+    
+    // 更新使用量显示
+    function updateUsageDisplay(usage) {
+        const current = usage.current_count;
+        const limit = usage.daily_limit;
+        const percentage = (current / limit) * 100;
+        
+        $('#usageDisplay').text(`${current}/${limit}`);
+        $('#usageProgress').css('width', percentage + '%');
+        $('#usageProgress').text(Math.round(percentage) + '%');
+        
+        // 根据使用量设置颜色
+        if (percentage >= 90) {
+            $('#usageProgress').removeClass('bg-warning bg-success').addClass('bg-danger');
+        } else if (percentage >= 70) {
+            $('#usageProgress').removeClass('bg-success bg-danger').addClass('bg-warning');
+        } else {
+            $('#usageProgress').removeClass('bg-warning bg-danger').addClass('bg-success');
+        }
+    }
+    
+    // 其他页面初始化代码...
 });
 </script>
 {% endblock %}

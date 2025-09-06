@@ -7,6 +7,8 @@ from app.services.auth.verification_code_service import VerificationCodeService
 from app.services.auth.jwt_service import JWTService, jwt_required
 from app.services.email.email_service import EmailService
 from app.services.data.user_service import UserDataService
+from app.repositories.user_repository import UserRepository
+from app.utils.validation import UserValidator
 from app import db
 from datetime import datetime
 
@@ -17,6 +19,235 @@ def is_valid_email(email: str) -> bool:
     """验证邮箱格式"""
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(pattern, email) is not None
+
+
+@auth_api_bp.route('/register', methods=['POST'])
+def register():
+    """用户注册"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'INVALID_REQUEST',
+                'message': '请求数据格式错误'
+            }), 400
+        
+        username = data.get('username', '').strip()
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+        confirm_password = data.get('confirm_password', '')
+        nickname = data.get('nickname', '').strip()
+        
+        # 验证注册数据
+        validation_result = UserValidator.validate_registration_data(
+            username, email, password, confirm_password
+        )
+        
+        if not validation_result['valid']:
+            return jsonify({
+                'success': False,
+                'error': validation_result['error'],
+                'message': validation_result['message']
+            }), 400
+        
+        # 检查用户名和邮箱是否已存在
+        user_repo = UserRepository(db.session)
+        
+        if user_repo.get_by_username(username):
+            return jsonify({
+                'success': False,
+                'error': 'USERNAME_EXISTS',
+                'message': '用户名已存在，请选择其他用户名'
+            }), 400
+        
+        if user_repo.get_by_email(email):
+            return jsonify({
+                'success': False,
+                'error': 'EMAIL_EXISTS',
+                'message': '邮箱已被注册，请使用其他邮箱'
+            }), 400
+        
+        # 创建用户
+        try:
+            user = user_repo.create_user(
+                username=username,
+                email=email,
+                password=password,
+                nickname=nickname or username
+            )
+            
+            # 生成JWT Token
+            jwt_service = JWTService()
+            token_result = jwt_service.generate_token(
+                user_id=user.id,
+                email=user.email,
+                is_admin=user.is_admin()
+            )
+            
+            if not token_result['success']:
+                return jsonify({
+                    'success': False,
+                    'error': 'TOKEN_GENERATION_FAILED',
+                    'message': 'Token生成失败'
+                }), 500
+            
+            # 设置session
+            from flask import session
+            session['user_id'] = user.id
+            session['user_email'] = user.email
+            session['username'] = user.username
+            session['user_role'] = user.user_role
+            session['is_admin'] = user.is_admin()
+            session['access_token'] = token_result['data']['access_token']
+            
+            # 发送欢迎邮件（可选）
+            try:
+                email_service = EmailService()
+                email_service.send_welcome_email(user.email, user.nickname or user.username)
+            except Exception as e:
+                current_app.logger.warning(f"发送欢迎邮件失败: {e}")
+            
+            return jsonify({
+                'success': True,
+                'data': {
+                    'user': {
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email,
+                        'nickname': user.nickname,
+                        'plan_type': user.plan_type,
+                        'remaining_quota': user.remaining_quota,
+                        'user_role': user.user_role,
+                        'email_verified': user.email_verified
+                    },
+                    'tokens': token_result['data']
+                },
+                'message': '注册成功！欢迎加入智策股析',
+                'timestamp': datetime.utcnow().isoformat()
+            }), 201
+            
+        except Exception as e:
+            current_app.logger.error(f"创建用户失败: {e}")
+            return jsonify({
+                'success': False,
+                'error': 'USER_CREATION_FAILED',
+                'message': '用户创建失败，请稍后重试'
+            }), 500
+        
+    except Exception as e:
+        current_app.logger.error(f"用户注册API错误: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'INTERNAL_ERROR',
+            'message': '服务器内部错误'
+        }), 500
+
+
+@auth_api_bp.route('/login', methods=['POST'])
+def login():
+    """用户登录（用户名密码）"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'INVALID_REQUEST',
+                'message': '请求数据格式错误'
+            }), 400
+        
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        
+        # 验证输入
+        if not username or not password:
+            return jsonify({
+                'success': False,
+                'error': 'MISSING_CREDENTIALS',
+                'message': '用户名和密码为必填项'
+            }), 400
+        
+        # 验证用户
+        user_repo = UserRepository(db.session)
+        user = user_repo.authenticate_user(username, password)
+        
+        if not user:
+            return jsonify({
+                'success': False,
+                'error': 'INVALID_CREDENTIALS',
+                'message': '用户名或密码错误'
+            }), 401
+        
+        # 检查是否为管理员邮箱（特殊处理）
+        from app.config import DevelopmentConfig
+        config = DevelopmentConfig()
+        if user.email == config.ADMIN_EMAIL and user.user_role == 'USER':
+            # 如果是管理员邮箱但角色还是普通用户，自动升级为超级管理员
+            user_repo.update_user_role(user.id, 'SUPER_ADMIN')
+            user.user_role = 'SUPER_ADMIN'
+        
+        # 检查用户状态
+        if not user.is_active:
+            return jsonify({
+                'success': False,
+                'error': 'USER_DISABLED',
+                'message': '用户账户已被禁用'
+            }), 403
+        
+        # 更新最后登录时间
+        user.last_login = datetime.utcnow()
+        db.session.commit()
+        
+        # 生成JWT Token
+        jwt_service = JWTService()
+        token_result = jwt_service.generate_token(
+            user_id=user.id,
+            email=user.email,
+            is_admin=user.is_admin()
+        )
+        
+        if not token_result['success']:
+            return jsonify({
+                'success': False,
+                'error': 'TOKEN_GENERATION_FAILED',
+                'message': 'Token生成失败'
+            }), 500
+        
+        # 设置session
+        from flask import session
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session['username'] = user.username
+        session['user_role'] = user.user_role
+        session['is_admin'] = user.is_admin()
+        session['access_token'] = token_result['data']['access_token']
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'nickname': user.nickname,
+                    'plan_type': user.plan_type,
+                    'remaining_quota': user.remaining_quota,
+                    'user_role': user.user_role,
+                    'email_verified': user.email_verified
+                },
+                'tokens': token_result['data']
+            },
+            'message': '登录成功',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"用户登录API错误: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'INTERNAL_ERROR',
+            'message': '服务器内部错误'
+        }), 500
 
 
 @auth_api_bp.route('/send-code', methods=['POST'])

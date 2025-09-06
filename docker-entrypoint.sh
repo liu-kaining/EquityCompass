@@ -29,8 +29,8 @@ try:
             # 确保所有模型都被导入
             from app.models import (
                 User, UserPlan, Stock, UserWatchlist, AnalysisTask, 
-                PromptTemplate, ReportIndex, EmailSubscription, 
-                PaymentTransaction, Admin, SystemConfig
+                ReportIndex, EmailSubscription, PaymentTransaction, 
+                Admin, SystemConfig, AIConfig, Prompt
             )
             print("✅ 模型导入完成")
             
@@ -58,6 +58,18 @@ PY
     echo "📈 开始导入股票数据..."
     cd /app && python scripts/import_stocks.py || {
         echo "⚠️ 股票数据导入失败，但继续启动应用"
+    }
+
+    # 创建管理员账户
+    echo "👤 创建管理员账户..."
+    cd /app && python scripts/setup_admin_user.py || {
+        echo "⚠️ 管理员账户创建失败，但继续启动应用"
+    }
+
+    # 初始化AI配置
+    echo "🤖 初始化AI配置..."
+    cd /app && python scripts/init_ai_configs.py || {
+        echo "⚠️ AI配置初始化失败，但继续启动应用"
     }
 
     touch /app/data/.db_initialized

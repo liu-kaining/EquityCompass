@@ -11,58 +11,36 @@ def login():
     """登录页面"""
     from flask import make_response
     
-    if request.method == 'POST':
-        email = request.form.get('email', '').strip().lower()
-        
-        # 邮箱格式验证
-        if not email:
-            flash('请输入邮箱地址', 'error')
-            response = make_response(render_template('auth/login.html'))
-            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-            response.headers['Pragma'] = 'no-cache'
-            response.headers['Expires'] = '0'
-            return response
-        
-
-
-        # 检查是否为管理员邮箱
-        from app.config import DevelopmentConfig
-        from app.services.data.database_service import DatabaseService
-        from app import db
-        
-        config = DevelopmentConfig()
-        if email == config.ADMIN_EMAIL:
-            # 管理员邮箱直接登录，无需验证码
-            # 从数据库获取实际的用户ID
-            db_service = DatabaseService(db.session)
-            admin_user = db_service.get_user_by_email(email)
-            if admin_user:
-                session['user_id'] = admin_user.id
-                session['user_email'] = email
-                session['is_admin'] = True
-                session['access_token'] = 'admin_token'
-                flash('管理员登录成功！', 'success')
-                return redirect(url_for('dashboard.index'))
-            else:
-                flash('管理员账户不存在，请联系系统管理员', 'error')
-                response = make_response(render_template('auth/login.html'))
-                response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-                response.headers['Pragma'] = 'no-cache'
-                response.headers['Expires'] = '0'
-                return response
-
-        # 正常流程：使用AJAX发送验证码，这里直接跳转到验证页面
-        return redirect(url_for('auth.verify', email=email))
-
+    # 如果已经登录，重定向到仪表板
+    if 'user_id' in session:
+        return redirect(url_for('dashboard.index'))
+    
     response = make_response(render_template('auth/login.html'))
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
 
+
+@auth_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    """注册页面"""
+    from flask import make_response
+    
+    # 如果已经登录，重定向到仪表板
+    if 'user_id' in session:
+        return redirect(url_for('dashboard.index'))
+    
+    response = make_response(render_template('auth/register.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
+
 @auth_bp.route('/verify', methods=['GET', 'POST'])
 def verify():
-    """验证码验证页面"""
+    """验证码验证页面（保留原有功能）"""
     email = request.args.get('email') or request.form.get('email')
     
     if not email:
@@ -85,6 +63,7 @@ def verify():
         return redirect(url_for('dashboard.index'))
     
     return render_template('auth/verify.html', email=email)
+
 
 @auth_bp.route('/logout')
 def logout():

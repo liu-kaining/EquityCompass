@@ -1,0 +1,750 @@
+{% extends "base.html" %}
+
+{% block title %}提示词管理 - EquityCompass{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-primary">
+                        <i class="fas fa-comment-dots me-2"></i>提示词管理
+                    </h1>
+                    <p class="text-muted mb-0">管理AI分析提示词，支持版本控制和选择</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-success" onclick="importDefaultPrompts()">
+                        <i class="fas fa-download me-1"></i>导入默认提示词
+                    </button>
+                    <a href="{{ url_for('prompt.create_form') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>添加提示词
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">总提示词数</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-prompts">{{ stats.total_prompts }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comment-dots fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">激活提示词</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="active-prompts">{{ stats.active_prompts }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">总使用次数</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-usage">{{ stats.total_usage }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">最常用提示词</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="most-used">{{ stats.most_used_prompt or '无' }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-star fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 筛选和搜索 -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-filter"></i>
+                </span>
+                <select class="form-select" id="typeFilter" onchange="filterPrompts()">
+                    <option value="">所有类型</option>
+                    <option value="fundamental">基础分析</option>
+                    <option value="technical">技术分析</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" class="form-control" id="searchInput" placeholder="搜索提示词名称或内容..." onkeyup="searchPrompts()">
+                <button class="btn btn-outline-secondary" type="button" onclick="searchPrompts()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示词列表 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list me-2"></i>提示词列表
+                    </h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">操作:</div>
+                            <a class="dropdown-item" href="#" onclick="refreshPrompts()">
+                                <i class="fas fa-sync-alt fa-sm fa-fw text-gray-400"></i>刷新列表
+                            </a>
+                            <a class="dropdown-item" href="#" onclick="importDefaultPrompts()">
+                                <i class="fas fa-download fa-sm fa-fw text-gray-400"></i>导入默认提示词
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="promptsTable" width="100%" cellspacing="0">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-tag me-2"></i>名称
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-layer-group me-2"></i>类型
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-code-branch me-2"></i>版本
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-toggle-on me-2"></i>状态
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-star me-2"></i>默认
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-chart-line me-2"></i>使用统计
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-clock me-2"></i>最后使用
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-cogs me-2"></i>操作
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="promptsTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center py-5">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <i class="fas fa-spinner fa-spin fa-2x text-primary mb-3"></i>
+                                            <span class="text-muted">加载提示词中...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 提示词详情弹窗 -->
+<div class="modal fade" id="promptDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content glass-effect">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-comment-dots me-2"></i>提示词详情
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="promptDetailContent">
+                <!-- 提示词详情内容 -->
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认弹窗 -->
+<div class="modal fade" id="deletePromptModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass-effect">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-trash-alt me-2"></i>确认删除
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
+                </div>
+                <h6 class="mb-3">您确定要删除这个提示词吗？</h6>
+                <div class="alert alert-danger mt-3 mb-0" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>警告：</strong>删除后无法恢复，请谨慎操作！
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>取消
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeletePrompt">
+                    <i class="fas fa-trash me-1"></i>确认删除
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentPromptId = null;
+let allPrompts = [];
+
+// 页面加载完成后自动加载提示词列表
+document.addEventListener('DOMContentLoaded', function() {
+    loadPrompts();
+    
+    // 绑定删除确认按钮事件
+    document.getElementById('confirmDeletePrompt').addEventListener('click', function() {
+        if (currentPromptId) {
+            deletePrompt(currentPromptId);
+        }
+    });
+});
+
+// 加载提示词列表
+function loadPrompts() {
+    fetch('/api/prompt/prompts')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                allPrompts = data.data.prompts;
+                updatePromptsTable(allPrompts);
+            } else {
+                showAlert('加载提示词失败: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('加载提示词失败:', error);
+            showAlert('加载提示词失败', 'danger');
+        });
+}
+
+// 更新提示词表格
+function updatePromptsTable(prompts) {
+    const tbody = document.getElementById('promptsTableBody');
+    
+    if (prompts.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-5">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted mb-2">暂无提示词</h5>
+                        <p class="text-muted mb-3">点击"添加提示词"按钮创建第一个提示词</p>
+                        <a href="/admin/prompts/create" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>添加提示词
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let html = '';
+    prompts.forEach(prompt => {
+        const statusBadge = prompt.is_active 
+            ? '<span class="badge bg-success rounded-pill">激活</span>'
+            : '<span class="badge bg-secondary rounded-pill">停用</span>';
+        
+        const defaultBadge = prompt.is_default 
+            ? '<span class="badge bg-primary rounded-pill">默认</span>'
+            : '<span class="text-muted">-</span>';
+        
+        const lastUsed = prompt.last_used_at 
+            ? new Date(prompt.last_used_at).toLocaleString()
+            : '<span class="text-muted">从未使用</span>';
+        
+        const typeBadge = prompt.prompt_type === 'fundamental' 
+            ? '<span class="badge bg-info">基础分析</span>'
+            : '<span class="badge bg-warning">技术分析</span>';
+        
+        html += `
+            <tr class="border-bottom">
+                <td class="py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-2">
+                            <i class="fas fa-comment-dots text-primary"></i>
+                        </div>
+                        <div>
+                            <strong class="text-dark">${prompt.name}</strong>
+                            ${prompt.description ? `<br><small class="text-muted">${prompt.description}</small>` : ''}
+                        </div>
+                    </div>
+                </td>
+                <td class="py-3">${typeBadge}</td>
+                <td class="py-3">
+                    <span class="badge bg-secondary">v${prompt.version}</span>
+                </td>
+                <td class="py-3">${statusBadge}</td>
+                <td class="py-3">${defaultBadge}</td>
+                <td class="py-3">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-primary me-1">${prompt.usage_count}</span>
+                        <small class="text-muted">次使用</small>
+                    </div>
+                </td>
+                <td class="py-3">
+                    <small class="text-muted">${lastUsed}</small>
+                </td>
+                <td class="py-3">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-info" onclick="viewPrompt(${prompt.id})" 
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="查看提示词详情和内容">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <a href="/admin/prompts/${prompt.id}/edit" class="btn btn-outline-primary" 
+                           data-bs-toggle="tooltip" data-bs-placement="top" title="编辑提示词内容">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn btn-outline-success" onclick="createNewVersion(${prompt.id})" 
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="基于此版本创建新版本">
+                            <i class="fas fa-code-branch"></i>
+                        </button>
+                        <a href="/admin/prompts/${encodeURIComponent(prompt.name)}/versions" class="btn btn-outline-warning" 
+                           data-bs-toggle="tooltip" data-bs-placement="top" title="查看所有版本">
+                            <i class="fas fa-history"></i>
+                        </a>
+                        <button class="btn btn-outline-secondary" onclick="toggleActive(${prompt.id})" 
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="${prompt.is_active ? '停用提示词' : '激活提示词'}">
+                            <i class="fas fa-${prompt.is_active ? 'pause' : 'play'}"></i>
+                        </button>
+                        ${!prompt.is_default ? `
+                            <button class="btn btn-outline-danger" onclick="showDeleteModal(${prompt.id})" 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="删除提示词">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : `
+                            <button class="btn btn-outline-secondary" disabled 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="默认提示词不能删除">
+                                <i class="fas fa-lock"></i>
+                            </button>
+                        `}
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+    
+    // 重新初始化工具提示
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+// 筛选提示词
+function filterPrompts() {
+    const typeFilter = document.getElementById('typeFilter').value;
+    let filteredPrompts = allPrompts;
+    
+    if (typeFilter) {
+        filteredPrompts = allPrompts.filter(prompt => prompt.prompt_type === typeFilter);
+    }
+    
+    updatePromptsTable(filteredPrompts);
+}
+
+// 搜索提示词
+function searchPrompts() {
+    const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+    let filteredPrompts = allPrompts;
+    
+    if (searchQuery) {
+        filteredPrompts = allPrompts.filter(prompt => 
+            prompt.name.toLowerCase().includes(searchQuery) ||
+            (prompt.description && prompt.description.toLowerCase().includes(searchQuery)) ||
+            prompt.content.toLowerCase().includes(searchQuery)
+        );
+    }
+    
+    updatePromptsTable(filteredPrompts);
+}
+
+// 查看提示词详情
+function viewPrompt(promptId) {
+    fetch(`/api/prompt/prompts/${promptId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showPromptDetail(data.data);
+            } else {
+                showAlert('获取提示词详情失败: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('获取提示词详情失败:', error);
+            showAlert('获取提示词详情失败', 'danger');
+        });
+}
+
+// 显示提示词详情
+function showPromptDetail(prompt) {
+    const content = document.getElementById('promptDetailContent');
+    const typeBadge = prompt.prompt_type === 'fundamental' 
+        ? '<span class="badge bg-info">基础分析</span>'
+        : '<span class="badge bg-warning">技术分析</span>';
+    
+    content.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>基本信息</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">名称</span>
+                                <span class="text-dark">${prompt.name}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">类型</span>
+                                ${typeBadge}
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">版本</span>
+                                <span class="badge bg-secondary">v${prompt.version}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">状态</span>
+                                ${prompt.is_active ? '<span class="badge bg-success">激活</span>' : '<span class="badge bg-secondary">停用</span>'}
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">默认版本</span>
+                                ${prompt.is_default ? '<span class="badge bg-primary">是</span>' : '<span class="badge bg-secondary">否</span>'}
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">使用次数</span>
+                                <span class="badge bg-primary">${prompt.usage_count}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">最后使用</span>
+                                <small class="text-muted">${prompt.last_used_at ? new Date(prompt.last_used_at).toLocaleString() : '从未使用'}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-file-text me-2"></i>描述</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">${prompt.description || '<span class="text-muted">暂无描述</span>'}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="fas fa-comment-dots me-2"></i>提示词内容</h6>
+                    </div>
+                    <div class="card-body">
+                        <pre class="bg-dark text-light p-3 rounded mb-0" style="font-size: 0.85rem; max-height: 400px; overflow-y: auto;"><code>${prompt.content}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('#promptDetailModal').modal('show');
+}
+
+// 编辑提示词
+function editPrompt(promptId) {
+    window.location.href = `/admin/prompts/${promptId}/edit`;
+}
+
+// 创建新版本
+function createNewVersion(promptId) {
+    const promptData = allPrompts.find(p => p.id === promptId);
+    if (!promptData) return;
+    
+    // 使用模态框让用户输入新内容
+    showNewVersionModal(promptData);
+}
+
+// 显示新版本创建模态框
+function showNewVersionModal(promptData) {
+    // 创建模态框HTML
+    const modalHtml = `
+        <div class="modal fade" id="newVersionModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-code-branch me-2"></i>创建新版本
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">新版本内容：</label>
+                            <textarea class="form-control" id="newVersionContent" rows="15" 
+                                      placeholder="请输入新版本的内容">${promptData.content}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">描述（可选）：</label>
+                            <input type="text" class="form-control" id="newVersionDescription" 
+                                   value="${promptData.description || ''}" placeholder="请输入描述">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" onclick="saveNewVersion(${promptData.id})">创建新版本</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 移除已存在的模态框
+    const existingModal = document.getElementById('newVersionModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // 添加新模态框
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // 显示模态框
+    const modal = new bootstrap.Modal(document.getElementById('newVersionModal'));
+    modal.show();
+}
+
+// 保存新版本
+function saveNewVersion(promptId) {
+    const newContent = document.getElementById('newVersionContent').value;
+    const newDescription = document.getElementById('newVersionDescription').value;
+    
+    if (!newContent.trim()) {
+        showAlert('请输入新版本内容', 'warning');
+        return;
+    }
+    
+    // 显示加载状态
+    const saveBtn = document.querySelector('#newVersionModal .btn-primary');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>创建中...';
+    saveBtn.disabled = true;
+    
+    fetch(`/api/prompt/prompts/${promptId}/new-version`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            content: newContent,
+            description: newDescription
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('新版本创建成功！', 'success');
+            $('#newVersionModal').modal('hide');
+            loadPrompts();
+        } else {
+            showAlert('创建新版本失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('创建新版本失败:', error);
+        showAlert('创建新版本失败', 'danger');
+    })
+    .finally(() => {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    });
+}
+
+// 查看版本历史
+function viewVersions(name) {
+    window.location.href = `/admin/prompts/${encodeURIComponent(name)}/versions`;
+}
+
+// 设置默认提示词
+function setDefaultPrompt(promptId) {
+    fetch(`/api/prompt/prompts/${promptId}/set-default`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('默认提示词设置成功', 'success');
+            loadPrompts();
+        } else {
+            showAlert('设置失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('设置默认提示词失败:', error);
+        showAlert('设置默认提示词失败', 'danger');
+    });
+}
+
+// 切换激活状态
+function toggleActive(promptId) {
+    fetch(`/api/prompt/prompts/${promptId}/toggle-active`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            loadPrompts();
+        } else {
+            showAlert('操作失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('切换状态失败:', error);
+        showAlert('操作失败', 'danger');
+    });
+}
+
+// 显示删除确认弹窗
+function showDeleteModal(promptId) {
+    currentPromptId = promptId;
+    $('#deletePromptModal').modal('show');
+}
+
+// 删除提示词
+function deletePrompt(promptId) {
+    fetch(`/api/prompt/prompts/${promptId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('提示词删除成功', 'success');
+            $('#deletePromptModal').modal('hide');
+            loadPrompts();
+        } else {
+            showAlert('删除失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('删除提示词失败:', error);
+        showAlert('删除提示词失败', 'danger');
+    });
+}
+
+// 导入默认提示词
+function importDefaultPrompts() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>导入中...';
+    button.disabled = true;
+    
+    fetch('/api/prompt/prompts/import-default', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            loadPrompts();
+        } else {
+            showAlert('导入失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('导入默认提示词失败:', error);
+        showAlert('导入默认提示词失败', 'danger');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+// 刷新提示词列表
+function refreshPrompts() {
+    loadPrompts();
+    showAlert('提示词列表已刷新', 'info');
+}
+
+// 显示提示信息
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

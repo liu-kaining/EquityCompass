@@ -4,18 +4,10 @@
 import re
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from app.services.data.stock_service import StockDataService
+from app.utils.permissions import login_required, get_user_context
 from app import db
 
 stocks_bp = Blueprint('stocks', __name__)
-
-def login_required(f):
-    """登录验证装饰器"""
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('auth.login'))
-        return f(*args, **kwargs)
-    decorated_function.__name__ = f.__name__
-    return decorated_function
 
 def get_stock_service():
     """获取股票服务实例"""

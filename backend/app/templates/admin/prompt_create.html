@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}创建提示词 - EquityCompass{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-primary">
+                        <i class="fas fa-plus me-2"></i>创建提示词
+                    </h1>
+                    <p class="text-muted mb-0">创建新的AI分析提示词</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('prompt.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>返回列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-comment-dots me-2"></i>提示词信息
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="createPromptForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="name" class="form-label">
+                                        <i class="fas fa-tag me-2"></i>提示词名称 <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           placeholder="请输入提示词名称" required>
+                                    <div class="form-text">提示词的唯一标识名称</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="prompt_type" class="form-label">
+                                        <i class="fas fa-layer-group me-2"></i>提示词类型 <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="prompt_type" name="prompt_type" required>
+                                        <option value="">请选择类型</option>
+                                        <option value="fundamental">基础分析</option>
+                                        <option value="technical">技术分析</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="description" class="form-label">
+                                <i class="fas fa-info-circle me-2"></i>描述
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                      placeholder="请输入提示词的描述信息"></textarea>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="content" class="form-label">
+                                <i class="fas fa-code me-2"></i>提示词内容 <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="content" name="content" rows="15" 
+                                      placeholder="请输入提示词内容" required></textarea>
+                            <div class="form-text">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                提示词内容支持变量替换，如：{stock_name}, {stock_code}, {analysis_date} 等
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">
+                                        <i class="fas fa-toggle-on me-2"></i>激活状态
+                                    </label>
+                                    <div class="form-text">只有激活的提示词才能被使用</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="is_default" name="is_default">
+                                    <label class="form-check-label" for="is_default">
+                                        <i class="fas fa-star me-2"></i>设为默认
+                                    </label>
+                                    <div class="form-text">同类型提示词中只能有一个默认版本</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <button type="button" class="btn btn-outline-info" onclick="previewPrompt()">
+                                    <i class="fas fa-eye me-1"></i>预览
+                                </button>
+                                <button type="button" class="btn btn-outline-warning" onclick="loadTemplate()">
+                                    <i class="fas fa-file-import me-1"></i>加载模板
+                                </button>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-secondary me-2" onclick="history.back()">
+                                    <i class="fas fa-times me-1"></i>取消
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>创建提示词
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- 提示词模板 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-file-alt me-2"></i>提示词模板
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <button class="list-group-item list-group-item-action border-0 px-0" 
+                                onclick="loadTemplate('fundamental')">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">基础分析模板</h6>
+                                <small class="text-muted">基本面</small>
+                            </div>
+                            <p class="mb-1 small text-muted">包含财务分析、行业分析等</p>
+                        </button>
+                        <button class="list-group-item list-group-item-action border-0 px-0" 
+                                onclick="loadTemplate('technical')">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">技术分析模板</h6>
+                                <small class="text-muted">技术面</small>
+                            </div>
+                            <p class="mb-1 small text-muted">包含技术指标、图表分析等</p>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 变量说明 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-code me-2"></i>可用变量
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>变量</th>
+                                    <th>说明</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>{stock_name}</code></td>
+                                    <td>股票名称</td>
+                                </tr>
+                                <tr>
+                                    <td><code>{stock_code}</code></td>
+                                    <td>股票代码</td>
+                                </tr>
+                                <tr>
+                                    <td><code>{analysis_date}</code></td>
+                                    <td>分析日期</td>
+                                </tr>
+                                <tr>
+                                    <td><code>{market}</code></td>
+                                    <td>市场类型</td>
+                                </tr>
+                                <tr>
+                                    <td><code>{industry}</code></td>
+                                    <td>行业分类</td>
+                                </tr>
+                                <tr>
+                                    <td><code>{exchange}</code></td>
+                                    <td>交易所</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 使用说明 -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-lightbulb me-2"></i>使用说明
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            提示词名称必须唯一
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            内容支持Markdown格式
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            可以使用变量进行动态替换
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            同类型只能有一个默认版本
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            创建后可以继续编辑和版本管理
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 预览弹窗 -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>提示词预览
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>原始内容：</h6>
+                        <pre class="bg-light p-3 rounded"><code id="previewOriginal"></code></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>渲染效果：</h6>
+                        <div class="bg-light p-3 rounded" id="previewRendered"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 提示词模板
+const templates = {
+    fundamental: `你是一位资深的股票分析师，请对 {stock_name} ({stock_code}) 进行全面的基本面分析。
+
+## 分析要求
+
+### 1. 公司概况
+- 公司主营业务和发展历程
+- 行业地位和竞争优势
+- 管理团队和治理结构
+
+### 2. 财务分析
+- 收入增长趋势和盈利能力
+- 资产负债结构和现金流状况
+- 关键财务指标分析
+
+### 3. 行业分析
+- 所属行业发展趋势
+- 行业竞争格局
+- 政策环境影响因素
+
+### 4. 投资建议
+- 投资亮点和风险因素
+- 估值水平和目标价位
+- 投资建议和持有期限
+
+## 输出格式
+请按照以上结构，提供详细、专业的分析报告。分析日期：{analysis_date}`,
+
+    technical: `你是一位专业的技术分析师，请对 {stock_name} ({stock_code}) 进行全面的技术面分析。
+
+## 分析要求
+
+### 1. 趋势分析
+- 长期、中期、短期趋势判断
+- 支撑位和阻力位识别
+- 趋势线和技术形态分析
+
+### 2. 技术指标
+- 移动平均线系统分析
+- 相对强弱指标(RSI)分析
+- MACD指标分析
+- 布林带分析
+
+### 3. 成交量分析
+- 成交量与价格关系
+- 量价配合情况
+- 异常成交量分析
+
+### 4. 交易策略
+- 入场时机和点位
+- 止损和止盈设置
+- 仓位管理建议
+
+## 输出格式
+请按照以上结构，提供详细、专业的技术分析报告。分析日期：{analysis_date}`
+};
+
+// 表单提交处理
+document.getElementById('createPromptForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {
+        name: formData.get('name'),
+        prompt_type: formData.get('prompt_type'),
+        description: formData.get('description'),
+        content: formData.get('content'),
+        is_active: formData.get('is_active') === 'on',
+        is_default: formData.get('is_default') === 'on'
+    };
+    
+    // 显示加载状态
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>创建中...';
+    submitBtn.disabled = true;
+    
+    // 发送创建请求
+    fetch('/api/prompt/prompts', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showAlert('提示词创建成功！', 'success');
+            setTimeout(() => {
+                window.location.href = '/admin/prompts';
+            }, 1500);
+        } else {
+            showAlert('创建失败: ' + result.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('创建提示词失败:', error);
+        showAlert('创建提示词失败', 'danger');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+// 加载模板
+function loadTemplate(type = null) {
+    if (!type) {
+        const promptType = document.getElementById('prompt_type').value;
+        if (!promptType) {
+            showAlert('请先选择提示词类型', 'warning');
+            return;
+        }
+        type = promptType;
+    }
+    
+    if (templates[type]) {
+        document.getElementById('content').value = templates[type];
+        document.getElementById('prompt_type').value = type;
+        showAlert('模板加载成功', 'success');
+    } else {
+        showAlert('未找到对应模板', 'warning');
+    }
+}
+
+// 预览提示词
+function previewPrompt() {
+    const content = document.getElementById('content').value;
+    const name = document.getElementById('name').value;
+    
+    if (!content.trim()) {
+        showAlert('请先输入提示词内容', 'warning');
+        return;
+    }
+    
+    // 模拟变量替换
+    const rendered = content
+        .replace(/\{stock_name\}/g, '苹果公司')
+        .replace(/\{stock_code\}/g, 'AAPL')
+        .replace(/\{analysis_date\}/g, new Date().toLocaleDateString())
+        .replace(/\{market\}/g, '美股')
+        .replace(/\{industry\}/g, '科技')
+        .replace(/\{exchange\}/g, 'NASDAQ');
+    
+    document.getElementById('previewOriginal').textContent = content;
+    document.getElementById('previewRendered').innerHTML = rendered.replace(/\n/g, '<br>');
+    
+    $('#previewModal').modal('show');
+}
+
+// 显示提示信息
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,848 @@
+{% extends "base.html" %}
+
+{% block title %}AI配置管理 - EquityCompass{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-primary">
+                        <i class="fas fa-robot me-2"></i>AI配置管理
+                    </h1>
+                    <p class="text-muted mb-0">管理AI模型提供商配置，包括API密钥、模型参数等</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-success" onclick="importFromEnv()">
+                        <i class="fas fa-download me-1"></i>从环境变量导入
+                    </button>
+                    <a href="{{ url_for('ai_config.create_form') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>添加配置
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">总配置数</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-configs">{{ stats.total_configs }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cogs fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">激活配置</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="active-configs">{{ stats.active_configs }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">总请求数</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-requests">{{ stats.total_requests }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">成功率</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="success-rate">{{ stats.success_rate }}%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 配置列表 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list me-2"></i>AI配置列表
+                    </h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">操作:</div>
+                            <a class="dropdown-item" href="#" onclick="refreshConfigs()">
+                                <i class="fas fa-sync-alt fa-sm fa-fw text-gray-400"></i>刷新列表
+                            </a>
+                            <a class="dropdown-item" href="#" onclick="testAllConfigs()">
+                                <i class="fas fa-vial fa-sm fa-fw text-gray-400"></i>测试所有配置
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="configsTable" width="100%" cellspacing="0">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-cogs me-2"></i>提供商
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-tag me-2"></i>显示名称
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-brain me-2"></i>模型
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-toggle-on me-2"></i>状态
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-star me-2"></i>默认
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-chart-line me-2"></i>使用统计
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-clock me-2"></i>最后使用
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-cogs me-2"></i>操作
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="configsTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center py-5">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <i class="fas fa-spinner fa-spin fa-2x text-primary mb-3"></i>
+                                            <span class="text-muted">加载配置中...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 配置详情弹窗 -->
+<div class="modal fade" id="configDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-effect">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-cogs me-2"></i>配置详情
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="configDetailContent">
+                <!-- 配置详情内容 -->
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑配置弹窗 -->
+<div class="modal fade" id="editConfigModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-effect">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>编辑配置
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editConfigForm">
+                    <input type="hidden" id="editConfigId" name="config_id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="editDisplayName" class="form-label">显示名称</label>
+                                <input type="text" class="form-control" id="editDisplayName" name="display_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="editModelName" class="form-label">模型名称</label>
+                                <input type="text" class="form-control" id="editModelName" name="model_name" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="editApiKey" class="form-label">API密钥</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="editApiKey" name="api_key" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="toggleEditApiKeyVisibility()">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="editApiUrl" class="form-label">API地址</label>
+                        <input type="url" class="form-control" id="editApiUrl" name="api_url">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editIsActive" name="is_active">
+                                <label class="form-check-label" for="editIsActive">激活配置</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editIsDefault" name="is_default">
+                                <label class="form-check-label" for="editIsDefault">设为默认</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveEditConfig()">保存修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认弹窗 -->
+<div class="modal fade" id="deleteConfigModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass-effect">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-trash-alt me-2"></i>确认删除
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
+                </div>
+                <h6 class="mb-3">您确定要删除这个AI配置吗？</h6>
+                <div class="alert alert-danger mt-3 mb-0" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>警告：</strong>删除后无法恢复，请谨慎操作！
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>取消
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteConfig">
+                    <i class="fas fa-trash me-1"></i>确认删除
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentConfigId = null;
+
+// 页面加载完成后自动加载配置列表
+document.addEventListener('DOMContentLoaded', function() {
+    loadConfigs();
+    
+    // 初始化Bootstrap工具提示
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // 绑定删除确认按钮事件
+    document.getElementById('confirmDeleteConfig').addEventListener('click', function() {
+        if (currentConfigId) {
+            deleteConfig(currentConfigId);
+        }
+    });
+});
+
+// 加载配置列表
+function loadConfigs() {
+    fetch('/api/ai-config/configs')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateConfigsTable(data.data.configs);
+            } else {
+                showAlert('加载配置失败: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('加载配置失败:', error);
+            showAlert('加载配置失败', 'danger');
+        });
+}
+
+// 更新配置表格
+function updateConfigsTable(configs) {
+    const tbody = document.getElementById('configsTableBody');
+    
+    if (configs.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-5">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted mb-2">暂无AI配置</h5>
+                        <p class="text-muted mb-3">点击"添加配置"按钮创建第一个AI配置</p>
+                        <a href="/admin/ai-configs/create" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>添加配置
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let html = '';
+    configs.forEach(config => {
+        const statusBadge = config.is_active 
+            ? '<span class="badge bg-success rounded-pill">激活</span>'
+            : '<span class="badge bg-secondary rounded-pill">停用</span>';
+        
+        const defaultBadge = config.is_default 
+            ? '<span class="badge bg-primary rounded-pill">默认</span>'
+            : '<span class="text-muted">-</span>';
+        
+        const lastUsed = config.last_used_at 
+            ? new Date(config.last_used_at).toLocaleString()
+            : '<span class="text-muted">从未使用</span>';
+        
+        const successRateColor = config.success_rate >= 80 ? 'text-success' : config.success_rate >= 50 ? 'text-warning' : 'text-danger';
+        
+        html += `
+            <tr class="border-bottom">
+                <td class="py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-2">
+                            <i class="fas fa-${config.provider_name === 'openai' ? 'robot' : config.provider_name === 'gemini' ? 'google' : config.provider_name === 'qwen' ? 'cloud' : 'brain'} text-primary"></i>
+                        </div>
+                        <strong class="text-dark">${config.provider_name}</strong>
+                    </div>
+                </td>
+                <td class="py-3">
+                    <span class="text-dark">${config.display_name}</span>
+                </td>
+                <td class="py-3">
+                    <code class="bg-light px-2 py-1 rounded text-dark">${config.model_name}</code>
+                </td>
+                <td class="py-3">${statusBadge}</td>
+                <td class="py-3">${defaultBadge}</td>
+                <td class="py-3">
+                    <div class="small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">总计:</span>
+                            <span class="badge bg-primary">${config.total_requests}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">成功:</span>
+                            <span class="badge bg-success">${config.successful_requests}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">失败:</span>
+                            <span class="badge bg-danger">${config.failed_requests}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">成功率:</span>
+                            <span class="badge ${config.success_rate >= 80 ? 'bg-success' : config.success_rate >= 50 ? 'bg-warning' : 'bg-danger'}">${config.success_rate}%</span>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-3">
+                    <small class="text-muted">${lastUsed}</small>
+                </td>
+                <td class="py-3">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-info" onclick="viewConfig(${config.id})" 
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="查看配置详情，包括API密钥和高级设置">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="editConfig(${config.id})" 
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="编辑配置信息，修改API密钥、模型参数等">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="testConfig(${config.id})" 
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="测试配置连接，验证API密钥和网络连通性">
+                            <i class="fas fa-vial"></i>
+                        </button>
+                        ${!config.is_default ? `
+                            <button class="btn btn-outline-success" onclick="setDefaultConfig(${config.id})" 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="设为默认配置，新任务将优先使用此配置">
+                                <i class="fas fa-star"></i>
+                            </button>
+                        ` : `
+                            <button class="btn btn-success" disabled 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="当前默认配置">
+                                <i class="fas fa-star"></i>
+                            </button>
+                        `}
+                        <button class="btn btn-outline-secondary" onclick="toggleActive(${config.id})" 
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="${config.is_active ? '停用配置，停用后将无法使用' : '激活配置，激活后可以正常使用'}">
+                            <i class="fas fa-${config.is_active ? 'pause' : 'play'}"></i>
+                        </button>
+                        ${!config.is_default ? `
+                            <button class="btn btn-outline-danger" onclick="showDeleteModal(${config.id})" 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="删除配置，删除后无法恢复">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : `
+                            <button class="btn btn-outline-secondary" disabled 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="默认配置不能删除">
+                                <i class="fas fa-lock"></i>
+                            </button>
+                        `}
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+    
+    // 重新初始化工具提示
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+// 查看配置详情
+function viewConfig(configId) {
+    fetch(`/api/ai-config/configs/${configId}?include_sensitive=true`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showConfigDetail(data.data);
+            } else {
+                showAlert('获取配置详情失败: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('获取配置详情失败:', error);
+            showAlert('获取配置详情失败', 'danger');
+        });
+}
+
+// 显示配置详情
+function showConfigDetail(config) {
+    const content = document.getElementById('configDetailContent');
+    content.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>基本信息</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">提供商</span>
+                                <span class="badge bg-secondary">${config.provider_name}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">显示名称</span>
+                                <span class="text-dark">${config.display_name}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">模型名称</span>
+                                <code class="bg-light px-2 py-1 rounded">${config.model_name}</code>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">API地址</span>
+                                <small class="text-muted">${config.api_url || 'N/A'}</small>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">状态</span>
+                                ${config.is_active ? '<span class="badge bg-success">激活</span>' : '<span class="badge bg-secondary">停用</span>'}
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">默认配置</span>
+                                ${config.is_default ? '<span class="badge bg-primary">是</span>' : '<span class="badge bg-secondary">否</span>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>使用统计</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">总请求数</span>
+                                <span class="badge bg-primary">${config.total_requests}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">成功请求</span>
+                                <span class="badge bg-success">${config.successful_requests}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">失败请求</span>
+                                <span class="badge bg-danger">${config.failed_requests}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">成功率</span>
+                                <span class="badge ${config.success_rate >= 80 ? 'bg-success' : config.success_rate >= 50 ? 'bg-warning' : 'bg-danger'}">${config.success_rate}%</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">最后使用</span>
+                                <small class="text-muted">${config.last_used_at ? new Date(config.last_used_at).toLocaleString() : '从未使用'}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>高级配置</h6>
+                    </div>
+                    <div class="card-body">
+                        <pre class="bg-dark text-light p-3 rounded mb-0" style="font-size: 0.85rem;"><code>${JSON.stringify(config.advanced_config, null, 2)}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="mb-0"><i class="fas fa-key me-2"></i>API密钥</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group">
+                            <input type="password" class="form-control" value="${config.api_key}" readonly style="font-family: monospace;">
+                            <button class="btn btn-outline-secondary" type="button" onclick="toggleApiKeyVisibility(this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            <i class="fas fa-info-circle me-1"></i>
+                            点击眼睛图标可以显示/隐藏API密钥
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('#configDetailModal').modal('show');
+}
+
+// 切换API密钥显示
+function toggleApiKeyVisibility(button) {
+    const input = button.previousElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+// 编辑配置
+function editConfig(configId) {
+    // 获取配置详情并显示编辑弹窗
+    fetch(`/api/ai-config/configs/${configId}?include_sensitive=true`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showEditModal(data.data);
+            } else {
+                showAlert('获取配置详情失败: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('获取配置详情失败:', error);
+            showAlert('获取配置详情失败', 'danger');
+        });
+}
+
+// 显示编辑弹窗
+function showEditModal(config) {
+    document.getElementById('editConfigId').value = config.id;
+    document.getElementById('editDisplayName').value = config.display_name;
+    document.getElementById('editModelName').value = config.model_name;
+    document.getElementById('editApiKey').value = config.api_key;
+    document.getElementById('editApiUrl').value = config.api_url || '';
+    document.getElementById('editIsActive').checked = config.is_active;
+    document.getElementById('editIsDefault').checked = config.is_default;
+    
+    $('#editConfigModal').modal('show');
+}
+
+// 保存编辑配置
+function saveEditConfig() {
+    const formData = new FormData(document.getElementById('editConfigForm'));
+    const configId = formData.get('config_id');
+    
+    const requestData = {
+        display_name: formData.get('display_name'),
+        model_name: formData.get('model_name'),
+        api_key: formData.get('api_key'),
+        api_url: formData.get('api_url'),
+        is_active: formData.get('is_active') === 'on',
+        is_default: formData.get('is_default') === 'on'
+    };
+    
+    const saveButton = document.querySelector('#editConfigModal .btn-primary');
+    const originalText = saveButton.innerHTML;
+    
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>保存中...';
+    saveButton.disabled = true;
+    
+    fetch(`/api/ai-config/configs/${configId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('配置更新成功！', 'success');
+            $('#editConfigModal').modal('hide');
+            loadConfigs();
+        } else {
+            showAlert('更新失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('更新配置失败:', error);
+        showAlert('更新配置失败', 'danger');
+    })
+    .finally(() => {
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
+    });
+}
+
+// 切换编辑弹窗中API密钥的显示
+function toggleEditApiKeyVisibility() {
+    const input = document.getElementById('editApiKey');
+    const button = input.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+// 测试配置
+function testConfig(configId) {
+    const button = event.target.closest('button');
+    const originalHtml = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    button.disabled = true;
+    
+    fetch(`/api/ai-config/configs/${configId}/test`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('连接测试成功', 'success');
+        } else {
+            showAlert('连接测试失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('测试配置失败:', error);
+        showAlert('测试配置失败', 'danger');
+    })
+    .finally(() => {
+        button.innerHTML = originalHtml;
+        button.disabled = false;
+        loadConfigs(); // 刷新列表以更新统计
+    });
+}
+
+// 设置默认配置
+function setDefaultConfig(configId) {
+    fetch(`/api/ai-config/configs/${configId}/set-default`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('默认配置设置成功', 'success');
+            loadConfigs();
+        } else {
+            showAlert('设置失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('设置默认配置失败:', error);
+        showAlert('设置默认配置失败', 'danger');
+    });
+}
+
+// 切换激活状态
+function toggleActive(configId) {
+    fetch(`/api/ai-config/configs/${configId}/toggle-active`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            loadConfigs();
+        } else {
+            showAlert('操作失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('切换状态失败:', error);
+        showAlert('操作失败', 'danger');
+    });
+}
+
+// 显示删除确认弹窗
+function showDeleteModal(configId) {
+    currentConfigId = configId;
+    $('#deleteConfigModal').modal('show');
+}
+
+// 删除配置
+function deleteConfig(configId) {
+    fetch(`/api/ai-config/configs/${configId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('配置删除成功', 'success');
+            $('#deleteConfigModal').modal('hide');
+            loadConfigs();
+        } else {
+            showAlert('删除失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('删除配置失败:', error);
+        showAlert('删除配置失败', 'danger');
+    });
+}
+
+// 从环境变量导入配置
+function importFromEnv() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>导入中...';
+    button.disabled = true;
+    
+    fetch('/api/ai-config/configs/import-env', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            loadConfigs();
+        } else {
+            showAlert('导入失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('导入配置失败:', error);
+        showAlert('导入配置失败', 'danger');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+// 刷新配置列表
+function refreshConfigs() {
+    loadConfigs();
+    showAlert('配置列表已刷新', 'info');
+}
+
+// 测试所有配置
+function testAllConfigs() {
+    showAlert('正在测试所有配置，请稍候...', 'info');
+    // 这里可以实现批量测试逻辑
+}
+
+// 显示提示信息
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

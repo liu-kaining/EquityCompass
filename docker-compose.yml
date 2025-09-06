@@ -17,7 +17,10 @@ services:
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
       - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-reasoner}
       - DEFAULT_AI_PROVIDER=${DEFAULT_AI_PROVIDER:-deepseek}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
       - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@equitycompass.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123456}
+      - ADMIN_NICKNAME=${ADMIN_NICKNAME:-系统管理员}
       - DATABASE_URL=${DATABASE_URL:-sqlite:///dev.db}
       - SEND_EMAIL=${SEND_EMAIL:-False}
     volumes:

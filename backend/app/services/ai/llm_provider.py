@@ -857,9 +857,55 @@ class LLMProviderFactory:
             raise ValueError(f"不支持的Provider类型: {provider_name}")
     
     @staticmethod
+    def create_provider_from_db_config(config_id: int) -> LLMProvider:
+        """从数据库配置创建Provider实例"""
+        try:
+            from app import db
+            from app.models.ai_config import AIConfig
+            
+            config = AIConfig.query.get(config_id)
+            if not config:
+                raise ValueError(f"配置不存在: {config_id}")
+            
+            if not config.is_active:
+                raise ValueError(f"配置未激活: {config.provider_name}")
+            
+            return LLMProviderFactory.create_provider(
+                config.provider_name, 
+                config.get_config_dict()
+            )
+        except Exception as e:
+            logger.error(f"从数据库配置创建Provider失败: {str(e)}")
+            raise
+    
+    @staticmethod
+    def create_default_provider() -> LLMProvider:
+        """创建默认Provider实例"""
+        try:
+            from app import db
+            from app.models.ai_config import AIConfig
+            
+            # 获取默认配置
+            default_config = AIConfig.query.filter_by(is_default=True, is_active=True).first()
+            if not default_config:
+                # 如果没有默认配置，获取第一个激活的配置
+                default_config = AIConfig.query.filter_by(is_active=True).first()
+            
+            if not default_config:
+                raise ValueError("没有可用的AI配置")
+            
+            return LLMProviderFactory.create_provider(
+                default_config.provider_name,
+                default_config.get_config_dict()
+            )
+        except Exception as e:
+            logger.error(f"创建默认Provider失败: {str(e)}")
+            raise
+    
+    @staticmethod
     def get_available_providers() -> List[str]:
         """获取可用的Provider列表"""
-        return ['qwen', 'deepseek']
+        return ['qwen', 'deepseek', 'gemini', 'openai']
     
     @staticmethod
     def test_provider(provider_type: str, config: Dict[str, Any]) -> bool:

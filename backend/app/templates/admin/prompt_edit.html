@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}编辑提示词 - EquityCompass{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 页面头部 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1 text-primary fw-bold">
+                        <i class="fas fa-edit me-3"></i>编辑提示词
+                    </h1>
+                    <p class="text-muted mb-0 fs-6">
+                        <i class="fas fa-info-circle me-1"></i>修改提示词内容和配置信息
+                    </p>
+                </div>
+                <div>
+                    <a href="{{ url_for('prompt.index') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i>返回列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-gradient-primary text-white py-4">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-comment-dots me-2"></i>提示词信息
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form id="editPromptForm">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ prompt.name }}" placeholder="请输入提示词名称" required>
+                                    <label for="name">
+                                        <i class="fas fa-tag me-2"></i>提示词名称 <span class="text-danger">*</span>
+                                    </label>
+                                </div>
+                                <div class="form-text mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>提示词的唯一标识名称
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select class="form-select" id="prompt_type" name="prompt_type" required>
+                                        <option value="fundamental" {% if prompt.prompt_type == 'fundamental' %}selected{% endif %}>基础分析</option>
+                                        <option value="technical" {% if prompt.prompt_type == 'technical' %}selected{% endif %}>技术分析</option>
+                                    </select>
+                                    <label for="prompt_type">
+                                        <i class="fas fa-layer-group me-2"></i>提示词类型 <span class="text-danger">*</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <textarea class="form-control" id="description" name="description" 
+                                      placeholder="请输入提示词的描述信息" style="height: 100px">{{ prompt.description or '' }}</textarea>
+                            <label for="description">
+                                <i class="fas fa-info-circle me-2"></i>描述
+                            </label>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <textarea class="form-control" id="content" name="content" 
+                                      placeholder="请输入提示词内容" style="height: 400px" required>{{ prompt.content }}</textarea>
+                            <label for="content">
+                                <i class="fas fa-code me-2"></i>提示词内容 <span class="text-danger">*</span>
+                            </label>
+                        </div>
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <strong>提示：</strong>提示词内容支持变量替换，如：<code>{stock_name}</code>, <code>{stock_code}</code>, <code>{analysis_date}</code> 等
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                           {% if prompt.is_active %}checked{% endif %}>
+                                    <label class="form-check-label fw-bold" for="is_active">
+                                        <i class="fas fa-toggle-on me-2 text-success"></i>激活状态
+                                    </label>
+                                </div>
+                                <div class="form-text mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>只有激活的提示词才能被使用
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_default" name="is_default" 
+                                           {% if prompt.is_default %}checked{% endif %}>
+                                    <label class="form-check-label fw-bold" for="is_default">
+                                        <i class="fas fa-star me-2 text-warning"></i>设为默认
+                                    </label>
+                                </div>
+                                <div class="form-text mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>同类型提示词中只能有一个默认版本
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-info" onclick="previewPrompt()">
+                                    <i class="fas fa-eye me-2"></i>预览
+                                </button>
+                                <button type="button" class="btn btn-outline-warning" onclick="testPrompt()">
+                                    <i class="fas fa-flask me-2"></i>测试
+                                </button>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                                    <i class="fas fa-times me-2"></i>取消
+                                </button>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>保存修改
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- 提示词信息卡片 -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-gradient-info text-white py-4">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-info-circle me-2"></i>提示词信息
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                <span class="fw-bold text-muted">
+                                    <i class="fas fa-hashtag me-2"></i>ID
+                                </span>
+                                <span class="badge bg-primary fs-6">{{ prompt.id }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                <span class="fw-bold text-muted">
+                                    <i class="fas fa-code-branch me-2"></i>版本
+                                </span>
+                                <span class="badge bg-secondary fs-6">v{{ prompt.version }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                <span class="fw-bold text-muted">
+                                    <i class="fas fa-chart-line me-2"></i>使用次数
+                                </span>
+                                <span class="badge bg-success fs-6">{{ prompt.usage_count }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                <span class="fw-bold text-muted">
+                                    <i class="fas fa-calendar-plus me-2"></i>创建时间
+                                </span>
+                                <small class="text-muted">{{ prompt.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                <span class="fw-bold text-muted">
+                                    <i class="fas fa-edit me-2"></i>最后修改
+                                </span>
+                                <small class="text-muted">{{ prompt.updated_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                <span class="fw-bold text-muted">
+                                    <i class="fas fa-clock me-2"></i>最后使用
+                                </span>
+                                <small class="text-muted">
+                                    {% if prompt.last_used_at %}
+                                        {{ prompt.last_used_at.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                        从未使用
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 使用统计 -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-gradient-success text-white py-4">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-chart-line me-2"></i>使用统计
+                    </h6>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4">
+                        <h2 class="text-primary fw-bold">{{ prompt.usage_count }}</h2>
+                        <p class="text-muted mb-0">总使用次数</p>
+                    </div>
+                    <div class="progress mb-3" style="height: 12px;">
+                        <div class="progress-bar bg-gradient-primary" role="progressbar" 
+                             style="width: {{ (prompt.usage_count / 100 * 100) if prompt.usage_count > 0 else 0 }}%"></div>
+                    </div>
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>使用频率
+                    </small>
+                </div>
+            </div>
+
+            <!-- 操作历史 -->
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient-warning text-dark py-4">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-history me-2"></i>操作历史
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title fw-bold">创建提示词</h6>
+                                <p class="timeline-text">{{ prompt.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                        </div>
+                        {% if prompt.updated_at != prompt.created_at %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title fw-bold">最后修改</h6>
+                                <p class="timeline-text">{{ prompt.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if prompt.last_used_at %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title fw-bold">最后使用</h6>
+                                <p class="timeline-text">{{ prompt.last_used_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 预览弹窗 -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>提示词预览
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>原始内容：</h6>
+                        <pre class="bg-light p-3 rounded"><code id="previewOriginal"></code></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>渲染效果：</h6>
+                        <div class="bg-light p-3 rounded" id="previewRendered"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 表单提交处理
+document.getElementById('editPromptForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {
+        name: formData.get('name'),
+        prompt_type: formData.get('prompt_type'),
+        description: formData.get('description'),
+        content: formData.get('content'),
+        is_active: formData.get('is_active') === 'on',
+        is_default: formData.get('is_default') === 'on'
+    };
+    
+    // 显示加载状态
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>保存中...';
+    submitBtn.disabled = true;
+    
+    // 发送更新请求
+    fetch(`/api/prompt/prompts/{{ prompt.id }}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showAlert('提示词更新成功！', 'success');
+            setTimeout(() => {
+                window.location.href = '/admin/prompts';
+            }, 1500);
+        } else {
+            showAlert('更新失败: ' + result.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('更新提示词失败:', error);
+        showAlert('更新提示词失败', 'danger');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+// 预览提示词
+function previewPrompt() {
+    const content = document.getElementById('content').value;
+    const name = document.getElementById('name').value;
+    
+    // 模拟变量替换
+    const rendered = content
+        .replace(/\{stock_name\}/g, '苹果公司')
+        .replace(/\{stock_code\}/g, 'AAPL')
+        .replace(/\{analysis_date\}/g, new Date().toLocaleDateString())
+        .replace(/\{market\}/g, '美股');
+    
+    document.getElementById('previewOriginal').textContent = content;
+    document.getElementById('previewRendered').innerHTML = rendered.replace(/\n/g, '<br>');
+    
+    $('#previewModal').modal('show');
+}
+
+// 测试提示词
+function testPrompt() {
+    const content = document.getElementById('content').value;
+    const name = document.getElementById('name').value;
+    
+    if (!content.trim()) {
+        showAlert('请先输入提示词内容', 'warning');
+        return;
+    }
+    
+    showAlert('测试功能开发中...', 'info');
+}
+
+// 显示提示信息
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+</script>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e3e6f0;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #e3e6f0;
+}
+
+.timeline-content {
+    background: #f8f9fc;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border-left: 3px solid #4e73df;
+}
+
+.timeline-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #5a5c69;
+}
+
+.timeline-text {
+    font-size: 12px;
+    color: #858796;
+    margin: 0;
+}
+</style>
+{% endblock %}

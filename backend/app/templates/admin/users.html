@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+
+{% block title %}用户管理 - 智策股析{% endblock %}
+
+{% block extra_css %}
+<style>
+.user-role-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.role-super-admin {
+    background-color: #dc3545;
+    color: white;
+}
+
+.role-site-admin {
+    background-color: #fd7e14;
+    color: white;
+}
+
+.role-user {
+    background-color: #6c757d;
+    color: white;
+}
+
+.status-active {
+    color: #28a745;
+}
+
+.status-inactive {
+    color: #dc3545;
+}
+
+.user-actions {
+    white-space: nowrap;
+}
+
+.user-details-modal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.stats-card h3 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.stats-card p {
+    margin-bottom: 0;
+    opacity: 0.9;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="gradient-text mb-2">用户管理</h1>
+            <p class="text-muted">管理系统用户和权限</p>
+        </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    {% if user_stats %}
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="stats-card text-center">
+                <h3>{{ user_stats.total_users }}</h3>
+                <p>总用户数</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stats-card text-center">
+                <h3>{{ user_stats.active_users }}</h3>
+                <p>活跃用户</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stats-card text-center">
+                <h3>{{ user_stats.super_admins }}</h3>
+                <p>超级管理员</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stats-card text-center">
+                <h3>{{ user_stats.site_admins }}</h3>
+                <p>网站管理员</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stats-card text-center">
+                <h3>{{ user_stats.regular_users }}</h3>
+                <p>普通用户</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stats-card text-center">
+                <h3>{{ user_stats.inactive_users }}</h3>
+                <p>禁用用户</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 用户列表 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card glass-effect">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">用户列表</h5>
+                </div>
+                <div class="card-body">
+                    {% if users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户名</th>
+                                    <th>邮箱</th>
+                                    <th>昵称</th>
+                                    <th>角色</th>
+                                    <th>计划</th>
+                                    <th>状态</th>
+                                    <th>注册时间</th>
+                                    <th>最后登录</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>
+                                        <strong>{{ user.username }}</strong>
+                                        {% if user.email_verified %}
+                                        <i class="fas fa-check-circle text-success ms-1" title="邮箱已验证"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.nickname or '-' }}</td>
+                                    <td>
+                                        {% if user.user_role == 'SUPER_ADMIN' %}
+                                        <span class="badge user-role-badge role-super-admin">超级管理员</span>
+                                        {% elif user.user_role == 'SITE_ADMIN' %}
+                                        <span class="badge user-role-badge role-site-admin">网站管理员</span>
+                                        {% else %}
+                                        <span class="badge user-role-badge role-user">普通用户</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ user.plan_type }}</span>
+                                        <small class="text-muted d-block">剩余: {{ user.remaining_quota }}</small>
+                                    </td>
+                                    <td>
+                                        {% if user.is_active %}
+                                        <span class="status-active">
+                                            <i class="fas fa-check-circle"></i> 启用
+                                        </span>
+                                        {% else %}
+                                        <span class="status-inactive">
+                                            <i class="fas fa-times-circle"></i> 禁用
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ user.created_at[:10] if user.created_at else '-' }}</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ user.last_login[:10] if user.last_login else '从未登录' }}</small>
+                                    </td>
+                                    <td class="user-actions">
+                                        <button class="btn btn-sm btn-outline-info" 
+                                                onclick="showUserDetails({{ user.id }})"
+                                                title="查看详情">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                    type="button" data-bs-toggle="dropdown">
+                                                角色
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#" 
+                                                       onclick="updateUserRole({{ user.id }}, 'USER')">普通用户</a></li>
+                                                <li><a class="dropdown-item" href="#" 
+                                                       onclick="updateUserRole({{ user.id }}, 'SITE_ADMIN')">网站管理员</a></li>
+                                                <li><a class="dropdown-item" href="#" 
+                                                       onclick="updateUserRole({{ user.id }}, 'SUPER_ADMIN')">超级管理员</a></li>
+                                            </ul>
+                                        </div>
+                                        {% if user.is_active %}
+                                        <button class="btn btn-sm btn-outline-warning" 
+                                                onclick="updateUserStatus({{ user.id }}, false)"
+                                                title="禁用用户">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                        {% else %}
+                                        <button class="btn btn-sm btn-outline-success" 
+                                                onclick="updateUserStatus({{ user.id }}, true)"
+                                                title="启用用户">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 分页 -->
+                    {% if pagination and pagination.pages > 1 %}
+                    <nav aria-label="用户列表分页">
+                        <ul class="pagination justify-content-center">
+                            {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ pagination.prev_page }}">上一页</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in range(1, pagination.pages + 1) %}
+                            {% if page_num == pagination.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ pagination.next_page }}">下一页</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">暂无用户数据</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 用户详情模态框 -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg user-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">用户详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userDetailsContent">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showUserDetails(userId) {
+    $('#userDetailsModal').modal('show');
+    $('#userDetailsContent').html(`
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+        </div>
+    `);
+    
+    fetch(`/admin/api/users/${userId}/details`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const user = data.data.user;
+                const watchlist = data.data.watchlist;
+                const reports = data.data.reports;
+                const tasks = data.data.tasks;
+                
+                $('#userDetailsContent').html(`
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>基本信息</h6>
+                            <table class="table table-sm">
+                                <tr><td>用户名:</td><td>${user.username}</td></tr>
+                                <tr><td>邮箱:</td><td>${user.email}</td></tr>
+                                <tr><td>昵称:</td><td>${user.nickname || '-'}</td></tr>
+                                <tr><td>角色:</td><td><span class="badge bg-primary">${user.user_role}</span></td></tr>
+                                <tr><td>计划:</td><td>${user.plan_type}</td></tr>
+                                <tr><td>剩余额度:</td><td>${user.remaining_quota}</td></tr>
+                                <tr><td>状态:</td><td>${user.is_active ? '<span class="text-success">启用</span>' : '<span class="text-danger">禁用</span>'}</td></tr>
+                                <tr><td>注册时间:</td><td>${user.created_at || '-'}</td></tr>
+                                <tr><td>最后登录:</td><td>${user.last_login || '从未登录'}</td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>活动统计</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-primary">${watchlist.count}</h4>
+                                            <small>关注股票</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-success">${reports.count}</h4>
+                                            <small>分析报告</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-warning">${tasks.count}</h4>
+                                            <small>分析任务</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>最近关注股票</h6>
+                            <div class="row">
+                                ${watchlist.stocks.slice(0, 6).map(stock => `
+                                    <div class="col-md-4 mb-2">
+                                        <span class="badge bg-secondary">${stock.stock.code}</span>
+                                        <small class="text-muted">${stock.stock.name}</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `);
+            } else {
+                $('#userDetailsContent').html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        ${data.message || '获取用户详情失败'}
+                    </div>
+                `);
+            }
+        })
+        .catch(error => {
+            $('#userDetailsContent').html(`
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    网络错误，请稍后重试
+                </div>
+            `);
+        });
+}
+
+function updateUserRole(userId, newRole) {
+    if (!confirm(`确定要将用户角色更改为 ${newRole} 吗？`)) {
+        return;
+    }
+    
+    fetch(`/admin/api/users/${userId}/role`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ role: newRole })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('success', data.message);
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('danger', data.message || '更新失败');
+        }
+    })
+    .catch(error => {
+        showAlert('danger', '网络错误，请稍后重试');
+    });
+}
+
+function updateUserStatus(userId, isActive) {
+    const action = isActive ? '启用' : '禁用';
+    if (!confirm(`确定要${action}该用户吗？`)) {
+        return;
+    }
+    
+    fetch(`/admin/api/users/${userId}/status`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ is_active: isActive })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('success', data.message);
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('danger', data.message || '更新失败');
+        }
+    })
+    .catch(error => {
+        showAlert('danger', '网络错误，请稍后重试');
+    });
+}
+
+function showAlert(type, message) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // 在页面顶部显示提示
+    $('body').prepend(alertHtml);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        $('.alert').fadeOut();
+    }, 3000);
+}
+</script>
+{% endblock %}

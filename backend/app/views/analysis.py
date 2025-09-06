@@ -4,6 +4,7 @@
 from flask import Blueprint, render_template, session, redirect, url_for
 from datetime import datetime, timezone, timedelta
 from app.services.data.stock_service import StockDataService
+from app.utils.permissions import login_required, get_user_context
 from app import db
 
 analysis_bp = Blueprint('analysis', __name__)
@@ -37,14 +38,6 @@ def convert_to_beijing_time(utc_timestamp):
     except Exception as e:
         return utc_timestamp  # 如果转换失败，返回原值
 
-def login_required(f):
-    """登录验证装饰器"""
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('auth.login'))
-        return f(*args, **kwargs)
-    decorated_function.__name__ = f.__name__
-    return decorated_function
 
 @analysis_bp.route('/')
 def index():
@@ -79,8 +72,14 @@ def tasks():
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 15, type=int)  # 每页显示15个任务
         
-        # 获取用户的任务列表（不限制数量，用于分页）
-        all_tasks = analysis_service.get_user_tasks(user_id, limit=1000)
+        # 检查用户权限，管理员可以看到所有任务
+        user_context = get_user_context()
+        if user_context and user_context.get('is_admin'):
+            # 管理员获取所有任务
+            all_tasks = analysis_service.get_all_tasks(limit=1000)
+        else:
+            # 普通用户只获取自己的任务
+            all_tasks = analysis_service.get_user_tasks(user_id, limit=1000)
         
         # 转换任务时间为东八区
         for task in all_tasks:
@@ -113,7 +112,13 @@ def tasks():
             'next_page': page + 1 if page < total_pages else None
         }
         
-        return render_template('analysis/tasks.html', tasks=paginated_tasks, pagination=pagination)
+        # 获取用户上下文信息
+        user_context = get_user_context()
+        
+        return render_template('analysis/tasks.html', 
+                             tasks=paginated_tasks, 
+                             pagination=pagination,
+                             user_context=user_context)
         
     except Exception as e:
         print(f"ERROR: 任务管理页面异常: {str(e)}")

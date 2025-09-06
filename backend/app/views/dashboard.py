@@ -2,17 +2,9 @@
 仪表板页面视图
 """
 from flask import Blueprint, render_template, session, redirect, url_for
+from app.utils.permissions import login_required, get_user_context
 
 dashboard_bp = Blueprint('dashboard', __name__)
-
-def login_required(f):
-    """登录验证装饰器"""
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('auth.login'))
-        return f(*args, **kwargs)
-    decorated_function.__name__ = f.__name__
-    return decorated_function
 
 @dashboard_bp.route('/')
 @login_required
@@ -22,10 +14,13 @@ def index():
     from app.services.ai.analysis_service import AnalysisService
     from app import db
     
-    # 获取用户数据
-    user_id = session.get('user_id')
-    user_email = session.get('user_email', '')
-    is_admin = session.get('is_admin', False)
+    # 获取用户上下文
+    user_context = get_user_context()
+    if not user_context:
+        return redirect(url_for('auth.login'))
+    
+    user_id = user_context['user_id']
+    is_admin = user_context['is_admin']
     
     # 获取真实数据
     stock_service = StockDataService(db.session)
@@ -50,11 +45,18 @@ def index():
         reports_count = accessible_reports_count
     
     user_data = {
-        'email': user_email,
+        'email': user_context['email'],
+        'username': user_context['username'],
+        'nickname': user_context['nickname'],
+        'user_role': user_context['user_role'],
         'watchlist_count': watchlist_count,
         'reports_count': reports_count,
         'plan_type': 'ADMIN' if is_admin else 'TRIAL',
         'remaining_quota': 999 if is_admin else 1,
-        'is_admin': is_admin
+        'is_admin': is_admin,
+        'is_super_admin': user_context['is_super_admin'],
+        'is_site_admin': user_context['is_site_admin'],
+        'can_manage_users': user_context['can_manage_users'],
+        'can_view_statistics': user_context['can_view_statistics']
     }
     return render_template('dashboard/index.html', user=user_data)

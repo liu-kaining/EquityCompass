@@ -32,12 +32,24 @@
                     <div class="col-md-4 text-end">
                         <div class="d-flex gap-3 justify-content-end">
                             {% if session.user_id %}
-                                <button class="btn btn-outline-primary report-action-btn" onclick="downloadReport()">
-                                    <i class="fas fa-download me-2"></i>导出PDF
-                                </button>
-                                <a href="{{ url_for('analysis.index') }}?stock={{ report.stock_code }}" class="btn btn-primary report-action-btn">
-                                    <i class="fas fa-redo me-2"></i>重新分析
-                                </a>
+                                {% if session.is_admin or report.user_id == session.user_id %}
+                                    <button class="btn btn-outline-primary report-action-btn" onclick="downloadReport()">
+                                        <i class="fas fa-download me-2"></i>导出PDF
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-outline-secondary report-action-btn" disabled title="您只能下载自己的报告">
+                                        <i class="fas fa-download me-2"></i>导出PDF
+                                    </button>
+                                {% endif %}
+                                {% if session.is_admin or report.user_id == session.user_id %}
+                                    <a href="{{ url_for('analysis.index') }}?stock={{ report.stock_code }}" class="btn btn-primary report-action-btn">
+                                        <i class="fas fa-redo me-2"></i>重新分析
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-secondary report-action-btn" disabled title="您只能重新分析自己的报告">
+                                        <i class="fas fa-redo me-2"></i>重新分析
+                                    </button>
+                                {% endif %}
                                 {% if session.is_admin %}
                                 <button class="btn btn-danger report-action-btn" onclick="confirmDeleteReport()">
                                     <i class="fas fa-trash me-2"></i>删除报告

@@ -63,7 +63,10 @@ class Config:
     QWEN_THINKING_STEPS = int(os.getenv('QWEN_THINKING_STEPS', '3'))
     
     # 管理员配置
+    ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'admin')
     ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@equitycompass.com')
+    ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123456')
+    ADMIN_NICKNAME = os.getenv('ADMIN_NICKNAME', '系统管理员')
     
     # 支付网关配置
     STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')

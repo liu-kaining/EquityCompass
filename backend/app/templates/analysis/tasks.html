@@ -129,6 +129,9 @@
                                 <thead>
                                     <tr>
                                         <th style="min-width: 200px;">任务ID</th>
+                                        {% if user_context and user_context.is_admin %}
+                                        <th>创建用户</th>
+                                        {% endif %}
                                         <th>分析类型</th>
                                         <th>股票数量</th>
                                         <th>状态</th>
@@ -149,6 +152,18 @@
                                                 {{ task.task_id[:20] }}{% if task.task_id|length > 20 %}...{% endif %}
                                             </code>
                                         </td>
+                                        {% if user_context and user_context.is_admin %}
+                                        <td>
+                                            {% if task.user_id %}
+                                                <span class="badge bg-info">用户ID: {{ task.user_id }}</span>
+                                                {% if task.user_email %}
+                                                    <br><small class="text-muted">{{ task.user_email }}</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        {% endif %}
                                         <td>
                                             {% if task.analysis_type == 'fundamental' %}
                                                 <span class="badge bg-info">基本面分析</span>

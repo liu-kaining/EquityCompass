@@ -213,28 +213,45 @@ body {
         <!-- Login Form -->
         <form id="loginForm" class="auth-form" method="POST">
             <div class="form-group">
-                <label for="email" class="form-label">
-                    <i class="fas fa-envelope"></i>
-                    邮箱地址
+                <label for="username" class="form-label">
+                    <i class="fas fa-user"></i>
+                    用户名
                 </label>
                 <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
+                    type="text" 
+                    id="username" 
+                    name="username" 
                     class="form-control" 
-                    placeholder="请输入您的邮箱地址"
+                    placeholder="请输入用户名"
                     required
-                    autocomplete="email"
-                    value="{{ request.form.get('email', '') }}"
+                    autocomplete="username"
+                    value="{{ request.form.get('username', '') }}"
                 >
                 <div class="invalid-feedback"></div>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg w-100" id="sendCodeBtn">
-                <span class="btn-text">获取验证码</span>
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock"></i>
+                    密码
+                </label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="form-control" 
+                    placeholder="请输入密码"
+                    required
+                    autocomplete="current-password"
+                >
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100" id="loginBtn">
+                <span class="btn-text">登录</span>
                 <span class="btn-spinner d-none">
                     <i class="fas fa-spinner fa-spin"></i>
-                    发送中...
+                    登录中...
                 </span>
             </button>
         </form>
@@ -245,7 +262,7 @@ body {
         <div class="auth-features">
             <div class="feature-item">
                 <i class="fas fa-shield-alt"></i>
-                <span>安全无密码登录</span>
+                <span>安全可靠</span>
             </div>
             <div class="feature-item">
                 <i class="fas fa-robot"></i>
@@ -260,6 +277,10 @@ body {
         <!-- Footer -->
         <div class="auth-footer">
             <p class="text-muted">
+                还没有账户？
+                <a href="{{ url_for('auth.register') }}" class="text-decoration-none">立即注册</a>
+            </p>
+            <p class="text-muted small mt-2">
                 登录即表示您同意我们的
                 <a href="#" class="text-decoration-none">服务条款</a>
                 和
@@ -274,79 +295,103 @@ body {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
-    const emailInput = document.getElementById('email');
-    const sendCodeBtn = document.getElementById('sendCodeBtn');
-    const btnText = sendCodeBtn.querySelector('.btn-text');
-    const btnSpinner = sendCodeBtn.querySelector('.btn-spinner');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('loginBtn');
+    const btnText = loginBtn.querySelector('.btn-text');
+    const btnSpinner = loginBtn.querySelector('.btn-spinner');
     
-
+    let isLoggingIn = false;
     
     // Form submission
     loginForm.addEventListener('submit', function(e) {
-        const email = emailInput.value.trim();
-        
-        // Prevent default to use AJAX
         e.preventDefault();
         
-        // Validate email
-        if (!email) {
-            showError(emailInput, '请输入邮箱地址');
+        if (isLoggingIn) return;
+        
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        
+        // Validate inputs
+        if (!username) {
+            showError(usernameInput, '请输入用户名');
             return;
         }
         
-        if (!isValidEmail(email)) {
-            showError(emailInput, '请输入有效的邮箱地址');
+        if (!password) {
+            showError(passwordInput, '请输入密码');
             return;
         }
         
         // Clear any previous errors
-        clearError(emailInput);
+        clearAllErrors();
         
         // Show loading state
         setLoadingState(true);
+        isLoggingIn = true;
         
-        // Send verification code via AJAX
-        sendVerificationCode(email);
+        // Send login request
+        loginUser(username, password);
     });
     
-    function sendVerificationCode(email) {
-        fetch('/api/auth/send-code', {
+    function loginUser(username, password) {
+        fetch('/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email: email })
+            body: JSON.stringify({ 
+                username: username, 
+                password: password 
+            })
         })
         .then(response => response.json())
         .then(data => {
             setLoadingState(false);
+            isLoggingIn = false;
             
             if (data.success) {
-                if (data.data && data.data.is_admin) {
-                    // 管理员直接登录，跳转到仪表板
-                    window.location.href = data.data.redirect_url;
-                } else {
-                    // 普通用户，跳转到验证页面
-                    window.location.href = `/auth/verify?email=${encodeURIComponent(email)}`;
-                }
+                // 登录成功
+                showSuccess('登录成功！正在跳转...');
+                
+                // 显示成功状态
+                loginBtn.classList.remove('btn-primary');
+                loginBtn.classList.add('btn-success');
+                btnText.innerHTML = '<i class="fas fa-check"></i> 登录成功！';
+                
+                // 延迟跳转
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
             } else {
-                showError(emailInput, data.message || '发送验证码失败，请稍后重试');
+                // 显示错误信息
+                let errorMessage = data.message || '登录失败，请稍后重试';
+                
+                // 根据错误类型显示在对应字段
+                if (data.error === 'INVALID_CREDENTIALS') {
+                    showError(usernameInput, '用户名或密码错误');
+                } else if (data.error === 'USER_DISABLED') {
+                    showError(usernameInput, '账户已被禁用，请联系管理员');
+                } else {
+                    showError(usernameInput, errorMessage);
+                }
             }
         })
         .catch(error => {
             setLoadingState(false);
+            isLoggingIn = false;
             console.error('Error:', error);
-            showError(emailInput, '网络错误，请检查您的网络连接');
+            showError(usernameInput, '网络错误，请检查您的网络连接');
         });
     }
     
     function setLoadingState(loading) {
         if (loading) {
-            sendCodeBtn.disabled = true;
+            loginBtn.disabled = true;
             btnText.classList.add('d-none');
             btnSpinner.classList.remove('d-none');
         } else {
-            sendCodeBtn.disabled = false;
+            loginBtn.disabled = false;
             btnText.classList.remove('d-none');
             btnSpinner.classList.add('d-none');
         }
@@ -364,9 +409,17 @@ document.addEventListener('DOMContentLoaded', function() {
         feedback.textContent = '';
     }
     
-    function isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+    function clearAllErrors() {
+        [usernameInput, passwordInput].forEach(clearError);
+    }
+    
+    function showSuccess(message) {
+        // 显示成功消息
+        const feedback = document.querySelector('.invalid-feedback');
+        feedback.style.color = '#38a169';
+        feedback.style.fontWeight = '600';
+        feedback.textContent = message;
+        feedback.innerHTML = '<i class="fas fa-check me-2"></i>' + message;
     }
 });
 </script>

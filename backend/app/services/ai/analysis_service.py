@@ -29,9 +29,27 @@ class AnalysisService:
         os.makedirs('data', exist_ok=True)
         os.makedirs(self.reports_dir, exist_ok=True)
     
-    def _get_analysis_prompt(self, prompt_type: str = 'default') -> str:
+    def _get_analysis_prompt(self, prompt_type: str = 'default', prompt_id: int = None) -> str:
         """获取分析提示词模板"""
         try:
+            # 如果指定了提示词ID，使用指定的提示词
+            if prompt_id:
+                from app.models.prompt import Prompt
+                prompt = Prompt.query.get(prompt_id)
+                if prompt and prompt.is_active:
+                    # 增加使用次数
+                    prompt.increment_usage()
+                    return prompt.content
+            
+            # 否则使用默认提示词
+            from app.models.prompt import Prompt
+            default_prompt = Prompt.get_default_prompt(prompt_type)
+            if default_prompt:
+                # 增加使用次数
+                default_prompt.increment_usage()
+                return default_prompt.content
+            
+            # 如果数据库中没有默认提示词，回退到配置文件
             import sys
             import os
             sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'config'))
@@ -45,7 +63,8 @@ class AnalysisService:
                 # 默认使用基本面分析
                 return PROMPT_CONFIG['fundamental']
                 
-        except ImportError:
+        except Exception as e:
+            logger.warning(f"获取提示词失败，使用默认提示词: {str(e)}")
             # 如果无法导入配置，返回错误
             raise Exception("无法导入提示词配置，请检查 prompts.py 文件")
     
@@ -55,7 +74,7 @@ class AnalysisService:
         logger.info(f"创建分析任务: {task_id}")
         return task_id
     
-    def run_analysis(self, stock_code: str, user_id: int, analysis_type: str = 'fundamental', ai_provider: str = 'qwen') -> Dict[str, Any]:
+    def run_analysis(self, stock_code: str, user_id: int, analysis_type: str = 'fundamental', ai_provider: str = 'qwen', prompt_id: int = None) -> Dict[str, Any]:
         """运行分析（同步版本）"""
         try:
             # 获取股票信息
@@ -64,7 +83,7 @@ class AnalysisService:
                 raise Exception(f"股票不存在: {stock_code}")
             
             # 生成分析报告
-            report_data = self._generate_analysis_report(stock, analysis_type, ai_provider)
+            report_data = self._generate_analysis_report(stock, analysis_type, ai_provider, prompt_id)
             
             # 检查分析是否成功
             if not report_data.get('success', True):  # 默认True是为了兼容旧代码
@@ -102,7 +121,8 @@ class AnalysisService:
                 logger.info(f"尝试分析 {stock_code} (第 {retry_count + 1} 次)")
                 
                 # 执行分析
-                result = self.run_analysis(stock_code, user_id, analysis_type, ai_provider)
+                prompt_id = task_data.get('prompt_id')
+                result = self.run_analysis(stock_code, user_id, analysis_type, ai_provider, prompt_id)
                 
                 if result['success']:
                     logger.info(f"股票 {stock_code} 分析成功")
@@ -189,7 +209,8 @@ class AnalysisService:
                 logger.info(f"尝试分析 {stock_code} (第 {retry_count + 1} 次)")
                 
                 # 执行分析
-                result = self.run_analysis(stock_code, user_id, analysis_type, ai_provider)
+                prompt_id = task_data.get('prompt_id')
+                result = self.run_analysis(stock_code, user_id, analysis_type, ai_provider, prompt_id)
                 
                 if result['success']:
                     logger.info(f"股票 {stock_code} 分析成功")
@@ -240,7 +261,55 @@ class AnalysisService:
             'retry_count': 0
         }
     
-    def _generate_analysis_report(self, stock, analysis_type: str = 'fundamental', ai_provider: str = 'qwen') -> Dict[str, Any]:
+    def _create_provider_from_env(self, ai_provider: str):
+        """从环境变量创建Provider（回退方法）"""
+        from app.services.ai.llm_provider import LLMProviderFactory
+        
+        if ai_provider == 'gemini':
+            provider_config = {
+                'name': 'gemini',
+                'api_key': os.getenv('GEMINI_API_KEY'),
+                'model': os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'),
+                'max_tokens': 15000,
+                'temperature': 0.7
+            }
+        elif ai_provider == 'qwen':
+            provider_config = {
+                'name': 'qwen',
+                'api_key': os.getenv('QWEN_API_KEY'),
+                'model': os.getenv('QWEN_MODEL', 'qwen-deep-research'),
+                'max_tokens': 15000,
+                'temperature': 0.7,
+                'enable_deep_thinking': True,
+                'enable_web_search': True,
+                'thinking_steps': int(os.getenv('QWEN_THINKING_STEPS', '3'))
+            }
+        elif ai_provider == 'deepseek':
+            provider_config = {
+                'name': 'deepseek',
+                'api_key': os.getenv('DEEPSEEK_API_KEY'),
+                'model': os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner'),
+                'max_tokens': 15000,
+                'temperature': 0.7,
+                'enable_deep_thinking': True,
+                'thinking_steps': int(os.getenv('DEEPSEEK_THINKING_STEPS', '3'))
+            }
+        else:
+            # 默认使用Qwen
+            provider_config = {
+                'name': 'qwen',
+                'api_key': os.getenv('QWEN_API_KEY'),
+                'model': os.getenv('QWEN_MODEL', 'qwen-deep-research'),
+                'max_tokens': 15000,
+                'temperature': 0.7,
+                'enable_deep_thinking': True,
+                'enable_web_search': True,
+                'thinking_steps': int(os.getenv('QWEN_THINKING_STEPS', '3'))
+            }
+        
+        return LLMProviderFactory.create_provider(ai_provider, provider_config)
+    
+    def _generate_analysis_report(self, stock, analysis_type: str = 'fundamental', ai_provider: str = 'qwen', prompt_id: int = None) -> Dict[str, Any]:
         """生成分析报告"""
         try:
             from app.services.ai.llm_provider import LLMProviderFactory
@@ -248,57 +317,45 @@ class AnalysisService:
             
             logger.info(f"开始生成分析报告 - 股票: {stock.code}, 分析类型: {analysis_type}, AI提供商: {ai_provider}")
             
-            # 根据指定的AI提供商获取配置
-            if ai_provider == 'gemini':
-                provider_config = {
-                    'name': 'gemini',
-                    'api_key': os.getenv('GEMINI_API_KEY'),
-                    'model': os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'),
-                    'max_tokens': 15000,  # 大幅增加token限制，确保生成详细报告
-                    'temperature': 0.7
-                }
-                logger.info(f"Gemini配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}")
-            elif ai_provider == 'qwen':
-                provider_config = {
-                    'name': 'qwen',
-                    'api_key': os.getenv('QWEN_API_KEY'),
-                    'model': os.getenv('QWEN_MODEL', 'qwen-deep-research'),
-                    'max_tokens': 15000,  # 大幅增加token限制，确保生成详细报告
-                    'temperature': 0.7,
-                    'enable_deep_thinking': True,  # 启用深度思考
-                    'enable_web_search': True,  # 启用全网搜索
-                    'thinking_steps': int(os.getenv('QWEN_THINKING_STEPS', '3'))  # 思考步数
-                }
-                logger.info(f"Qwen配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}, 深度思考={provider_config['enable_deep_thinking']}, 全网搜索={provider_config['enable_web_search']}, 思考步数={provider_config['thinking_steps']}")
-            elif ai_provider == 'deepseek':
-                provider_config = {
-                    'name': 'deepseek',
-                    'api_key': os.getenv('DEEPSEEK_API_KEY'),
-                    'model': os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner'),
-                    'max_tokens': 15000,  # 大幅增加token限制，确保生成详细报告
-                    'temperature': 0.7,
-                    'enable_deep_thinking': True,  # 重新启用深度思考
-                    'thinking_steps': int(os.getenv('DEEPSEEK_THINKING_STEPS', '3'))  # 思考步数
-                }
-                logger.info(f"DeepSeek配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}, 深度思考={provider_config['enable_deep_thinking']}, 思考步数={provider_config['thinking_steps']}")
-            else:
-                # 默认使用Qwen
-                provider_config = {
-                    'name': 'qwen',
-                    'api_key': os.getenv('QWEN_API_KEY'),
-                    'model': os.getenv('QWEN_MODEL', 'qwen-deep-research'),
-                    'max_tokens': 15000,  # 大幅增加token限制，确保生成详细报告
-                    'temperature': 0.7,
-                    'enable_deep_thinking': True,  # 启用深度思考
-                    'enable_web_search': True,  # 启用全网搜索
-                    'thinking_steps': int(os.getenv('QWEN_THINKING_STEPS', '3'))  # 思考步数
-                }
-                logger.info(f"默认Qwen配置: 模型={provider_config['model']}, max_tokens={provider_config['max_tokens']}, 深度思考={provider_config['enable_deep_thinking']}, 全网搜索={provider_config['enable_web_search']}, 思考步数={provider_config['thinking_steps']}")
+            # 优先从数据库获取配置
+            provider = None
+            try:
+                from app.models.ai_config import AIConfig
+                
+                if ai_provider and ai_provider != 'default':
+                    # 根据提供商名称查找配置
+                    config = AIConfig.query.filter_by(provider_name=ai_provider, is_active=True).first()
+                    if config:
+                        provider = LLMProviderFactory.create_provider(
+                            config.provider_name,
+                            config.get_config_dict()
+                        )
+                        logger.info(f"使用数据库配置: {config.provider_name} - {config.model_name}")
+                    else:
+                        logger.warning(f"数据库中没有找到激活的 {ai_provider} 配置")
+                else:
+                    # 使用默认配置
+                    provider = LLMProviderFactory.create_default_provider()
+                    logger.info(f"使用默认配置: {provider.name}")
+                    
+            except Exception as e:
+                logger.warning(f"从数据库获取配置失败: {str(e)}")
+                provider = None
             
-            # 如果没有API密钥，返回模拟数据
-            if not provider_config['api_key']:
+            # 如果数据库配置失败，尝试环境变量（仅作为最后的回退）
+            if not provider:
+                try:
+                    provider = self._create_provider_from_env(ai_provider)
+                    logger.info(f"回退到环境变量配置: {ai_provider}")
+                except Exception as e:
+                    logger.warning(f"环境变量配置也失败: {str(e)}")
+                    provider = None
+            
+            # 如果没有provider或API密钥，返回模拟数据
+            if not provider or not provider.api_key:
                 logger.warning(f"{ai_provider} API密钥未配置，返回demo内容")
                 return {
+                    'success': True,
                     'stock_code': stock.code,
                     'stock_name': stock.name,
                     'market': stock.market,
@@ -312,9 +369,7 @@ class AnalysisService:
                     }
                 }
             
-            # 创建Provider
-            logger.info(f"创建{ai_provider} Provider...")
-            provider = LLMProviderFactory.create_provider(ai_provider, provider_config)
+            # Provider已经在上面创建了，这里不需要重复创建
             
             # 准备股票信息
             stock_info = {
@@ -328,7 +383,7 @@ class AnalysisService:
             logger.info(f"股票信息: {stock_info}")
             
             # 生成分析报告
-            prompt_template = self._get_analysis_prompt(analysis_type)
+            prompt_template = self._get_analysis_prompt(analysis_type, prompt_id)
             logger.info(f"获取到提示词模板，长度: {len(prompt_template)} 字符")
             logger.info(f"开始调用{ai_provider}生成分析...")
             result = provider.generate_analysis(prompt_template, stock_info)
@@ -338,6 +393,7 @@ class AnalysisService:
                 logger.info(f"分析结果元数据: {result.get('metadata', {})}")
                 
                 return {
+                    'success': True,
                     'stock_code': stock.code,
                     'stock_name': stock.name,
                     'market': stock.market,
@@ -719,7 +775,7 @@ class AnalysisService:
             return 0
 
     def create_single_analysis_task(self, user_id: int, stock_code: str, 
-                                  analysis_type: str = 'fundamental', ai_provider: str = 'gemini') -> str:
+                                  analysis_type: str = 'fundamental', ai_provider: str = 'gemini', prompt_id: int = None) -> str:
         """创建单个分析任务"""
         try:
             import threading
@@ -736,6 +792,7 @@ class AnalysisService:
                 'stock_code': stock_code,
                 'analysis_type': analysis_type,
                 'ai_provider': ai_provider,
+                'prompt_id': prompt_id,
                 'status': 'pending',
                 'created_at': datetime.utcnow().isoformat(),
                 'total_count': 1,
@@ -832,7 +889,7 @@ class AnalysisService:
             raise e
 
     def create_batch_analysis_task(self, user_id: int, user_email: str, stocks: List[Dict], 
-                                  analysis_type: str = 'fundamental', ai_provider: str = 'qwen') -> str:
+                                  analysis_type: str = 'fundamental', ai_provider: str = 'qwen', prompt_id: int = None) -> str:
         """创建批量分析任务"""
         try:
             import threading
@@ -850,6 +907,7 @@ class AnalysisService:
                 'stocks': stocks,
                 'analysis_type': analysis_type,
                 'ai_provider': ai_provider,
+                'prompt_id': prompt_id,
                 'status': 'pending',
                 'created_at': datetime.utcnow().isoformat(),
                 'total_count': len(stocks),
@@ -1084,6 +1142,7 @@ class AnalysisService:
             import threading
             
             def run_retry_analysis():
+                import os
                 from app import create_app
                 app = create_app()
                 with app.app_context():
@@ -1130,9 +1189,9 @@ class AnalysisService:
                         with open(task_file, 'w', encoding='utf-8') as f:
                             json.dump(task_data, f, ensure_ascii=False, indent=2)
             
-            # 启动后台线程
+            # 启动后台线程（非daemon，避免被主进程重启影响）
             retry_thread = threading.Thread(target=run_retry_analysis)
-            retry_thread.daemon = True
+            retry_thread.daemon = False
             retry_thread.start()
             
             logger.info(f"单个分析任务重试已启动: {task_data['task_id']}")
@@ -1147,6 +1206,7 @@ class AnalysisService:
             import threading
             
             def run_retry_batch_analysis():
+                import os
                 from app import create_app
                 app = create_app()
                 with app.app_context():
@@ -1237,9 +1297,9 @@ class AnalysisService:
                         with open(task_file, 'w', encoding='utf-8') as f:
                             json.dump(task_data, f, ensure_ascii=False, indent=2)
             
-            # 启动后台线程
+            # 启动后台线程（非daemon，避免被主进程重启影响）
             retry_thread = threading.Thread(target=run_retry_batch_analysis)
-            retry_thread.daemon = True
+            retry_thread.daemon = False
             retry_thread.start()
             
             logger.info(f"批量分析任务重试已启动: {task_data['task_id']}")
@@ -1489,3 +1549,30 @@ class AnalysisService:
                             
         except Exception as e:
             logger.error(f"删除任务相关报告文件失败: {str(e)}")
+
+    def get_all_tasks(self, limit: int = 1000) -> List[Dict[str, Any]]:
+        """获取所有任务列表（管理员功能）"""
+        try:
+            tasks = []
+            
+            if os.path.exists(self.reports_dir):
+                for file_name in os.listdir(self.reports_dir):
+                    if file_name.endswith('.task.json'):
+                        task_file = os.path.join(self.reports_dir, file_name)
+                        try:
+                            with open(task_file, 'r', encoding='utf-8') as f:
+                                task_data = json.load(f)
+                            
+                            # 返回所有任务（不限制用户）
+                            tasks.append(task_data)
+                        except Exception as e:
+                            logger.error(f"读取任务文件失败: {task_file}, {str(e)}")
+            
+            # 按创建时间排序，最新的在前
+            tasks.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+            
+            return tasks[:limit]
+            
+        except Exception as e:
+            logger.error(f"获取所有任务列表失败: {str(e)}")
+            return []

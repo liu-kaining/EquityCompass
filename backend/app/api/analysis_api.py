@@ -7,6 +7,8 @@ from app.services.ai.analysis_service import AnalysisService
 from app.services.data.usage_service import UsageTrackingService
 from app import db
 import logging
+import json
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +60,7 @@ def analyze_stock():
         stock_code = data.get('stock_code', '').strip().upper()
         analysis_type = data.get('analysis_type', 'fundamental')  # fundamental, technical
         ai_provider = data.get('ai_provider', 'qwen')  # gemini, qwen, deepseek
+        prompt_id = data.get('prompt_id')  # 新增：提示词ID
         
         if not stock_code:
             return error_response("股票代码不能为空")
@@ -70,7 +73,8 @@ def analyze_stock():
             user_id=user_id,
             stock_code=stock_code,
             analysis_type=analysis_type,
-            ai_provider=ai_provider
+            ai_provider=ai_provider,
+            prompt_id=prompt_id
         )
         
         # 立即增加使用次数（管理员不计入）
@@ -232,12 +236,23 @@ def get_task_status(task_id):
     """获取任务状态"""
     try:
         user_id = session.get('user_id')
+        is_admin = session.get('is_admin', False)
         analysis_service = AnalysisService(db.session)
         
-        task_data = analysis_service.get_task_status(task_id, user_id)
-        
-        if not task_data:
-            return jsonify({'success': False, 'message': '任务不存在或无权限访问'}), 404
+        # 管理员可以查看所有任务，普通用户只能查看自己的任务
+        if is_admin:
+            # 管理员直接读取任务文件，不检查用户权限
+            task_file = os.path.join(analysis_service.reports_dir, f"{task_id}.task.json")
+            if not os.path.exists(task_file):
+                return jsonify({'success': False, 'message': '任务不存在'}), 404
+            
+            with open(task_file, 'r', encoding='utf-8') as f:
+                task_data = json.load(f)
+        else:
+            # 普通用户使用原有的权限检查方法
+            task_data = analysis_service.get_task_status(task_id, user_id)
+            if not task_data:
+                return jsonify({'success': False, 'message': '任务不存在或无权限访问'}), 404
         
         return jsonify({
             'success': True,

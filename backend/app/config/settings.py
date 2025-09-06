@@ -42,7 +42,10 @@ class Config:
     MAX_WATCHLIST_SIZE = 20
     
     # 管理员配置
+    ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'admin')
     ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@equitycompass.com')
+    ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123456')
+    ADMIN_NICKNAME = os.getenv('ADMIN_NICKNAME', '系统管理员')
 
 
 class DevelopmentConfig(Config):

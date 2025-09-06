@@ -11,17 +11,12 @@ import zipfile
 import io
 from playwright.sync_api import sync_playwright
 from app.services.ai.analysis_service import AnalysisService
+from app.utils.permissions import (
+    login_required, statistics_access_required, 
+    check_report_download_permission, get_user_context
+)
 
 reports_bp = Blueprint('reports', __name__)
-
-def login_required(f):
-    """登录验证装饰器"""
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('auth.login'))
-        return f(*args, **kwargs)
-    decorated_function.__name__ = f.__name__
-    return decorated_function
 
 def convert_to_beijing_time(utc_timestamp):
     """将UTC时间戳转换为北京时间（东八区）"""
@@ -245,6 +240,14 @@ def detail(stock_code):
                     f"data/reports/{stock_code}_{original_report_id}.json"
                 ]
                 
+                # 如果report_id包含时间戳，尝试构建完整的文件名
+                if '_' in original_report_id:
+                    # 从report_id中提取时间戳部分
+                    parts = original_report_id.split('_')
+                    if len(parts) >= 2:
+                        timestamp_part = '_'.join(parts[1:])  # 取时间戳部分
+                        possible_paths.insert(0, f"data/reports/{analysis_date}/{stock_code}_{timestamp_part}_{provider}_{analysis_type}.json")
+                
                 print(f"查找报告ID: {original_report_id}, 股票: {stock_code}")
                 for file_path in possible_paths:
                     print(f"尝试文件路径: {file_path}")
@@ -267,6 +270,20 @@ def detail(stock_code):
                     if db_report:
                         db_report_id = db_report.id
                         print(f"数据库报告ID: {db_report_id} (按日期查找)")
+                
+                # 如果仍然没有找到，使用该股票同一天的任何记录用于统计
+                if not db_report_id:
+                    print(f"未找到数据库记录，使用同一天的其他记录用于统计")
+                    # 查找该股票同一天的任何记录
+                    any_report = ReportIndex.query.filter_by(
+                        stock_id=stock.id,
+                        analysis_date=analysis_date
+                    ).first()
+                    if any_report:
+                        db_report_id = any_report.id
+                        print(f"使用同一天的其他记录ID: {db_report_id}")
+                    else:
+                        print(f"该股票当天没有任何数据库记录，跳过统计功能")
         else:
             print(f"未找到股票: {stock_code}")
     except Exception as e:
@@ -352,6 +369,11 @@ def export_pdf(stock_code):
     
     if not report:
         return jsonify({'success': False, 'error': '报告不存在'})
+    
+    # 检查下载权限
+    report_user_id = report.get('user_id')  # 假设报告包含创建者ID
+    if not check_report_download_permission(report_user_id):
+        return jsonify({'success': False, 'error': '没有下载权限'})
     
     # 转换时间戳
     metadata = report.get('metadata', {})
@@ -906,9 +928,9 @@ def batch_export():
 
 
 @reports_bp.route('/statistics')
-@login_required
+@statistics_access_required
 def statistics():
-    """报告统计页面"""
+    """报告统计页面（仅管理员可访问）"""
     return render_template('reports/statistics.html')
 
 @reports_bp.route('/<stock_code>/delete', methods=['POST'])

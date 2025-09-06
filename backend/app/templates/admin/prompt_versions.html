@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+
+{% block title %}提示词版本管理 - EquityCompass{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-primary">
+                        <i class="fas fa-history me-2"></i>提示词版本管理
+                    </h1>
+                    <p class="text-muted mb-0">管理 "{{ prompt_name }}" 的所有版本</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('prompt.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>返回列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-code-branch me-2"></i>版本列表
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="versionsTable" width="100%" cellspacing="0">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-code-branch me-2"></i>版本
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-toggle-on me-2"></i>状态
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-star me-2"></i>默认
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-chart-line me-2"></i>使用统计
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-clock me-2"></i>创建时间
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-clock me-2"></i>最后使用
+                                    </th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-cogs me-2"></i>操作
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="versionsTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <i class="fas fa-spinner fa-spin fa-2x text-primary mb-3"></i>
+                                            <span class="text-muted">加载版本中...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 版本详情弹窗 -->
+<div class="modal fade" id="versionDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-code-branch me-2"></i>版本详情
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="versionDetailContent">
+                <!-- 版本详情内容 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认弹窗 -->
+<div class="modal fade" id="deleteVersionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-trash-alt me-2"></i>确认删除
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
+                </div>
+                <h6 class="mb-3">您确定要删除这个版本吗？</h6>
+                <div class="alert alert-danger mt-3 mb-0" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>警告：</strong>删除后无法恢复，请谨慎操作！
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>取消
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteVersion">
+                    <i class="fas fa-trash me-1"></i>确认删除
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentVersionId = null;
+let allVersions = [];
+
+// 页面加载完成后自动加载版本列表
+document.addEventListener('DOMContentLoaded', function() {
+    loadVersions();
+    
+    // 绑定删除确认按钮事件
+    document.getElementById('confirmDeleteVersion').addEventListener('click', function() {
+        if (currentVersionId) {
+            deleteVersion(currentVersionId);
+        }
+    });
+});
+
+// 加载版本列表
+function loadVersions() {
+    const promptName = '{{ prompt_name }}';
+    fetch(`/api/prompt/prompts/name/${encodeURIComponent(promptName)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                allVersions = data.data.versions;
+                updateVersionsTable(allVersions);
+            } else {
+                showAlert('加载版本失败: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('加载版本失败:', error);
+            showAlert('加载版本失败', 'danger');
+        });
+}
+
+// 更新版本表格
+function updateVersionsTable(versions) {
+    const tbody = document.getElementById('versionsTableBody');
+    
+    if (versions.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted mb-2">暂无版本</h5>
+                        <p class="text-muted mb-3">该提示词还没有任何版本</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let html = '';
+    versions.forEach(version => {
+        const statusBadge = version.is_active 
+            ? '<span class="badge bg-success rounded-pill">激活</span>'
+            : '<span class="badge bg-secondary rounded-pill">停用</span>';
+        
+        const defaultBadge = version.is_default 
+            ? '<span class="badge bg-primary rounded-pill">默认</span>'
+            : '<span class="text-muted">-</span>';
+        
+        const lastUsed = version.last_used_at 
+            ? new Date(version.last_used_at).toLocaleString()
+            : '<span class="text-muted">从未使用</span>';
+        
+        const createdTime = new Date(version.created_at).toLocaleString();
+        
+        html += `
+            <tr class="border-bottom">
+                <td class="py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-2">
+                            <i class="fas fa-code-branch text-primary"></i>
+                        </div>
+                        <div>
+                            <strong class="text-dark">v${version.version}</strong>
+                            ${version.description ? `<br><small class="text-muted">${version.description}</small>` : ''}
+                        </div>
+                    </div>
+                </td>
+                <td class="py-3">${statusBadge}</td>
+                <td class="py-3">${defaultBadge}</td>
+                <td class="py-3">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-primary me-1">${version.usage_count}</span>
+                        <small class="text-muted">次使用</small>
+                    </div>
+                </td>
+                <td class="py-3">
+                    <small class="text-muted">${createdTime}</small>
+                </td>
+                <td class="py-3">
+                    <small class="text-muted">${lastUsed}</small>
+                </td>
+                <td class="py-3">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-info" onclick="viewVersion(${version.id})" 
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="查看版本详情">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="editVersion(${version.id})" 
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="编辑版本">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        ${!version.is_default ? `
+                            <button class="btn btn-outline-success" onclick="setDefaultVersion(${version.id})" 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="设为默认版本">
+                                <i class="fas fa-star"></i>
+                            </button>
+                        ` : `
+                            <button class="btn btn-success" disabled 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="当前默认版本">
+                                <i class="fas fa-star"></i>
+                            </button>
+                        `}
+                        <button class="btn btn-outline-secondary" onclick="toggleVersionActive(${version.id})" 
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="${version.is_active ? '停用版本' : '激活版本'}">
+                            <i class="fas fa-${version.is_active ? 'pause' : 'play'}"></i>
+                        </button>
+                        ${!version.is_default ? `
+                            <button class="btn btn-outline-danger" onclick="showDeleteVersionModal(${version.id})" 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="删除版本">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : `
+                            <button class="btn btn-outline-secondary" disabled 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="默认版本不能删除">
+                                <i class="fas fa-lock"></i>
+                            </button>
+                        `}
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+    
+    // 重新初始化工具提示
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+// 查看版本详情
+function viewVersion(versionId) {
+    fetch(`/api/prompt/prompts/${versionId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showVersionDetail(data.data);
+            } else {
+                showAlert('获取版本详情失败: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('获取版本详情失败:', error);
+            showAlert('获取版本详情失败', 'danger');
+        });
+}
+
+// 显示版本详情
+function showVersionDetail(version) {
+    const content = document.getElementById('versionDetailContent');
+    
+    content.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>基本信息</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">名称</span>
+                                <span class="text-dark">${version.name}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">版本</span>
+                                <span class="badge bg-secondary">v${version.version}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">状态</span>
+                                ${version.is_active ? '<span class="badge bg-success">激活</span>' : '<span class="badge bg-secondary">停用</span>'}
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">默认版本</span>
+                                ${version.is_default ? '<span class="badge bg-primary">是</span>' : '<span class="badge bg-secondary">否</span>'}
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">使用次数</span>
+                                <span class="badge bg-primary">${version.usage_count}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">创建时间</span>
+                                <small class="text-muted">${new Date(version.created_at).toLocaleString()}</small>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <span class="fw-bold text-muted">最后使用</span>
+                                <small class="text-muted">${version.last_used_at ? new Date(version.last_used_at).toLocaleString() : '从未使用'}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-file-text me-2"></i>描述</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">${version.description || '<span class="text-muted">暂无描述</span>'}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="fas fa-comment-dots me-2"></i>提示词内容</h6>
+                    </div>
+                    <div class="card-body">
+                        <pre class="bg-dark text-light p-3 rounded mb-0" style="font-size: 0.85rem; max-height: 400px; overflow-y: auto;"><code>${version.content}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('#versionDetailModal').modal('show');
+}
+
+// 编辑版本
+function editVersion(versionId) {
+    window.location.href = `/admin/prompts/${versionId}/edit`;
+}
+
+// 设置默认版本
+function setDefaultVersion(versionId) {
+    fetch(`/api/prompt/prompts/${versionId}/set-default`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('默认版本设置成功', 'success');
+            loadVersions();
+        } else {
+            showAlert('设置失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('设置默认版本失败:', error);
+        showAlert('设置默认版本失败', 'danger');
+    });
+}
+
+// 切换版本激活状态
+function toggleVersionActive(versionId) {
+    fetch(`/api/prompt/prompts/${versionId}/toggle-active`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            loadVersions();
+        } else {
+            showAlert('操作失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('切换版本状态失败:', error);
+        showAlert('操作失败', 'danger');
+    });
+}
+
+// 显示删除版本确认弹窗
+function showDeleteVersionModal(versionId) {
+    currentVersionId = versionId;
+    $('#deleteVersionModal').modal('show');
+}
+
+// 删除版本
+function deleteVersion(versionId) {
+    fetch(`/api/prompt/prompts/${versionId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('版本删除成功', 'success');
+            $('#deleteVersionModal').modal('hide');
+            loadVersions();
+        } else {
+            showAlert('删除失败: ' + data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('删除版本失败:', error);
+        showAlert('删除版本失败', 'danger');
+    });
+}
+
+// 显示提示信息
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

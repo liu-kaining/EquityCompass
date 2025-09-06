@@ -74,6 +74,9 @@ def create_app(config_name='development'):
     from app.views.analysis import analysis_bp
     from app.views.reports import reports_bp
     from app.views.stocks import stocks_bp
+    from app.views.admin import admin_bp
+    from app.views.ai_config import ai_config_bp
+    from app.views.prompt import prompt_bp
     
     # 注册API蓝图
     from app.api.auth_api import auth_api_bp
@@ -81,6 +84,8 @@ def create_app(config_name='development'):
     from app.api.analysis_api import analysis_api_bp
     from app.api.health import health_bp
     from app.api.report_statistics_api import report_statistics_bp
+    from app.api.ai_config_api import ai_config_api_bp
+    from app.api.prompt_api import prompt_api_bp
     
     # Web页面路由
     app.register_blueprint(main_bp)
@@ -89,6 +94,9 @@ def create_app(config_name='development'):
     app.register_blueprint(analysis_bp, url_prefix='/analysis')
     app.register_blueprint(reports_bp, url_prefix='/reports')
     app.register_blueprint(stocks_bp, url_prefix='/stocks')
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(ai_config_bp, url_prefix='/admin')
+    app.register_blueprint(prompt_bp, url_prefix='/admin')
     
     # API路由 (保留一些API供Ajax使用)
     app.register_blueprint(auth_api_bp, url_prefix='/api/auth')
@@ -96,6 +104,8 @@ def create_app(config_name='development'):
     app.register_blueprint(analysis_api_bp, url_prefix='/api/analysis')
     app.register_blueprint(health_bp, url_prefix='/api/health')
     app.register_blueprint(report_statistics_bp, url_prefix='/api/report-statistics')
+    app.register_blueprint(ai_config_api_bp, url_prefix='/api/ai-config')
+    app.register_blueprint(prompt_api_bp, url_prefix='/api/prompt')
     
 
     

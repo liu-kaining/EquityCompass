@@ -91,6 +91,63 @@
     </div>
 </div>
 
+<!-- 管理员功能区域 -->
+{% if user.can_manage_users or user.can_view_statistics %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card glass-effect border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-crown me-2"></i>管理员功能
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if user.can_manage_users %}
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('admin.user_management') }}" class="btn btn-warning w-100 py-3">
+                            <i class="fas fa-users me-2"></i>用户管理
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% if user.can_view_statistics %}
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('reports.statistics') }}" class="btn btn-outline-warning w-100 py-3">
+                            <i class="fas fa-chart-pie me-2"></i>报告统计
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% if user.can_manage_users %}
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('ai_config.index') }}" class="btn btn-outline-info w-100 py-3">
+                            <i class="fas fa-cogs me-2"></i>AI配置管理
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('prompt.index') }}" class="btn btn-outline-success w-100 py-3">
+                            <i class="fas fa-comment-dots me-2"></i>提示词管理
+                        </a>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <small class="text-muted">
+                                当前角色: 
+                                <span class="badge bg-{% if user.user_role == 'SUPER_ADMIN' %}danger{% elif user.user_role == 'SITE_ADMIN' %}warning{% else %}secondary{% endif %}">
+                                    {% if user.user_role == 'SUPER_ADMIN' %}超级管理员
+                                    {% elif user.user_role == 'SITE_ADMIN' %}网站管理员
+                                    {% else %}普通用户{% endif %}
+                                </span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- 快速操作 -->
 <div class="row">
     <div class="col-12">
