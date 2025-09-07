@@ -775,17 +775,21 @@ function getStatusBadge(status) {
 function formatDateTime(dateTimeStr) {
     if (!dateTimeStr) return '-';
     try {
-        // 后端已经通过convert_to_beijing_time转换为北京时间
-        // 直接解析时间字符串，不添加时区信息
         let date;
-        if (dateTimeStr.includes('Z') || dateTimeStr.includes('+') || dateTimeStr.includes('-', 10)) {
-            // 已经有时区信息
+        
+        // 检查时间字符串格式
+        if (dateTimeStr.includes('Z')) {
+            // UTC时间格式，直接解析
+            date = new Date(dateTimeStr);
+        } else if (dateTimeStr.includes('+') || dateTimeStr.includes('-', 10)) {
+            // 已有时区信息，直接解析
             date = new Date(dateTimeStr);
         } else {
-            // 后端已经转换为北京时间，直接解析
-            date = new Date(dateTimeStr);
+            // 没有时区信息的ISO格式，假设为UTC时间，添加Z后缀
+            date = new Date(dateTimeStr + 'Z');
         }
         
+        // 直接使用浏览器的本地时区格式化，不要手动添加时区偏移
         return date.toLocaleString('zh-CN', {
             year: 'numeric',
             month: '2-digit',
@@ -795,6 +799,7 @@ function formatDateTime(dateTimeStr) {
             second: '2-digit'
         });
     } catch (e) {
+        console.error('时间格式化错误:', e, '原始时间:', dateTimeStr);
         return dateTimeStr;
     }
 }

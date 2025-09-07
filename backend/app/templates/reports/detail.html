@@ -50,6 +50,9 @@
                                         <i class="fas fa-redo me-2"></i>重新分析
                                     </button>
                                 {% endif %}
+                                <button class="btn btn-outline-info report-action-btn" onclick="showAnalysisDetails()">
+                                    <i class="fas fa-info-circle me-2"></i>分析详情
+                                </button>
                                 {% if session.is_admin %}
                                 <button class="btn btn-danger report-action-btn" onclick="confirmDeleteReport()">
                                     <i class="fas fa-trash me-2"></i>删除报告
@@ -740,20 +743,20 @@ function deleteReport() {
     .then(data => {
         if (data.success) {
             // 删除成功，显示成功消息并跳转
-            showToast('success', '报告删除成功！');
+            showToast('报告删除成功！', 'success');
             setTimeout(() => {
                 window.location.href = '{{ url_for("reports.index") }}';
             }, 1000);
         } else {
             // 删除失败，显示错误消息
-            showToast('error', '删除失败：' + (data.error || '未知错误'));
+            showToast('删除失败：' + (data.error || '未知错误'), 'error');
             deleteBtn.innerHTML = originalText;
             deleteBtn.disabled = false;
         }
     })
     .catch(error => {
         console.error('删除报告时出错:', error);
-        showToast('error', '删除失败：网络错误，请稍后重试');
+        showToast('删除失败：网络错误，请稍后重试', 'error');
         deleteBtn.innerHTML = originalText;
         deleteBtn.disabled = false;
     });
@@ -849,33 +852,218 @@ function loadReportStatistics() {
 
 // 显示提示信息
 function showToast(message, type = 'info') {
-    const toastDiv = document.createElement('div');
-    toastDiv.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
-    toastDiv.setAttribute('role', 'alert');
-    toastDiv.setAttribute('aria-live', 'assertive');
-    toastDiv.setAttribute('aria-atomic', 'true');
+    // 创建简单的alert样式提示
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
     
-    toastDiv.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">
-                ${message}
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    const toastHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px; max-width: 500px;">
+            <i class="fas ${icon} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     `;
     
-    // 添加到页面
-    const container = document.querySelector('.container-fluid');
-    container.appendChild(toastDiv);
+    // 直接添加到body
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = toastHtml;
+    const toastElement = tempDiv.firstElementChild;
     
-    // 显示toast
-    const toast = new bootstrap.Toast(toastDiv);
-    toast.show();
+    document.body.appendChild(toastElement);
     
     // 自动移除
     setTimeout(() => {
-        toastDiv.remove();
+        if (toastElement && toastElement.parentNode) {
+            toastElement.remove();
+        }
     }, 3000);
 }
+
+function showAnalysisDetails() {
+    // 显示模态框
+    const modal = new bootstrap.Modal(document.getElementById('analysisDetailsModal'));
+    modal.show();
+    
+    // 加载分析详情
+    loadAnalysisDetails();
+}
+
+function loadAnalysisDetails() {
+    const reportId = '{{ report.db_id }}';
+    const contentDiv = document.getElementById('analysisDetailsContent');
+    
+    // 显示加载状态
+    contentDiv.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+            <p class="mt-2">正在加载分析详情...</p>
+        </div>
+    `;
+    
+    // 发送请求获取分析详情
+    fetch(`/api/analysis/reports/analysis-details/${reportId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayAnalysisDetails(data.data);
+            } else {
+                contentDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        加载分析详情失败：${data.message || '未知错误'}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('加载分析详情失败:', error);
+            contentDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    加载分析详情失败：网络错误
+                </div>
+            `;
+        });
+}
+
+function displayAnalysisDetails(details) {
+    const contentDiv = document.getElementById('analysisDetailsContent');
+    
+    const html = `
+        <div class="row">
+            <div class="col-12">
+                <!-- 基本信息 -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>基本信息</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>股票代码：</strong>${details.stock_code || '-'}</p>
+                                <p><strong>股票名称：</strong>${details.stock_name || '-'}</p>
+                                <p><strong>市场：</strong>${details.market || '-'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>分析类型：</strong><span class="badge bg-primary">${details.analysis_type || '-'}</span></p>
+                                <p><strong>分析日期：</strong>${details.analysis_date || '-'}</p>
+                                <p><strong>创建时间：</strong>${details.created_at || '-'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI模型信息 -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-robot me-2"></i>AI模型信息</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>提供商：</strong><span class="badge bg-success">${details.provider || '-'}</span></p>
+                                <p><strong>具体模型：</strong>${details.ai_model || '-'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>深度搜索：</strong>${details.deep_research ? '<span class="badge bg-warning">是</span>' : '<span class="badge bg-secondary">否</span>'}</p>
+                                <p><strong>模型配置：</strong>${details.model_config || '-'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 实时股票数据 -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>实时股票数据</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>当前价格：</strong>${details.current_price || '-'}</p>
+                                <p><strong>价格变化：</strong>${details.price_change || '-'}</p>
+                                <p><strong>变化百分比：</strong>${details.price_change_percent || '-'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>成交量：</strong>${details.volume || '-'}</p>
+                                <p><strong>市值：</strong>${details.market_cap || '-'}</p>
+                                <p><strong>数据源：</strong>${details.data_source || '-'}</p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <p><strong>数据时间戳：</strong>${details.data_timestamp || '-'}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 提示词信息 -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-file-text me-2"></i>提示词信息</h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>提示词模板：</strong>${details.prompt_template || '-'}</p>
+                        <p><strong>提示词版本：</strong>${details.prompt_version || '-'}</p>
+                        <div class="mt-3">
+                            <h6>完整提示词内容：</h6>
+                            <div class="bg-light p-3 rounded">
+                                <pre class="mb-0" style="white-space: pre-wrap; font-size: 0.9em;">${details.full_prompt || '无数据'}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 分析结果 -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>分析结果</h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>分析状态：</strong><span class="badge bg-${details.status === 'completed' ? 'success' : 'warning'}">${details.status || '-'}</span></p>
+                        <p><strong>重试次数：</strong>${details.retry_count || 0}</p>
+                        <p><strong>完成时间：</strong>${details.completed_at || '-'}</p>
+                        ${details.error ? `<div class="mt-3"><strong>错误信息：</strong><div class="alert alert-danger">${details.error}</div></div>` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    contentDiv.innerHTML = html;
+}
 </script>
+
+<!-- 分析详情模态框 -->
+<div class="modal fade" id="analysisDetailsModal" tabindex="-1" aria-labelledby="analysisDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="analysisDetailsModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>分析详情
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="analysisDetailsContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                        <p class="mt-2">正在加载分析详情...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 确认弹窗组件 -->
+{% include 'components/confirm_modal.html' %}
+
 {% endblock %}

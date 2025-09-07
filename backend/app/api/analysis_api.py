@@ -60,6 +60,7 @@ def analyze_stock():
         stock_code = data.get('stock_code', '').strip().upper()
         analysis_type = data.get('analysis_type', 'fundamental')  # fundamental, technical
         ai_provider = data.get('ai_provider', 'qwen')  # gemini, qwen, deepseek
+        ai_model = data.get('ai_model')  # 新增：具体模型名称
         prompt_id = data.get('prompt_id')  # 新增：提示词ID
         
         if not stock_code:
@@ -74,6 +75,7 @@ def analyze_stock():
             stock_code=stock_code,
             analysis_type=analysis_type,
             ai_provider=ai_provider,
+            ai_model=ai_model,
             prompt_id=prompt_id
         )
         
@@ -188,6 +190,49 @@ def download_stock_report(stock_code):
         logger.error(f"下载股票报告失败: {str(e)}")
         return error_response("下载报告失败", str(e))
 
+@analysis_api_bp.route('/reports/analysis-details/<int:report_id>', methods=['GET'])
+@login_required
+def get_analysis_details(report_id):
+    """获取分析详情"""
+    try:
+        # 检查用户登录状态
+        user_id = session.get('user_id')
+        if not user_id:
+            return error_response("请先登录", "UNAUTHORIZED")
+        
+        # 获取报告
+        from app.models.analysis import ReportIndex
+        report = ReportIndex.query.get(report_id)
+        
+        if not report:
+            return error_response("报告不存在")
+        
+        # 检查权限：管理员可以查看所有报告，普通用户只能查看自己的报告
+        is_admin = session.get('is_admin', False)
+        if not is_admin:
+            # 通过任务获取用户信息
+            if report.generated_by_task_id:
+                from app.models.analysis import AnalysisTask
+                task = AnalysisTask.query.get(report.generated_by_task_id)
+                if not task or task.user_id != user_id:
+                    return error_response("没有权限查看此报告")
+            else:
+                # 如果没有任务信息，暂时允许访问（可能是旧数据）
+                pass
+        
+        # 获取分析详情
+        service = get_analysis_service()
+        details = service.get_analysis_details(report_id)
+        
+        if details:
+            return success_response(data=details)
+        else:
+            return error_response("无法获取分析详情")
+        
+    except Exception as e:
+        logger.error(f"获取分析详情失败: {str(e)}")
+        return error_response("获取分析详情失败", str(e))
+
 @analysis_api_bp.route('/batch-analyze', methods=['POST'])
 @login_required
 def batch_analyze():
@@ -200,6 +245,7 @@ def batch_analyze():
         stocks = data.get('stocks', [])
         analysis_type = data.get('analysis_type', 'fundamental')
         ai_provider = data.get('ai_provider', 'qwen')
+        ai_model = data.get('ai_model')
         
         if not stocks:
             return jsonify({'success': False, 'message': '请选择要分析的股票'}), 400
@@ -216,7 +262,8 @@ def batch_analyze():
             user_email=user_email,
             stocks=stocks,
             analysis_type=analysis_type,
-            ai_provider=ai_provider
+            ai_provider=ai_provider,
+            ai_model=ai_model
         )
         
         return jsonify({

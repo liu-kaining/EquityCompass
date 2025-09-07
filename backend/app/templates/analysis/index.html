@@ -37,71 +37,110 @@
         </div>
     </div>
 
-    <!-- 分析选项 -->
+    <!-- 分析设置 -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card glass-effect">
-                <div class="card-header">
-                    <h5 class="mb-0">
+            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-header border-0 text-white" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                    <h5 class="mb-0 text-white">
                         <i class="fas fa-cogs me-2"></i>分析设置
+                        <small class="ms-2 opacity-75">配置您的AI分析参数</small>
                     </h5>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="analysisType" class="form-label">
-                                    <i class="fas fa-chart-line me-2"></i>分析类型
-                                </label>
-                                <div class="custom-select analysis-type-select">
-                                    <select class="form-select" id="analysisType" onchange="loadPrompts()">
+                <div class="card-body text-white" style="background: rgba(255,255,255,0.05);">
+                    <div class="row g-4">
+                        <!-- 分析类型 -->
+                        <div class="col-lg-3 col-md-6">
+                            <div class="setting-card">
+                                <div class="setting-header">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    <span class="fw-bold">分析类型</span>
+                                </div>
+                                <div class="setting-content">
+                                    <select class="form-select form-select-lg" id="analysisType" onchange="loadPrompts()" 
+                                            style="background: rgba(255,255,255,0.9); border: none; border-radius: 12px;">
                                         <option value="">请选择分析类型</option>
                                         <option value="fundamental">📊 基本面分析</option>
                                         <option value="technical">📈 技术面分析</option>
                                     </select>
+                                    <small class="text-white-50 mt-2 d-block">选择分析的角度和方法</small>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="promptSelect" class="form-label">
-                                    <i class="fas fa-comment-dots me-2"></i>提示词版本
-                                </label>
-                                <select class="form-select" id="promptSelect" onchange="onPromptChange()" style="font-size: 14px; line-height: 1.4;">
-                                    <option value="">请先选择分析类型</option>
-                                </select>
-                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <small class="text-muted">选择分析提示词版本</small>
-                                    <button type="button" class="btn btn-sm btn-outline-info" id="previewPromptBtn" 
-                                            onclick="previewSelectedPrompt()" disabled>
-                                        <i class="fas fa-eye me-1"></i>预览
-                                    </button>
+                        
+                        <!-- 提示词版本 -->
+                        <div class="col-lg-3 col-md-6">
+                            <div class="setting-card">
+                                <div class="setting-header">
+                                    <i class="fas fa-comment-dots me-2"></i>
+                                    <span class="fw-bold">提示词版本</span>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="aiProvider" class="form-label">
-                                    <i class="fas fa-robot me-2"></i>AI模型
-                                </label>
-                                <div class="custom-select ai-model-select">
-                                    <select class="form-select" id="aiProvider">
-                                        <option value="qwen">🌟 Qwen Deep Research (推荐)</option>
-                                        <option value="deepseek">🚀 DeepSeek Reasoner</option>
+                                <div class="setting-content">
+                                    <select class="form-select form-select-lg" id="promptSelect" onchange="onPromptChange()" 
+                                            style="background: rgba(255,255,255,0.9); border: none; border-radius: 12px;" disabled>
+                                        <option value="">请先选择分析类型</option>
                                     </select>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <small class="text-white-50">选择分析提示词版本</small>
+                                        <button type="button" class="btn btn-sm btn-light" id="previewPromptBtn" 
+                                                onclick="previewSelectedPrompt()" disabled style="border-radius: 8px;">
+                                            <i class="fas fa-eye me-1"></i>预览
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="form-label">快速操作</label>
-                                <div class="d-flex gap-2">
-                                    <button id="batchAnalyzeBtn" class="btn btn-primary flex-fill">
-                                        <i class="fas fa-magic me-2"></i>批量分析所有
-                                    </button>
-                                    <a href="{{ url_for('analysis.tasks') }}" class="btn btn-outline-info flex-fill">
-                                        <i class="fas fa-tasks me-2"></i>查看任务
-                                    </a>
+                        
+                        <!-- AI模型 -->
+                        <div class="col-lg-3 col-md-6">
+                            <div class="setting-card">
+                                <div class="setting-header">
+                                    <i class="fas fa-robot me-2"></i>
+                                    <span class="fw-bold">AI模型</span>
+                                </div>
+                                <div class="setting-content">
+                                    <select class="form-select form-select-lg" id="aiProvider" onchange="loadModels()" 
+                                            style="background: rgba(255,255,255,0.9); border: none; border-radius: 12px;">
+                                        <option value="">请选择AI提供商</option>
+                                        <option value="qwen">🌟 通义千问 (Qwen)</option>
+                                        <option value="deepseek">🚀 DeepSeek</option>
+                                    </select>
+                                    <div class="mt-2">
+                                        <select class="form-select" id="aiModel" onchange="onModelChange()" 
+                                                style="background: rgba(255,255,255,0.9); border: none; border-radius: 8px;" disabled>
+                                            <option value="">请先选择AI提供商</option>
+                                        </select>
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <small class="text-white-50" id="modelInfo">选择具体的AI模型</small>
+                                            <button type="button" class="btn btn-sm btn-light" id="previewModelBtn" 
+                                                    onclick="previewSelectedModel()" disabled style="border-radius: 8px;">
+                                                <i class="fas fa-eye me-1"></i>预览
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 快速操作 -->
+                        <div class="col-lg-3 col-md-6">
+                            <div class="setting-card">
+                                <div class="setting-header">
+                                    <i class="fas fa-bolt me-2"></i>
+                                    <span class="fw-bold">快速操作</span>
+                                </div>
+                                <div class="setting-content">
+                                    <div class="d-grid gap-2">
+                                        <button id="batchAnalyzeBtn" class="btn btn-light btn-lg" 
+                                                style="border-radius: 12px; font-weight: 600;">
+                                            <i class="fas fa-magic me-2"></i>批量分析所有
+                                        </button>
+                                        <a href="{{ url_for('analysis.tasks') }}" class="btn btn-outline-light" 
+                                           style="border-radius: 12px;">
+                                            <i class="fas fa-tasks me-2"></i>查看任务
+                                        </a>
+                                    </div>
+                                    <small class="text-white-50 mt-2 d-block">一键分析所有关注股票</small>
                                 </div>
                             </div>
                         </div>
@@ -355,6 +394,66 @@
 {% endblock %}
 
 {% block extra_js %}
+<style>
+.setting-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.setting-card:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.setting-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: white;
+}
+
+.setting-content {
+    color: white;
+}
+
+.form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.5);
+}
+
+.btn-light:hover {
+    background-color: rgba(255,255,255,0.9);
+    border-color: rgba(255,255,255,0.9);
+    transform: translateY(-1px);
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.5);
+    color: white;
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@media (max-width: 768px) {
+    .setting-card {
+        margin-bottom: 20px;
+    }
+}
+</style>
+
 <script>
 // 全局变量
 let analysisQueue = [];
@@ -365,63 +464,84 @@ let pendingAnalysis = null;
 
 // 加载提示词列表 - 全局函数
 function loadPrompts() {
+    console.log('=== loadPrompts 函数被调用 ===');
     const analysisType = $('#analysisType').val();
-    console.log('loadPrompts called, analysisType:', analysisType);
+    console.log('当前选择的分析类型:', analysisType);
+    console.log('analysisType 元素:', $('#analysisType'));
     
     if (!analysisType) {
-        $('#promptSelect').html('<option value="">请先选择分析类型</option>');
+        console.log('没有选择分析类型，禁用提示词下拉框');
+        $('#promptSelect').html('<option value="">请先选择分析类型</option>').prop('disabled', true);
         $('#previewPromptBtn').prop('disabled', true);
         return;
     }
     
+    console.log('开始加载提示词，分析类型:', analysisType);
     $('#promptSelect').html('<option value="">加载中...</option>');
     $('#previewPromptBtn').prop('disabled', true);
     
-    console.log('Making API request to:', `/api/prompt/prompts/type/${analysisType}`);
+    const apiUrl = `/api/prompt/prompts/type/${analysisType}`;
+    console.log('API请求URL:', apiUrl);
     
     $.ajax({
-        url: `/api/prompt/prompts/type/${analysisType}`,
+        url: apiUrl,
         method: 'GET',
         success: function(response) {
-            console.log('API response:', response);
+            console.log('API请求成功，响应:', response);
             if (response.success) {
+                console.log('开始更新提示词下拉框，提示词数量:', response.data.prompts.length);
                 updatePromptSelect(response.data.prompts);
             } else {
-                console.error('获取提示词失败:', response.message);
-                $('#promptSelect').html('<option value="">获取失败</option>');
+                console.error('API返回失败:', response.message);
+                $('#promptSelect').html('<option value="">获取失败</option>').prop('disabled', true);
+                $('#previewPromptBtn').prop('disabled', true);
             }
         },
         error: function(xhr, status, error) {
-            console.error('获取提示词失败:', error);
-            console.error('XHR:', xhr);
-            $('#promptSelect').html('<option value="">获取失败</option>');
+            console.error('API请求失败:', error);
+            console.error('状态码:', xhr.status);
+            console.error('响应文本:', xhr.responseText);
+            $('#promptSelect').html('<option value="">获取失败</option>').prop('disabled', true);
+            $('#previewPromptBtn').prop('disabled', true);
         }
     });
 }
 
 // 更新提示词选择框 - 全局函数
 function updatePromptSelect(prompts) {
-    console.log('updatePromptSelect called with prompts:', prompts);
+    console.log('=== updatePromptSelect 函数被调用 ===');
+    console.log('接收到的提示词数据:', prompts);
+    console.log('提示词数量:', prompts.length);
+    
     const select = $('#promptSelect');
+    console.log('找到的select元素:', select);
+    console.log('select元素长度:', select.length);
+    
     select.empty();
+    console.log('已清空下拉框');
     
     if (prompts.length === 0) {
+        console.log('没有可用提示词，显示空状态');
         select.append('<option value="">暂无可用提示词</option>');
+        select.prop('disabled', true);
         $('#previewPromptBtn').prop('disabled', true);
         return;
     }
     
     // 添加默认选项
+    console.log('添加默认选项');
     select.append('<option value="">使用默认提示词</option>');
     
     // 添加提示词选项
-    prompts.forEach(prompt => {
+    console.log('开始添加提示词选项');
+    prompts.forEach((prompt, index) => {
         const isDefault = prompt.is_default ? ' (默认)' : '';
         const version = `v${prompt.version}`;
         const usage = prompt.usage_count > 0 ? ` (使用${prompt.usage_count}次)` : '';
         const optionText = `${prompt.name} ${version}${isDefault}${usage}`;
         
-        console.log('Adding option:', optionText);
+        console.log(`添加第${index + 1}个选项:`, optionText);
+        console.log('提示词ID:', prompt.id);
         
         // 安全地序列化提示词数据，避免JSON解析错误
         const safePromptData = {
@@ -439,13 +559,19 @@ function updatePromptSelect(prompts) {
             last_used_at: prompt.last_used_at
         };
         
-        select.append(`<option value="${prompt.id}" data-prompt='${JSON.stringify(safePromptData).replace(/'/g, '&#39;')}'>${optionText}</option>`);
+        const optionHtml = `<option value="${prompt.id}" data-prompt='${JSON.stringify(safePromptData).replace(/'/g, '&#39;')}'>${optionText}</option>`;
+        select.append(optionHtml);
+        console.log('已添加选项HTML:', optionHtml);
     });
     
-    // 启用预览按钮
+    // 启用下拉框和预览按钮
+    console.log('启用下拉框和预览按钮');
+    select.prop('disabled', false);
     $('#previewPromptBtn').prop('disabled', false);
     
-    console.log('Select box updated, current options:', select.html());
+    console.log('下拉框当前HTML内容:', select.html());
+    console.log('下拉框是否禁用:', select.prop('disabled'));
+    console.log('=== updatePromptSelect 函数执行完成 ===');
 }
 
 // 提示词选择变化时的处理 - 全局函数
@@ -490,53 +616,54 @@ function previewSelectedPrompt() {
     }
 }
 
+// 获取使用量数据 - 全局函数
+function loadUsageData() {
+    $.ajax({
+        url: '/api/analysis/usage',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                currentUsageData = response.usage;
+                updateUsageDisplay(currentUsageData);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('获取使用量失败:', error);
+            $('#usageDisplay').text('获取失败');
+        }
+    });
+}
+
+// 更新使用量显示 - 全局函数
+function updateUsageDisplay(usage) {
+    const current = usage.current_count;
+    const limit = usage.daily_limit;
+    const remaining = usage.remaining;
+    const percentage = (current / limit) * 100;
+    
+    $('#usageDisplay').text(`${current}/${limit}`);
+    $('#usageProgress').css('width', `${Math.min(percentage, 100)}%`);
+    
+    if (usage.is_admin) {
+        $('#usageHint').text('管理员无限制');
+        $('#usageProgress').removeClass('bg-warning bg-danger').addClass('bg-success');
+    } else {
+        $('#usageHint').text(`每日限额：${limit}次`);
+        
+        if (percentage >= 100) {
+            $('#usageProgress').removeClass('bg-success bg-warning').addClass('bg-danger');
+        } else if (percentage >= 80) {
+            $('#usageProgress').removeClass('bg-success bg-danger').addClass('bg-warning');
+        } else {
+            $('#usageProgress').removeClass('bg-warning bg-danger').addClass('bg-success');
+        }
+    }
+}
+
 $(document).ready(function() {
     // 页面加载时获取使用量
     loadUsageData();
     
-    // 获取使用量数据
-    function loadUsageData() {
-        $.ajax({
-            url: '/api/analysis/usage',
-            method: 'GET',
-            success: function(response) {
-                if (response.success) {
-                    currentUsageData = response.usage;
-                    updateUsageDisplay(currentUsageData);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('获取使用量失败:', error);
-                $('#usageDisplay').text('获取失败');
-            }
-        });
-    }
-    
-    // 更新使用量显示
-    function updateUsageDisplay(usage) {
-        const current = usage.current_count;
-        const limit = usage.daily_limit;
-        const remaining = usage.remaining;
-        const percentage = (current / limit) * 100;
-        
-        $('#usageDisplay').text(`${current}/${limit}`);
-        $('#usageProgress').css('width', `${Math.min(percentage, 100)}%`);
-        
-        if (usage.is_admin) {
-            $('#usageHint').text('管理员无限制');
-            $('#usageProgress').removeClass('bg-warning bg-danger').addClass('bg-success');
-        } else {
-            $('#usageHint').text(`每日限额：${limit}次`);
-            
-            if (percentage >= 100) {
-                $('#usageProgress').removeClass('bg-success bg-warning').addClass('bg-danger');
-            } else if (percentage >= 80) {
-                $('#usageProgress').removeClass('bg-success bg-danger').addClass('bg-warning');
-            } else {
-                $('#usageProgress').removeClass('bg-warning bg-danger').addClass('bg-success');
-            }
-        }
-    }
     
     // 单个股票分析
     $('.analyze-btn').click(function() {
@@ -585,11 +712,13 @@ $(document).ready(function() {
     function executeAnalysis(stockCode, stockName, btn) {
         const analysisType = $('#analysisType').val();
         const aiProvider = $('#aiProvider').val();
+        const aiModel = $('#aiModel').val();
         
         console.log('股票代码:', stockCode);
         console.log('股票名称:', stockName);
         console.log('分析类型:', analysisType);
-        console.log('AI模型:', aiProvider);
+        console.log('AI提供商:', aiProvider);
+        console.log('AI模型:', aiModel);
         
         // 禁用按钮
         btn.prop('disabled', true);
@@ -606,6 +735,7 @@ $(document).ready(function() {
                 stock_code: stockCode,
                 analysis_type: analysisType,
                 ai_provider: aiProvider,
+                ai_model: aiModel,
                 prompt_id: $('#promptSelect').val() || null
             }),
             success: function(response) {
@@ -771,7 +901,8 @@ ${stockList}
             data: JSON.stringify({
                 stocks: stocksToAnalyze,
                 analysis_type: analysisType,
-                ai_provider: $('#aiProvider').val()
+                ai_provider: $('#aiProvider').val(),
+                ai_model: $('#aiModel').val()
             }),
             success: function(response) {
                 if (response.success) {
@@ -821,6 +952,7 @@ ${stockList}
                 stock_code: stock.code,
                 analysis_type: analysisType,
                 ai_provider: $('#aiProvider').val(),
+                ai_model: $('#aiModel').val(),
                 prompt_id: $('#promptSelect').val() || null
             }),
             success: function(response) {
@@ -1142,31 +1274,210 @@ function useThisPrompt(promptId) {
     showAlert('已选择该提示词', 'success');
 }
 
-$(document).ready(function() {
-    // 页面加载时获取使用量
-    loadUsageData();
+// 加载模型列表
+function loadModels() {
+    const provider = $('#aiProvider').val();
+    console.log('loadModels called, provider:', provider);
     
-    // 更新使用量显示
-    function updateUsageDisplay(usage) {
-        const current = usage.current_count;
-        const limit = usage.daily_limit;
-        const percentage = (current / limit) * 100;
-        
-        $('#usageDisplay').text(`${current}/${limit}`);
-        $('#usageProgress').css('width', percentage + '%');
-        $('#usageProgress').text(Math.round(percentage) + '%');
-        
-        // 根据使用量设置颜色
-        if (percentage >= 90) {
-            $('#usageProgress').removeClass('bg-warning bg-success').addClass('bg-danger');
-        } else if (percentage >= 70) {
-            $('#usageProgress').removeClass('bg-success bg-danger').addClass('bg-warning');
-        } else {
-            $('#usageProgress').removeClass('bg-warning bg-danger').addClass('bg-success');
-        }
+    if (!provider) {
+        $('#aiModel').html('<option value="">请先选择AI提供商</option>').prop('disabled', true);
+        $('#previewModelBtn').prop('disabled', true);
+        $('#modelInfo').text('选择具体的AI模型');
+        return;
     }
     
-    // 其他页面初始化代码...
-});
+    $('#aiModel').html('<option value="">加载中...</option>').prop('disabled', true);
+    $('#previewModelBtn').prop('disabled', true);
+    $('#modelInfo').text('正在加载模型列表...');
+    
+    $.ajax({
+        url: `/api/models/${provider}`,
+        method: 'GET',
+        success: function(response) {
+            console.log('Models API response:', response);
+            if (response.success) {
+                const models = response.data;
+                let options = '<option value="">请选择AI模型</option>';
+                
+                Object.keys(models).forEach(modelKey => {
+                    const model = models[modelKey];
+                    const costIcon = getCostIcon(model.cost_level);
+                    const timeIcon = getTimeIcon(model.response_time);
+                    const warningText = model.warning ? ` ⚠️` : '';
+                    
+                    options += `<option value="${modelKey}" data-model='${JSON.stringify(model)}'>
+                        ${costIcon} ${timeIcon} ${model.name}${warningText}
+                    </option>`;
+                });
+                
+                $('#aiModel').html(options).prop('disabled', false);
+                $('#modelInfo').text('选择具体的AI模型');
+            } else {
+                $('#aiModel').html('<option value="">加载失败</option>');
+                $('#modelInfo').text('加载模型列表失败');
+                showAlert('加载模型列表失败: ' + response.message, 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading models:', error);
+            $('#aiModel').html('<option value="">加载失败</option>');
+            $('#modelInfo').text('加载模型列表失败');
+            showAlert('加载模型列表失败', 'error');
+        }
+    });
+}
+
+// 模型选择变化处理
+function onModelChange() {
+    const modelKey = $('#aiModel').val();
+    const modelData = $('#aiModel option:selected').data('model');
+    
+    if (!modelKey || !modelData) {
+        $('#previewModelBtn').prop('disabled', true);
+        $('#modelInfo').text('选择具体的AI模型');
+        return;
+    }
+    
+    $('#previewModelBtn').prop('disabled', false);
+    
+    // 更新模型信息显示
+    let infoText = `${modelData.description}`;
+    if (modelData.warning) {
+        infoText += ` | ⚠️ ${modelData.warning}`;
+    }
+    $('#modelInfo').text(infoText);
+}
+
+// 预览选中的模型
+function previewSelectedModel() {
+    const modelKey = $('#aiModel').val();
+    const modelData = $('#aiModel option:selected').data('model');
+    
+    if (!modelKey || !modelData) {
+        showAlert('请先选择一个模型', 'warning');
+        return;
+    }
+    
+    // 创建模型预览弹窗
+    const modalHtml = `
+        <div class="modal fade" id="modelPreviewModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-robot me-2"></i>模型详情
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-info-circle me-2"></i>基本信息</h6>
+                                <table class="table table-sm">
+                                    <tr><td><strong>模型名称:</strong></td><td>${modelData.name}</td></tr>
+                                    <tr><td><strong>模型ID:</strong></td><td>${modelKey}</td></tr>
+                                    <tr><td><strong>最大Token:</strong></td><td>${modelData.max_tokens.toLocaleString()}</td></tr>
+                                    <tr><td><strong>成本等级:</strong></td><td>${getCostText(modelData.cost_level)}</td></tr>
+                                    <tr><td><strong>响应时间:</strong></td><td>${getTimeText(modelData.response_time)}</td></tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-star me-2"></i>功能特性</h6>
+                                <div class="d-flex flex-wrap gap-1">
+                                    ${modelData.features.map(feature => 
+                                        `<span class="badge bg-primary">${feature}</span>`
+                                    ).join('')}
+                                </div>
+                                
+                                ${modelData.warning ? `
+                                    <div class="alert alert-warning mt-3">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong>注意事项:</strong> ${modelData.warning}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <h6><i class="fas fa-align-left me-2"></i>模型描述</h6>
+                            <p class="text-muted">${modelData.description}</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>关闭
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="useThisModel('${modelKey}')">
+                            <i class="fas fa-check me-2"></i>使用此模型
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 移除已存在的弹窗
+    $('#modelPreviewModal').remove();
+    
+    // 添加新弹窗
+    $('body').append(modalHtml);
+    
+    // 显示弹窗
+    const modal = new bootstrap.Modal(document.getElementById('modelPreviewModal'));
+    modal.show();
+}
+
+// 使用选中的模型
+function useThisModel(modelKey) {
+    $('#aiModel').val(modelKey);
+    $('#modelPreviewModal').modal('hide');
+    onModelChange(); // 更新显示信息
+    showAlert('已选择该模型', 'success');
+}
+
+// 获取成本图标
+function getCostIcon(costLevel) {
+    const icons = {
+        'low': '💰',
+        'medium': '💸',
+        'high': '💎',
+        'very_high': '💎💎'
+    };
+    return icons[costLevel] || '💰';
+}
+
+// 获取时间图标
+function getTimeIcon(timeLevel) {
+    const icons = {
+        'fast': '⚡',
+        'medium': '🕐',
+        'slow': '🐌',
+        'very_slow': '🐌🐌'
+    };
+    return icons[timeLevel] || '🕐';
+}
+
+// 获取成本文本
+function getCostText(costLevel) {
+    const texts = {
+        'low': '低',
+        'medium': '中等',
+        'high': '高',
+        'very_high': '很高'
+    };
+    return texts[costLevel] || '未知';
+}
+
+// 获取时间文本
+function getTimeText(timeLevel) {
+    const texts = {
+        'fast': '快速',
+        'medium': '中等',
+        'slow': '较慢',
+        'very_slow': '很慢'
+    };
+    return texts[timeLevel] || '未知';
+}
+
 </script>
 {% endblock %}

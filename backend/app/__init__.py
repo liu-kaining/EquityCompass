@@ -86,6 +86,7 @@ def create_app(config_name='development'):
     from app.api.report_statistics_api import report_statistics_bp
     from app.api.ai_config_api import ai_config_api_bp
     from app.api.prompt_api import prompt_api_bp
+    from app.api.models_api import models_bp
     
     # Web页面路由
     app.register_blueprint(main_bp)
@@ -106,6 +107,7 @@ def create_app(config_name='development'):
     app.register_blueprint(report_statistics_bp, url_prefix='/api/report-statistics')
     app.register_blueprint(ai_config_api_bp, url_prefix='/api/ai-config')
     app.register_blueprint(prompt_api_bp, url_prefix='/api/prompt')
+    app.register_blueprint(models_bp)
     
 
     

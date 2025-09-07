@@ -81,12 +81,12 @@ def tasks():
             # 普通用户只获取自己的任务
             all_tasks = analysis_service.get_user_tasks(user_id, limit=1000)
         
-        # 转换任务时间为东八区
-        for task in all_tasks:
-            if 'created_at' in task:
-                task['created_at'] = convert_to_beijing_time(task['created_at'])
-            if 'completed_at' in task:
-                task['completed_at'] = convert_to_beijing_time(task['completed_at'])
+        # 不转换时间，让前端JavaScript处理时区转换
+        # for task in all_tasks:
+        #     if 'created_at' in task:
+        #         task['created_at'] = convert_to_beijing_time(task['created_at'])
+        #     if 'completed_at' in task:
+        #         task['completed_at'] = convert_to_beijing_time(task['completed_at'])
         
         # 分页处理
         total_tasks = len(all_tasks)

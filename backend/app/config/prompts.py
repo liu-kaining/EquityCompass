@@ -24,6 +24,16 @@ FUNDAMENTAL_ANALYSIS_PROMPT = """总体指令 (Overall Mandate)
 - 交易所：${exchange}
 - 分析日期：${analysis_date}
 
+【重要】实时市场数据（必须使用以下数据，不得使用其他来源的价格信息）：
+- 当前价格：$${current_price} （数据来源：${data_source}，时间：${data_timestamp}）
+- 价格变化：$${price_change} (${price_change_percent}%)
+- 成交量：${volume}
+- 市值：$${market_cap}
+- 数据源：${data_source}
+- 数据时间：${data_timestamp}
+
+【关键指令】在分析中必须严格使用上述实时价格数据，不得引用任何其他价格信息。所有价格相关的分析都必须基于上述实时数据。
+
 报告内容应包括:
 ● 公司概述与护城河分析 (Company & Moat):
     ○ 商业模式: 清晰描述其收入来源和成本结构。
@@ -148,6 +158,16 @@ TECHNICAL_ANALYSIS_PROMPT = """角色 (Persona):
 ● 交易所: ${exchange}
 ● 分析日期: ${analysis_date}
 
+【重要】实时市场数据（必须使用以下数据，不得使用其他来源的价格信息）:
+● 当前价格: $${current_price} （数据来源：${data_source}，时间：${data_timestamp}）
+● 价格变化: $${price_change} (${price_change_percent}%)
+● 成交量: ${volume}
+● 市值: $${market_cap}
+● 数据源: ${data_source}
+● 数据时间: ${data_timestamp}
+
+【关键指令】在分析中必须严格使用上述实时价格数据，不得引用任何其他价格信息。所有价格相关的分析都必须基于上述实时数据。
+
 输出报告 (Investment Committee Memo):
 
 1. 核心投资论点与置信度评分 (Investment Thesis & Conviction Score)
@@ -156,12 +176,12 @@ TECHNICAL_ANALYSIS_PROMPT = """角色 (Persona):
 
 2. 关键数据仪表盘 (Quantitative Dashboard)
 ● 以简洁的表格或列表形式，展示最关键的量化数据：
-    ○ 当前价格: $XXX.XX
+    ○ 当前价格: $${current_price} （必须使用上述实时数据）
     ○ 52周高/低点: $XXX.XX / $YYY.YY
     ○ 关键均线 (MA50/MA200): 价格与其关系 (之上/之下，距离%)
     ○ 波动率指标 (ATR-14): $Z.ZZ (用于衡量真实日均波幅)
     ○ 相对强弱 (vs. S&P 500): 近3个月表现 (跑赢/跑输 XX%)
-    ○ 成交量 (Volume - 20日均值): X.XX M shares
+    ○ 成交量 (Volume - 20日均值): ${volume} shares （必须使用上述实时数据）
 
 3. 多维时间框架共振分析 (Multi-Timeframe Coherence Analysis)
 ● A. 宏观结构 (The Weekly Chart - 长期视角):

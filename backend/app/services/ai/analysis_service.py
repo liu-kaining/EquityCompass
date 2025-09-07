@@ -5,7 +5,7 @@ AI分析服务 - 简化版本
 import os
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 from app.repositories.stock_repository import StockRepository
@@ -135,7 +135,7 @@ class AnalysisService:
                     # 记录重试历史
                     retry_record = {
                         'attempt': retry_count + 1,
-                        'timestamp': datetime.utcnow().isoformat(),
+                        'timestamp': datetime.utcnow().isoformat() + 'Z',
                         'error': error_msg
                     }
                     task_data['retry_history'].append(retry_record)
@@ -166,7 +166,7 @@ class AnalysisService:
                 # 记录重试历史
                 retry_record = {
                     'attempt': retry_count + 1,
-                    'timestamp': datetime.utcnow().isoformat(),
+                        'timestamp': datetime.utcnow().isoformat() + 'Z',
                     'error': error_msg
                 }
                 task_data['retry_history'].append(retry_record)
@@ -309,47 +309,53 @@ class AnalysisService:
         
         return LLMProviderFactory.create_provider(ai_provider, provider_config)
     
+    def _get_llm_provider(self, ai_provider: str):
+        """统一的LLM Provider获取方法"""
+        from app.services.ai.llm_provider import LLMProviderFactory
+        
+        # 优先从数据库获取配置
+        try:
+            from app.models.ai_config import AIConfig
+            
+            if ai_provider and ai_provider != 'default':
+                # 根据提供商名称查找配置
+                config = AIConfig.query.filter_by(provider_name=ai_provider, is_active=True).first()
+                if config:
+                    provider = LLMProviderFactory.create_provider(
+                        config.provider_name,
+                        config.get_config_dict()
+                    )
+                    logger.info(f"使用数据库配置: {config.provider_name} - {config.model_name}")
+                    return provider
+                else:
+                    logger.warning(f"数据库中没有找到激活的 {ai_provider} 配置")
+            else:
+                # 使用默认配置
+                provider = LLMProviderFactory.create_default_provider()
+                logger.info(f"使用默认配置: {provider.name}")
+                return provider
+                
+        except Exception as e:
+            logger.warning(f"从数据库获取配置失败: {str(e)}")
+        
+        # 如果数据库配置失败，尝试环境变量（仅作为最后的回退）
+        try:
+            provider = self._create_provider_from_env(ai_provider)
+            logger.info(f"回退到环境变量配置: {ai_provider}")
+            return provider
+        except Exception as e:
+            logger.warning(f"环境变量配置也失败: {str(e)}")
+            return None
+    
     def _generate_analysis_report(self, stock, analysis_type: str = 'fundamental', ai_provider: str = 'qwen', prompt_id: int = None) -> Dict[str, Any]:
         """生成分析报告"""
         try:
             from app.services.ai.llm_provider import LLMProviderFactory
-            from flask import current_app
             
             logger.info(f"开始生成分析报告 - 股票: {stock.code}, 分析类型: {analysis_type}, AI提供商: {ai_provider}")
             
-            # 优先从数据库获取配置
-            provider = None
-            try:
-                from app.models.ai_config import AIConfig
-                
-                if ai_provider and ai_provider != 'default':
-                    # 根据提供商名称查找配置
-                    config = AIConfig.query.filter_by(provider_name=ai_provider, is_active=True).first()
-                    if config:
-                        provider = LLMProviderFactory.create_provider(
-                            config.provider_name,
-                            config.get_config_dict()
-                        )
-                        logger.info(f"使用数据库配置: {config.provider_name} - {config.model_name}")
-                    else:
-                        logger.warning(f"数据库中没有找到激活的 {ai_provider} 配置")
-                else:
-                    # 使用默认配置
-                    provider = LLMProviderFactory.create_default_provider()
-                    logger.info(f"使用默认配置: {provider.name}")
-                    
-            except Exception as e:
-                logger.warning(f"从数据库获取配置失败: {str(e)}")
-                provider = None
-            
-            # 如果数据库配置失败，尝试环境变量（仅作为最后的回退）
-            if not provider:
-                try:
-                    provider = self._create_provider_from_env(ai_provider)
-                    logger.info(f"回退到环境变量配置: {ai_provider}")
-                except Exception as e:
-                    logger.warning(f"环境变量配置也失败: {str(e)}")
-                    provider = None
+            # 使用统一的配置管理器获取Provider
+            provider = self._get_llm_provider(ai_provider)
             
             # 如果没有provider或API密钥，返回模拟数据
             if not provider or not provider.api_key:
@@ -364,22 +370,33 @@ class AnalysisService:
                     'provider': 'demo',
                     'analysis_type': analysis_type,
                     'metadata': {
-                        'timestamp': datetime.utcnow().isoformat(),
+                        'timestamp': datetime.utcnow().isoformat() + 'Z',
                         'note': f'请配置{ai_provider.upper()}_API_KEY环境变量以使用真实AI分析'
                     }
                 }
             
             # Provider已经在上面创建了，这里不需要重复创建
             
-            # 准备股票信息
-            stock_info = {
-                'code': stock.code,
-                'name': stock.name,
-                'market': stock.market,
-                'industry': stock.industry or '未知',
-                'exchange': stock.exchange or '未知',
-                'analysis_date': datetime.utcnow().strftime('%Y-%m-%d')
-            }
+            # 获取实时股票数据
+            from app.services.data.multi_source_data_service import multi_source_service
+            
+            # 获取AI分析所需的数据
+            stock_info = multi_source_service.get_analysis_ready_data(stock.code)
+            
+            if not stock_info:
+                logger.warning(f"无法获取实时数据，使用基础信息: {stock.code}")
+                # 回退到基础信息
+                stock_info = {
+                    'code': stock.code,
+                    'name': stock.name,
+                    'market': stock.market,
+                    'industry': stock.industry or '未知',
+                    'exchange': stock.exchange or '未知',
+                    'analysis_date': datetime.utcnow().strftime('%Y-%m-%d')
+                }
+            else:
+                logger.info(f"获取到增强实时数据: {stock.code}, 数据源: {stock_info.get('data_source', 'unknown')}")
+            
             logger.info(f"股票信息: {stock_info}")
             
             # 生成分析报告
@@ -388,9 +405,9 @@ class AnalysisService:
             logger.info(f"开始调用{ai_provider}生成分析...")
             result = provider.generate_analysis(prompt_template, stock_info)
             
-            if result['success']:
-                logger.info(f"AI分析成功 - 股票: {stock.code}, 提供商: {ai_provider}, 内容长度: {len(result['content'])} 字符")
-                logger.info(f"分析结果元数据: {result.get('metadata', {})}")
+            if result.success:
+                logger.info(f"AI分析成功 - 股票: {stock.code}, 提供商: {ai_provider}, 内容长度: {len(result.content)} 字符")
+                logger.info(f"分析结果元数据: {result.metadata}")
                 
                 return {
                     'success': True,
@@ -398,22 +415,51 @@ class AnalysisService:
                     'stock_name': stock.name,
                     'market': stock.market,
                     'analysis_date': stock_info['analysis_date'],
-                    'content': result['content'],
+                    'content': result.content,
                     'provider': ai_provider,
                     'analysis_type': analysis_type,
+                    
+                    # AI模型信息
+                    'ai_model': result.model,
+                    'deep_research': getattr(provider, 'deep_research', False),
+                    'model_config': getattr(provider, 'model_config', None),
+                    
+                    # 实时股票数据
+                    'current_price': stock_info.get('current_price'),
+                    'price_change': stock_info.get('price_change'),
+                    'price_change_percent': stock_info.get('price_change_percent'),
+                    'volume': stock_info.get('volume'),
+                    'market_cap': stock_info.get('market_cap'),
+                    'data_source': stock_info.get('data_source'),
+                    'data_timestamp': stock_info.get('data_timestamp'),
+                    
+                    # 提示词信息
+                    'prompt_template': prompt_template[:200] + '...' if len(prompt_template) > 200 else prompt_template,
+                    'prompt_version': f"v{datetime.utcnow().strftime('%Y%m%d')}",
+                    'full_prompt': prompt_template,
+                    
+                    # 分析结果
+                    'status': 'completed',
+                    'retry_count': result.retry_count,
+                    'completed_at': datetime.utcnow().isoformat() + 'Z',
+                    
                     'metadata': {
-                        'tokens_used': result.get('tokens_used'),
-                        'response_time': result.get('response_time'),
-                        'model': result.get('model'),
-                        'timestamp': result.get('timestamp')
+                        'tokens_used': result.tokens_used,
+                        'response_time': result.response_time,
+                        'model': result.model,
+                        'timestamp': result.timestamp,
+                        'retry_count': result.retry_count,
+                        'error_type': result.error_type.value if result.error_type else None
                     }
                 }
             else:
                 # 如果AI分析失败，不生成报告，直接返回失败状态
-                logger.error(f"AI分析失败 - 股票: {stock.code}, 提供商: {ai_provider}, 错误: {result.get('error', '未知错误')}")
+                logger.error(f"AI分析失败 - 股票: {stock.code}, 提供商: {ai_provider}, 错误: {result.error}")
                 return {
                     'success': False,
-                    'error': result.get('error', '未知错误'),
+                    'error': result.error,
+                    'error_type': result.error_type.value if result.error_type else None,
+                    'retry_count': result.retry_count,
                     'stock_code': stock.code,
                     'stock_name': stock.name,
                     'market': stock.market,
@@ -462,7 +508,7 @@ class AnalysisService:
             
             # 添加元数据
             report_data['report_id'] = f"{stock_code}_{timestamp}"
-            report_data['created_at'] = datetime.utcnow().isoformat()
+            report_data['created_at'] = datetime.utcnow().isoformat() + 'Z'
             report_data['analysis_type'] = analysis_type
             
             with open(report_file, 'w', encoding='utf-8') as f:
@@ -775,7 +821,7 @@ class AnalysisService:
             return 0
 
     def create_single_analysis_task(self, user_id: int, stock_code: str, 
-                                  analysis_type: str = 'fundamental', ai_provider: str = 'gemini', prompt_id: int = None) -> str:
+                                  analysis_type: str = 'fundamental', ai_provider: str = 'gemini', ai_model: str = None, prompt_id: int = None) -> str:
         """创建单个分析任务"""
         try:
             import threading
@@ -792,9 +838,10 @@ class AnalysisService:
                 'stock_code': stock_code,
                 'analysis_type': analysis_type,
                 'ai_provider': ai_provider,
+                'ai_model': ai_model,
                 'prompt_id': prompt_id,
                 'status': 'pending',
-                'created_at': datetime.utcnow().isoformat(),
+                'created_at': datetime.utcnow().isoformat() + 'Z',
                 'total_count': 1,
                 'completed_count': 0,
                 'failed_count': 0,
@@ -820,7 +867,7 @@ class AnalysisService:
                         
                         # 更新任务状态为进行中
                         task_data['status'] = 'running'
-                        task_data['started_at'] = datetime.utcnow().isoformat()
+                        task_data['started_at'] = datetime.utcnow().isoformat() + 'Z'
                         with open(task_file, 'w', encoding='utf-8') as f:
                             json.dump(task_data, f, ensure_ascii=False, indent=2)
                         
@@ -828,7 +875,7 @@ class AnalysisService:
                         if not task_manager.wait_if_paused(task_id):
                             logger.info(f"任务 {task_id} 被停止，退出执行")
                             task_data['status'] = 'stopped'
-                            task_data['stopped_at'] = datetime.utcnow().isoformat()
+                            task_data['stopped_at'] = datetime.utcnow().isoformat() + 'Z'
                             with open(task_file, 'w', encoding='utf-8') as f:
                                 json.dump(task_data, f, ensure_ascii=False, indent=2)
                             
@@ -852,7 +899,7 @@ class AnalysisService:
                             logger.error(f"股票 {stock_code} 分析失败: {result.get('error')}")
                         
                         # 更新任务状态
-                        task_data['completed_at'] = datetime.utcnow().isoformat()
+                        task_data['completed_at'] = datetime.utcnow().isoformat() + 'Z'
                         with open(task_file, 'w', encoding='utf-8') as f:
                             json.dump(task_data, f, ensure_ascii=False, indent=2)
                         
@@ -866,7 +913,7 @@ class AnalysisService:
                     task_data['status'] = 'failed'
                     task_data['error'] = str(e)
                     task_data['final_error'] = str(e)
-                    task_data['failed_at'] = datetime.utcnow().isoformat()
+                    task_data['failed_at'] = datetime.utcnow().isoformat() + 'Z'
                     with open(task_file, 'w', encoding='utf-8') as f:
                         json.dump(task_data, f, ensure_ascii=False, indent=2)
                     
@@ -889,7 +936,7 @@ class AnalysisService:
             raise e
 
     def create_batch_analysis_task(self, user_id: int, user_email: str, stocks: List[Dict], 
-                                  analysis_type: str = 'fundamental', ai_provider: str = 'qwen', prompt_id: int = None) -> str:
+                                  analysis_type: str = 'fundamental', ai_provider: str = 'qwen', ai_model: str = None, prompt_id: int = None) -> str:
         """创建批量分析任务"""
         try:
             import threading
@@ -907,9 +954,10 @@ class AnalysisService:
                 'stocks': stocks,
                 'analysis_type': analysis_type,
                 'ai_provider': ai_provider,
+                'ai_model': ai_model,
                 'prompt_id': prompt_id,
                 'status': 'pending',
-                'created_at': datetime.utcnow().isoformat(),
+                'created_at': datetime.utcnow().isoformat() + 'Z',
                 'total_count': len(stocks),
                 'completed_count': 0,
                 'failed_count': 0,
@@ -935,7 +983,7 @@ class AnalysisService:
                         
                         # 更新任务状态为进行中
                         task_data['status'] = 'running'
-                        task_data['started_at'] = datetime.utcnow().isoformat()
+                        task_data['started_at'] = datetime.utcnow().isoformat() + 'Z'
                         with open(task_file, 'w', encoding='utf-8') as f:
                             json.dump(task_data, f, ensure_ascii=False, indent=2)
                         
@@ -946,7 +994,7 @@ class AnalysisService:
                                 if not task_manager.wait_if_paused(task_id):
                                     logger.info(f"任务 {task_id} 被停止，退出执行")
                                     task_data['status'] = 'stopped'
-                                    task_data['stopped_at'] = datetime.utcnow().isoformat()
+                                    task_data['stopped_at'] = datetime.utcnow().isoformat() + 'Z'
                                     with open(task_file, 'w', encoding='utf-8') as f:
                                         json.dump(task_data, f, ensure_ascii=False, indent=2)
                                     
@@ -965,7 +1013,7 @@ class AnalysisService:
                                     task_data['stock_status'][stock_code] = {
                                         'status': 'completed',
                                         'retry_count': result.get('retry_count', 0),
-                                        'completed_at': datetime.utcnow().isoformat()
+                                        'completed_at': datetime.utcnow().isoformat() + 'Z'
                                     }
                                     logger.info(f"股票 {stock_code} 分析成功")
                                 else:
@@ -982,7 +1030,7 @@ class AnalysisService:
                                         'status': 'failed',
                                         'retry_count': result.get('retry_count', 0),
                                         'error': result.get('error', '分析失败'),
-                                        'failed_at': datetime.utcnow().isoformat()
+                                        'failed_at': datetime.utcnow().isoformat() + 'Z'
                                     }
                                     logger.error(f"股票 {stock_code} 分析失败: {result.get('error')}")
                                 
@@ -1014,7 +1062,7 @@ class AnalysisService:
                         
                         # 更新任务状态为完成
                         task_data['status'] = 'completed'
-                        task_data['completed_at'] = datetime.utcnow().isoformat()
+                        task_data['completed_at'] = datetime.utcnow().isoformat() + 'Z'
                         with open(task_file, 'w', encoding='utf-8') as f:
                             json.dump(task_data, f, ensure_ascii=False, indent=2)
                         
@@ -1030,7 +1078,7 @@ class AnalysisService:
                     logger.error(f"批量分析任务执行失败: {task_id}, 错误: {str(e)}")
                     task_data['status'] = 'failed'
                     task_data['error'] = str(e)
-                    task_data['failed_at'] = datetime.utcnow().isoformat()
+                    task_data['failed_at'] = datetime.utcnow().isoformat() + 'Z'
                     with open(task_file, 'w', encoding='utf-8') as f:
                         json.dump(task_data, f, ensure_ascii=False, indent=2)
                     
@@ -1151,7 +1199,7 @@ class AnalysisService:
                         
                         # 更新任务状态为进行中
                         task_data['status'] = 'running'
-                        task_data['started_at'] = datetime.utcnow().isoformat()
+                        task_data['started_at'] = datetime.utcnow().isoformat() + 'Z'
                         task_file = os.path.join(self.reports_dir, f"{task_data['task_id']}.task.json")
                         with open(task_file, 'w', encoding='utf-8') as f:
                             json.dump(task_data, f, ensure_ascii=False, indent=2)
@@ -1167,12 +1215,12 @@ class AnalysisService:
                         if result['success']:
                             task_data['status'] = 'completed'
                             task_data['completed_count'] = 1
-                            task_data['completed_at'] = datetime.utcnow().isoformat()
+                            task_data['completed_at'] = datetime.utcnow().isoformat() + 'Z'
                             logger.info(f"重试单个分析任务成功: {task_data['task_id']}")
                         else:
                             task_data['status'] = 'failed'
                             task_data['failed_count'] = 1
-                            task_data['failed_at'] = datetime.utcnow().isoformat()
+                            task_data['failed_at'] = datetime.utcnow().isoformat() + 'Z'
                             task_data['final_error'] = result.get('error', '分析失败')
                             logger.error(f"重试单个分析任务失败: {task_data['task_id']}, 错误: {result.get('error')}")
                         
@@ -1183,7 +1231,7 @@ class AnalysisService:
                     except Exception as e:
                         logger.error(f"重试单个分析任务异常: {task_data['task_id']}, 错误: {str(e)}")
                         task_data['status'] = 'failed'
-                        task_data['failed_at'] = datetime.utcnow().isoformat()
+                        task_data['failed_at'] = datetime.utcnow().isoformat() + 'Z'
                         task_data['final_error'] = str(e)
                         task_file = os.path.join(self.reports_dir, f"{task_data['task_id']}.task.json")
                         with open(task_file, 'w', encoding='utf-8') as f:
@@ -1215,7 +1263,7 @@ class AnalysisService:
                         
                         # 更新任务状态为进行中
                         task_data['status'] = 'running'
-                        task_data['started_at'] = datetime.utcnow().isoformat()
+                        task_data['started_at'] = datetime.utcnow().isoformat() + 'Z'
                         task_file = os.path.join(self.reports_dir, f"{task_data['task_id']}.task.json")
                         with open(task_file, 'w', encoding='utf-8') as f:
                             json.dump(task_data, f, ensure_ascii=False, indent=2)
@@ -1237,7 +1285,7 @@ class AnalysisService:
                                     task_data['stock_status'][stock_code] = {
                                         'status': 'completed',
                                         'retry_count': result.get('retry_count', 0),
-                                        'completed_at': datetime.utcnow().isoformat()
+                                        'completed_at': datetime.utcnow().isoformat() + 'Z'
                                     }
                                     logger.info(f"重试股票 {stock_code} 分析成功")
                                 else:
@@ -1276,11 +1324,11 @@ class AnalysisService:
                         # 更新最终状态
                         if task_data['failed_count'] == 0:
                             task_data['status'] = 'completed'
-                            task_data['completed_at'] = datetime.utcnow().isoformat()
+                            task_data['completed_at'] = datetime.utcnow().isoformat() + 'Z'
                             logger.info(f"重试批量分析任务全部成功: {task_data['task_id']}")
                         else:
                             task_data['status'] = 'failed'
-                            task_data['failed_at'] = datetime.utcnow().isoformat()
+                            task_data['failed_at'] = datetime.utcnow().isoformat() + 'Z'
                             task_data['final_error'] = f"部分股票分析失败，成功: {task_data['completed_count']}，失败: {task_data['failed_count']}"
                             logger.warning(f"重试批量分析任务部分失败: {task_data['task_id']}")
                         
@@ -1291,7 +1339,7 @@ class AnalysisService:
                     except Exception as e:
                         logger.error(f"重试批量分析任务异常: {task_data['task_id']}, 错误: {str(e)}")
                         task_data['status'] = 'failed'
-                        task_data['failed_at'] = datetime.utcnow().isoformat()
+                        task_data['failed_at'] = datetime.utcnow().isoformat() + 'Z'
                         task_data['final_error'] = str(e)
                         task_file = os.path.join(self.reports_dir, f"{task_data['task_id']}.task.json")
                         with open(task_file, 'w', encoding='utf-8') as f:
@@ -1378,8 +1426,8 @@ class AnalysisService:
             if task_manager.pause_task(task_id):
                 # 更新任务文件状态
                 task_data['status'] = 'paused'
-                task_data['paused_at'] = datetime.utcnow().isoformat()
-                task_data['updated_at'] = datetime.utcnow().isoformat()
+                task_data['paused_at'] = datetime.utcnow().isoformat() + 'Z'
+                task_data['updated_at'] = datetime.utcnow().isoformat() + 'Z'
                 
                 # 保存任务数据
                 with open(task_file, 'w', encoding='utf-8') as f:
@@ -1391,8 +1439,8 @@ class AnalysisService:
                 # 如果任务管理器暂停失败（可能任务不在管理器中），直接更新文件状态
                 logger.warning(f"任务管理器暂停任务失败: {task_id}，尝试直接更新文件状态")
                 task_data['status'] = 'paused'
-                task_data['paused_at'] = datetime.utcnow().isoformat()
-                task_data['updated_at'] = datetime.utcnow().isoformat()
+                task_data['paused_at'] = datetime.utcnow().isoformat() + 'Z'
+                task_data['updated_at'] = datetime.utcnow().isoformat() + 'Z'
                 
                 # 保存任务数据
                 with open(task_file, 'w', encoding='utf-8') as f:
@@ -1436,7 +1484,7 @@ class AnalysisService:
                 # 更新任务文件状态
                 task_data['status'] = 'running'
                 task_data['resumed_at'] = datetime.utcnow().isoformat()
-                task_data['updated_at'] = datetime.utcnow().isoformat()
+                task_data['updated_at'] = datetime.utcnow().isoformat() + 'Z'
                 
                 # 保存任务数据
                 with open(task_file, 'w', encoding='utf-8') as f:
@@ -1449,7 +1497,7 @@ class AnalysisService:
                 logger.warning(f"任务管理器恢复任务失败: {task_id}，尝试直接更新文件状态")
                 task_data['status'] = 'running'
                 task_data['resumed_at'] = datetime.utcnow().isoformat()
-                task_data['updated_at'] = datetime.utcnow().isoformat()
+                task_data['updated_at'] = datetime.utcnow().isoformat() + 'Z'
                 
                 # 保存任务数据
                 with open(task_file, 'w', encoding='utf-8') as f:
@@ -1576,3 +1624,139 @@ class AnalysisService:
         except Exception as e:
             logger.error(f"获取所有任务列表失败: {str(e)}")
             return []
+    
+    def get_analysis_details(self, report_id: int) -> dict:
+        """获取分析详情"""
+        try:
+            from app.models.analysis import ReportIndex
+            
+            # 获取报告
+            report = ReportIndex.query.get(report_id)
+            if not report:
+                return None
+            
+            # 获取报告文件
+            report_file = None
+            reports_dir = 'data/reports'
+            
+            # 查找报告文件
+            stock_code = report.stock.code if report.stock else None
+            if stock_code:
+                for date_dir in os.listdir(reports_dir):
+                    date_path = os.path.join(reports_dir, date_dir)
+                    if os.path.isdir(date_path):
+                        for filename in os.listdir(date_path):
+                            if filename.endswith('.json') and stock_code in filename:
+                                report_file = os.path.join(date_path, filename)
+                                break
+                        if report_file:
+                            break
+            
+            # 读取报告文件
+            report_data = {}
+            if report_file and os.path.exists(report_file):
+                with open(report_file, 'r', encoding='utf-8') as f:
+                    report_data = json.load(f)
+            else:
+                # 如果文件不存在，尝试使用数据库中的文件路径
+                if report.file_path and os.path.exists(report.file_path):
+                    with open(report.file_path, 'r', encoding='utf-8') as f:
+                        report_data = json.load(f)
+                else:
+                    logger.warning(f"报告文件不存在: {report.file_path}")
+                    # 返回基本信息，即使没有详细数据
+            
+            # 获取任务文件
+            task_file = None
+            task_data = {}
+            
+            # 查找任务文件
+            for filename in os.listdir(reports_dir):
+                if filename.endswith('.task.json'):
+                    task_file_path = os.path.join(reports_dir, filename)
+                    try:
+                        with open(task_file_path, 'r', encoding='utf-8') as f:
+                            temp_task_data = json.load(f)
+                        
+                        # 检查是否包含此股票
+                        if (temp_task_data.get('stock_code') == stock_code or 
+                            any(stock.get('code') == stock_code for stock in temp_task_data.get('stocks', []))):
+                            task_file = task_file_path
+                            task_data = temp_task_data
+                            break
+                    except Exception as e:
+                        logger.warning(f"读取任务文件失败: {task_file_path}, {str(e)}")
+                        continue
+            
+            # 构建分析详情
+            details = {
+                # 基本信息
+                'stock_code': report.stock.code if report.stock else None,
+                'stock_name': report.stock.name if report.stock else None,
+                'market': report.stock.market if report.stock else None,
+                'analysis_type': report_data.get('analysis_type'),
+                'analysis_date': self._convert_to_beijing_time(report.analysis_date) if report.analysis_date else None,
+                'created_at': self._convert_to_beijing_time(report.generated_at) if report.generated_at else None,
+                
+                # AI模型信息
+                'provider': report_data.get('provider'),
+                'ai_model': report_data.get('ai_model'),
+                'deep_research': report_data.get('deep_research', False),
+                'model_config': report_data.get('model_config'),
+                
+                # 实时股票数据
+                'current_price': report_data.get('current_price'),
+                'price_change': report_data.get('price_change'),
+                'price_change_percent': report_data.get('price_change_percent'),
+                'volume': report_data.get('volume'),
+                'market_cap': report_data.get('market_cap'),
+                'data_source': report_data.get('data_source'),
+                'data_timestamp': report_data.get('data_timestamp'),
+                
+                # 提示词信息
+                'prompt_template': report_data.get('prompt_template'),
+                'prompt_version': report_data.get('prompt_version'),
+                'full_prompt': report_data.get('full_prompt'),
+                
+                # 分析结果
+                'status': report_data.get('status'),
+                'retry_count': report_data.get('retry_count', 0),
+                'completed_at': self._convert_to_beijing_time(report_data.get('completed_at')) if report_data.get('completed_at') else None,
+                'error': report_data.get('error')
+            }
+            
+            return details
+            
+        except Exception as e:
+            logger.error(f"获取分析详情失败: {str(e)}")
+            return None
+    
+    def _convert_to_beijing_time(self, time_value):
+        """将时间转换为北京时间（东八区）"""
+        try:
+            if not time_value:
+                return None
+            
+            # 如果是字符串，先解析为datetime对象
+            if isinstance(time_value, str):
+                # 处理带Z后缀的UTC时间
+                if time_value.endswith('Z'):
+                    time_value = time_value[:-1]
+                # 处理ISO格式时间
+                if 'T' in time_value:
+                    from datetime import datetime
+                    time_value = datetime.fromisoformat(time_value)
+                else:
+                    from datetime import datetime
+                    time_value = datetime.fromisoformat(time_value)
+            
+            # 如果是datetime对象，转换为北京时间
+            if hasattr(time_value, 'replace'):
+                # 假设输入是UTC时间，转换为北京时间（UTC+8）
+                beijing_time = time_value.replace(tzinfo=None) + timedelta(hours=8)
+                return beijing_time.strftime('%Y-%m-%d %H:%M:%S')
+            
+            return str(time_value)
+        except Exception as e:
+            logger.error(f"时间转换失败: {str(e)}")
+            return str(time_value) if time_value else None
