@@ -1169,6 +1169,7 @@ class DeepSeekProvider(LLMProvider):
     def _make_api_request(self, prompt: str, stock_info: Dict[str, Any]) -> AnalysisResult:
         """执行DeepSeek API请求"""
         stock_code = stock_info.get('code', 'unknown')
+        start_time = time.time()
         
         logger.info(f"调用DeepSeek API - 股票: {stock_code}, 模型: {self.model}")
         logger.debug(f"API URL: {self.api_url}")
@@ -1195,8 +1196,8 @@ class DeepSeekProvider(LLMProvider):
             "temperature": self.temperature
         }
         
-        # 如果启用深度思考或全网搜索，添加工具参数
-        if self.enable_deep_thinking or self.enable_web_search:
+        # 如果启用深度思考或全网搜索，添加工具参数（但deepseek-reasoner不支持工具调用）
+        if self.model != 'deepseek-reasoner' and (self.enable_deep_thinking or self.enable_web_search):
             data['tools'] = []
             
             if self.enable_deep_thinking:
@@ -1260,6 +1261,13 @@ class DeepSeekProvider(LLMProvider):
                 logger.debug(f"DeepSeek API返回成功 - 股票: {stock_code}")
                 
                 message = result['choices'][0]['message']
+                finish_reason = result['choices'][0].get('finish_reason', '')
+                
+                # 如果返回工具调用，需要继续对话获取最终结果
+                if finish_reason == 'tool_calls' and 'tool_calls' in message:
+                    logger.info("检测到工具调用，继续对话获取最终结果")
+                    return self._continue_conversation_with_tools(data, message, headers, stock_code, start_time)
+                
                 content = self._extract_deepseek_content(message)
                 
                 logger.info(f"DeepSeek分析成功 - 股票: {stock_code}, 内容长度: {len(content)} 字符")
@@ -1325,12 +1333,117 @@ class DeepSeekProvider(LLMProvider):
             # 推理内容格式
             return message['reasoning_content']
         elif 'tool_calls' in message and message['tool_calls']:
-            # 工具调用格式 - 需要处理 tool_calls
-            logger.info("检测到工具调用，需要进一步处理")
-            return "深度思考模式已启用，正在处理推理结果..."
+            # 工具调用格式 - 处理深度思考和搜索工具
+            logger.info("检测到工具调用，处理深度思考结果")
+            return self._process_tool_calls(message['tool_calls'])
         else:
             logger.warning(f"DeepSeek响应格式未知: {message}")
             return "响应格式异常，请检查API配置"
+    
+    def _process_tool_calls(self, tool_calls: List[Dict[str, Any]]) -> str:
+        """处理工具调用结果 - 需要继续对话获取最终结果"""
+        try:
+            # 收集工具调用信息
+            tool_info = []
+            for tool_call in tool_calls:
+                if tool_call.get('type') == 'function':
+                    function_name = tool_call.get('function', {}).get('name', '')
+                    function_args = tool_call.get('function', {}).get('arguments', '{}')
+                    
+                    if function_name == 'deep_thinking':
+                        try:
+                            args = json.loads(function_args)
+                            thinking_steps = args.get('thinking_steps', 3)
+                            tool_info.append(f"深度思考（{thinking_steps}步推理）")
+                        except json.JSONDecodeError:
+                            tool_info.append("深度思考")
+                    
+                    elif function_name == 'web_search':
+                        try:
+                            args = json.loads(function_args)
+                            query = args.get('query', '')
+                            tool_info.append(f"网络搜索：{query}")
+                        except json.JSONDecodeError:
+                            tool_info.append("网络搜索")
+                    
+                    else:
+                        tool_info.append(f"工具调用：{function_name}")
+            
+            # 返回工具调用信息，提示用户这是中间步骤
+            if tool_info:
+                return f"正在使用深度思考模式进行分析...\n\n已启用工具：{', '.join(tool_info)}\n\n请稍候，系统正在处理推理结果..."
+            else:
+                return "深度思考模式已启用，正在处理推理结果..."
+                
+        except Exception as e:
+            logger.error(f"处理工具调用时出错: {str(e)}")
+            return "深度思考分析进行中，请稍候..."
+    
+    def _continue_conversation_with_tools(self, original_data: Dict[str, Any], tool_message: Dict[str, Any], headers: Dict[str, str], stock_code: str, start_time: float) -> AnalysisResult:
+        """继续对话以获取工具调用的最终结果"""
+        try:
+            # 计算响应时间
+            response_time = time.time() - start_time
+            # 构建继续对话的请求
+            continue_data = {
+                "model": original_data["model"],
+                "messages": original_data["messages"] + [
+                    tool_message,  # 添加工具调用消息
+                    {
+                        "role": "tool",
+                        "content": "工具调用已完成，请提供最终的分析结果。",
+                        "tool_call_id": tool_message["tool_calls"][0]["id"] if tool_message.get("tool_calls") else None
+                    }
+                ],
+                "max_tokens": original_data["max_tokens"],
+                "temperature": original_data["temperature"]
+            }
+            
+            logger.info(f"继续对话获取最终结果 - 股票: {stock_code}")
+            
+            # 发送继续对话请求
+            response = requests.post(
+                self.api_url,
+                headers=headers,
+                json=continue_data,
+                timeout=(self.connect_timeout, self.request_timeout)
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                message = result['choices'][0]['message']
+                content = self._extract_deepseek_content(message)
+                
+                logger.info(f"DeepSeek深度思考分析完成 - 股票: {stock_code}, 内容长度: {len(content)} 字符")
+                
+                return AnalysisResult(
+                    success=True,
+                    content=content,
+                    provider='deepseek',
+                    model=self.model,
+                    tokens_used=result['usage']['total_tokens'] if 'usage' in result else None,
+                    response_time=response_time,
+                    metadata={'response_status': response.status_code, 'deep_thinking': True}
+                )
+            else:
+                logger.error(f"继续对话失败: {response.status_code} - {response.text}")
+                return AnalysisResult(
+                    success=False,
+                    error=f'Continue conversation failed: {response.status_code}',
+                    error_type=ErrorType.API_ERROR,
+                    provider='deepseek',
+                    model=self.model
+                )
+                
+        except Exception as e:
+            logger.error(f"继续对话时出错: {str(e)}")
+            return AnalysisResult(
+                success=False,
+                error=f'Continue conversation error: {str(e)}',
+                error_type=ErrorType.UNKNOWN_ERROR,
+                provider='deepseek',
+                model=self.model
+            )
     
     def _classify_http_error(self, status_code: int) -> ErrorType:
         """根据HTTP状态码分类错误类型"""
