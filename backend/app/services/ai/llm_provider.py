@@ -1161,8 +1161,9 @@ class DeepSeekProvider(LLMProvider):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.api_url = "https://api.deepseek.com/v1/chat/completions"
-        # 深度思考相关配置
+        # 深度思考和全网搜索相关配置
         self.enable_deep_thinking = config.get('enable_deep_thinking', True)
+        self.enable_web_search = config.get('enable_web_search', True)
         self.thinking_steps = config.get('thinking_steps', 3)  # 思考步数
     
     def _make_api_request(self, prompt: str, stock_info: Dict[str, Any]) -> AnalysisResult:
@@ -1193,6 +1194,46 @@ class DeepSeekProvider(LLMProvider):
             "max_tokens": self.max_tokens,
             "temperature": self.temperature
         }
+        
+        # 如果启用深度思考或全网搜索，添加工具参数
+        if self.enable_deep_thinking or self.enable_web_search:
+            data['tools'] = []
+            
+            if self.enable_deep_thinking:
+                data['tools'].append({
+                    'type': 'function',
+                    'function': {
+                        'name': 'deep_thinking',
+                        'description': '深度思考工具，用于多步推理分析',
+                        'parameters': {
+                            'type': 'object',
+                            'properties': {
+                                'thinking_steps': {
+                                    'type': 'integer',
+                                    'description': f'思考步数，建议{self.thinking_steps}步'
+                                }
+                            }
+                        }
+                    }
+                })
+            
+            if self.enable_web_search:
+                data['tools'].append({
+                    'type': 'function',
+                    'function': {
+                        'name': 'web_search',
+                        'description': '全网搜索工具，用于获取最新信息',
+                        'parameters': {
+                            'type': 'object',
+                            'properties': {
+                                'query': {
+                                    'type': 'string',
+                                    'description': '搜索关键词'
+                                }
+                            }
+                        }
+                    }
+                })
         
         # 根据模型类型进行不同的处理
         if self.model == 'deepseek-reasoner':

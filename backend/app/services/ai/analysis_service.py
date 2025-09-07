@@ -292,6 +292,7 @@ class AnalysisService:
                 'max_tokens': 15000,
                 'temperature': 0.7,
                 'enable_deep_thinking': True,
+                'enable_web_search': True,
                 'thinking_steps': int(os.getenv('DEEPSEEK_THINKING_STEPS', '3'))
             }
         else:
@@ -1716,7 +1717,15 @@ class AnalysisService:
                 # 提示词信息
                 'prompt_template': report_data.get('prompt_template'),
                 'prompt_version': report_data.get('prompt_version'),
-                'full_prompt': report_data.get('full_prompt'),
+                'full_prompt': self._replace_prompt_placeholders(
+                    report_data.get('full_prompt', ''),
+                    report.stock.code if report.stock else '',
+                    report.stock.name if report.stock else '',
+                    report.stock.market if report.stock else '',
+                    report.stock.industry if report.stock else '',
+                    report.stock.exchange if report.stock else '',
+                    report.analysis_date.strftime('%Y-%m-%d') if report.analysis_date else ''
+                ),
                 
                 # 分析结果
                 'status': report_data.get('status'),
@@ -1760,3 +1769,35 @@ class AnalysisService:
         except Exception as e:
             logger.error(f"时间转换失败: {str(e)}")
             return str(time_value) if time_value else None
+    
+    def _replace_prompt_placeholders(self, prompt_content, stock_code, stock_name, market, industry, exchange, analysis_date):
+        """替换提示词中的占位符"""
+        if not prompt_content:
+            return ''
+        
+        # 定义占位符映射
+        replacements = {
+            '${code}': stock_code,
+            '${name}': stock_name,
+            '${market}': market,
+            '${industry}': industry,
+            '${exchange}': exchange,
+            '${analysis_date}': analysis_date,
+            # 兼容其他可能的占位符格式
+            '{code}': stock_code,
+            '{name}': stock_name,
+            '{market}': market,
+            '{industry}': industry,
+            '{exchange}': exchange,
+            '{analysis_date}': analysis_date,
+            '{stock_code}': stock_code,
+            '{stock_name}': stock_name,
+        }
+        
+        # 执行替换
+        result = prompt_content
+        for placeholder, value in replacements.items():
+            if value:  # 只有当值不为空时才替换
+                result = result.replace(placeholder, str(value))
+        
+        return result

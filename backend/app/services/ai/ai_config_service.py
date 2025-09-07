@@ -249,6 +249,7 @@ class AIConfigService:
                     'max_tokens': 15000,
                     'temperature': 0.7,
                     'enable_deep_thinking': True,
+                    'enable_web_search': True,
                     'thinking_steps': 3
                 }
             },
