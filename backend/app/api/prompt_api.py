@@ -61,7 +61,7 @@ def create_prompt():
     try:
         data = request.get_json()
         if not data:
-            return error_response("请求数据不能为空")
+            return error_response("INVALID_PARAM", "请求数据不能为空")
         
         # 添加创建者信息
         data['created_by'] = session.get('user_id')
@@ -89,7 +89,7 @@ def update_prompt(prompt_id):
     try:
         data = request.get_json()
         if not data:
-            return error_response("请求数据不能为空")
+            return error_response("INVALID_PARAM", "请求数据不能为空")
         
         service = get_prompt_service()
         result = service.update_prompt(prompt_id, data)
@@ -171,13 +171,13 @@ def create_new_version(prompt_id):
     try:
         data = request.get_json()
         if not data:
-            return error_response("请求数据不能为空")
+            return error_response("INVALID_PARAM", "请求数据不能为空")
         
         # 获取原提示词信息
         service = get_prompt_service()
         original_prompt = service.get_prompt_by_id(prompt_id)
         if not original_prompt:
-            return error_response("原提示词不存在")
+            return error_response("NOT_FOUND", "原提示词不存在")
         
         # 创建新版本
         result = service.create_new_version(
@@ -277,7 +277,7 @@ def search_prompts():
     try:
         query = request.args.get('q', '')
         if not query:
-            return error_response("搜索关键词不能为空")
+            return error_response("INVALID_PARAM", "搜索关键词不能为空")
         
         service = get_prompt_service()
         prompts = service.search_prompts(query)

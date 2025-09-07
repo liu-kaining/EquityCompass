@@ -72,7 +72,7 @@ def search_stocks():
         user_id = session.get('user_id')
         
         if not keyword:
-            return error_response("搜索关键词不能为空")
+            return error_response("INVALID_PARAM", "搜索关键词不能为空")
         
         # 搜索股票
         stocks = service.search_stocks(keyword, market, user_id)
@@ -100,7 +100,7 @@ def add_stock():
         # 获取请求数据
         data = request.get_json()
         if not data:
-            return error_response("请求数据不能为空")
+            return error_response("INVALID_PARAM", "请求数据不能为空")
         
         code = data.get('code', '').strip().upper()
         name = data.get('name', '').strip()
@@ -108,10 +108,10 @@ def add_stock():
         
         # 验证必填字段
         if not code or not name or not market:
-            return error_response("股票代码、名称和市场不能为空")
+            return error_response("INVALID_PARAM", "股票代码、名称和市场不能为空")
         
         if market not in ['US', 'HK']:
-            return error_response("市场类型必须是 US 或 HK")
+            return error_response("INVALID_PARAM", "市场类型必须是 US 或 HK")
         
         service = get_stock_service()
         stock = service.add_custom_stock(code, name, market, user_id)
@@ -172,11 +172,11 @@ def add_to_watchlist():
         
         data = request.get_json()
         if not data:
-            return error_response("请求数据不能为空")
+            return error_response("INVALID_PARAM", "请求数据不能为空")
         
         stock_code = data.get('stock_code', '').strip().upper()
         if not stock_code:
-            return error_response("股票代码不能为空")
+            return error_response("INVALID_PARAM", "股票代码不能为空")
         
         service = get_stock_service()
         result = service.add_to_watchlist(user_id, stock_code)
@@ -200,11 +200,11 @@ def remove_from_watchlist():
         
         data = request.get_json()
         if not data:
-            return error_response("请求数据不能为空")
+            return error_response("INVALID_PARAM", "请求数据不能为空")
         
         stock_code = data.get('stock_code', '').strip().upper()
         if not stock_code:
-            return error_response("股票代码不能为空")
+            return error_response("INVALID_PARAM", "股票代码不能为空")
         
         service = get_stock_service()
         result = service.remove_from_watchlist(user_id, stock_code)

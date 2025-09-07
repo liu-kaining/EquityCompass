@@ -63,7 +63,7 @@ def create_config():
     try:
         data = request.get_json()
         if not data:
-            return error_response("请求数据不能为空")
+            return error_response("INVALID_PARAM", "请求数据不能为空")
         
         # 添加创建者信息
         data['created_by'] = session.get('user_id')
@@ -91,7 +91,7 @@ def update_config(config_id):
     try:
         data = request.get_json()
         if not data:
-            return error_response("请求数据不能为空")
+            return error_response("INVALID_PARAM", "请求数据不能为空")
         
         service = get_ai_config_service()
         result = service.update_config(config_id, data)

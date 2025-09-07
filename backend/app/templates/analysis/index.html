@@ -86,9 +86,9 @@
                                                 onclick="previewSelectedPrompt()" disabled style="border-radius: 8px;">
                                             <i class="fas fa-eye me-1"></i>预览
                                         </button>
-                                    </div>
                                 </div>
                             </div>
+                        </div>
                         </div>
                         
                         <!-- AI模型 -->
@@ -133,12 +133,12 @@
                                     <div class="d-grid gap-2">
                                         <button id="batchAnalyzeBtn" class="btn btn-light btn-lg" 
                                                 style="border-radius: 12px; font-weight: 600;">
-                                            <i class="fas fa-magic me-2"></i>批量分析所有
-                                        </button>
+                                        <i class="fas fa-magic me-2"></i>批量分析所有
+                                    </button>
                                         <a href="{{ url_for('analysis.tasks') }}" class="btn btn-outline-light" 
                                            style="border-radius: 12px;">
-                                            <i class="fas fa-tasks me-2"></i>查看任务
-                                        </a>
+                                        <i class="fas fa-tasks me-2"></i>查看任务
+                                    </a>
                                     </div>
                                     <small class="text-white-50 mt-2 d-block">一键分析所有关注股票</small>
                                 </div>
@@ -456,12 +456,12 @@
 
 <script>
 // 全局变量
-let analysisQueue = [];
-let currentAnalysisIndex = 0;
-let analysisResults = [];
-let currentUsageData = null;
-let pendingAnalysis = null;
-
+    let analysisQueue = [];
+    let currentAnalysisIndex = 0;
+    let analysisResults = [];
+    let currentUsageData = null;
+    let pendingAnalysis = null;
+    
 // 加载提示词列表 - 全局函数
 function loadPrompts() {
     console.log('=== loadPrompts 函数被调用 ===');
@@ -617,48 +617,48 @@ function previewSelectedPrompt() {
 }
 
 // 获取使用量数据 - 全局函数
-function loadUsageData() {
-    $.ajax({
-        url: '/api/analysis/usage',
-        method: 'GET',
-        success: function(response) {
-            if (response.success) {
-                currentUsageData = response.usage;
-                updateUsageDisplay(currentUsageData);
+    function loadUsageData() {
+        $.ajax({
+            url: '/api/analysis/usage',
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    currentUsageData = response.usage;
+                    updateUsageDisplay(currentUsageData);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('获取使用量失败:', error);
+                $('#usageDisplay').text('获取失败');
             }
-        },
-        error: function(xhr, status, error) {
-            console.error('获取使用量失败:', error);
-            $('#usageDisplay').text('获取失败');
-        }
-    });
-}
-
+        });
+    }
+    
 // 更新使用量显示 - 全局函数
-function updateUsageDisplay(usage) {
-    const current = usage.current_count;
-    const limit = usage.daily_limit;
-    const remaining = usage.remaining;
-    const percentage = (current / limit) * 100;
-    
-    $('#usageDisplay').text(`${current}/${limit}`);
-    $('#usageProgress').css('width', `${Math.min(percentage, 100)}%`);
-    
-    if (usage.is_admin) {
-        $('#usageHint').text('管理员无限制');
-        $('#usageProgress').removeClass('bg-warning bg-danger').addClass('bg-success');
-    } else {
-        $('#usageHint').text(`每日限额：${limit}次`);
+    function updateUsageDisplay(usage) {
+        const current = usage.current_count;
+        const limit = usage.daily_limit;
+        const remaining = usage.remaining;
+        const percentage = (current / limit) * 100;
         
-        if (percentage >= 100) {
-            $('#usageProgress').removeClass('bg-success bg-warning').addClass('bg-danger');
-        } else if (percentage >= 80) {
-            $('#usageProgress').removeClass('bg-success bg-danger').addClass('bg-warning');
-        } else {
+        $('#usageDisplay').text(`${current}/${limit}`);
+        $('#usageProgress').css('width', `${Math.min(percentage, 100)}%`);
+        
+        if (usage.is_admin) {
+            $('#usageHint').text('管理员无限制');
             $('#usageProgress').removeClass('bg-warning bg-danger').addClass('bg-success');
+        } else {
+            $('#usageHint').text(`每日限额：${limit}次`);
+            
+            if (percentage >= 100) {
+                $('#usageProgress').removeClass('bg-success bg-warning').addClass('bg-danger');
+            } else if (percentage >= 80) {
+                $('#usageProgress').removeClass('bg-success bg-danger').addClass('bg-warning');
+            } else {
+                $('#usageProgress').removeClass('bg-warning bg-danger').addClass('bg-success');
+            }
         }
     }
-}
 
 $(document).ready(function() {
     // 页面加载时获取使用量
@@ -873,8 +873,8 @@ ${stockList}
                 '确认批量分析',
                 confirmMessage,
                 function() {
-                    startBatchAnalysis(analysisType);
-                }
+                startBatchAnalysis(analysisType);
+            }
             );
         }
     });

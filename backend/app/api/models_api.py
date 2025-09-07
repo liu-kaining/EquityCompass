@@ -61,14 +61,14 @@ def test_model():
     try:
         data = request.get_json()
         if not data:
-            return error_response("请求数据不能为空")
+            return error_response("INVALID_PARAM", "请求数据不能为空")
         
         provider = data.get('provider')
         model = data.get('model')
         api_key = data.get('api_key')
         
         if not all([provider, model, api_key]):
-            return error_response("provider、model和api_key都是必需的")
+            return error_response("INVALID_PARAM", "provider、model和api_key都是必需的")
         
         # 创建测试配置
         config = {
@@ -85,11 +85,11 @@ def test_model():
         if is_available:
             return success_response({"status": "success", "message": "模型连接测试成功"})
         else:
-            return error_response("模型连接测试失败")
+            return error_response("CONNECTION_FAILED", "模型连接测试失败")
             
     except Exception as e:
         logger.error(f"测试模型失败: {str(e)}")
-        return error_response("测试模型失败", str(e))
+        return error_response("INTERNAL_ERROR", f"测试模型失败: {str(e)}")
 
 
 @models_bp.route('/recommendations', methods=['GET'])

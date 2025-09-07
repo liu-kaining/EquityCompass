@@ -64,7 +64,7 @@ def analyze_stock():
         prompt_id = data.get('prompt_id')  # 新增：提示词ID
         
         if not stock_code:
-            return error_response("股票代码不能为空")
+            return error_response("INVALID_PARAM", "股票代码不能为空")
         
         # 创建分析服务
         service = get_analysis_service()
@@ -98,7 +98,7 @@ def analyze_stock():
         
     except Exception as e:
         logger.error(f"提交分析任务失败: {str(e)}")
-        return error_response("提交分析任务失败", str(e))
+        return error_response("INTERNAL_ERROR", f"提交分析任务失败: {str(e)}")
 
 @analysis_api_bp.route('/reports', methods=['GET'])
 @login_required
@@ -124,7 +124,7 @@ def get_user_reports():
         
     except Exception as e:
         logger.error(f"获取用户报告失败: {str(e)}")
-        return error_response("获取报告失败", str(e))
+        return error_response("INTERNAL_ERROR", f"获取报告失败: {str(e)}")
 
 @analysis_api_bp.route('/reports/<stock_code>', methods=['GET'])
 @login_required
@@ -146,11 +146,11 @@ def get_stock_report(stock_code):
         if report:
             return success_response(data=report)
         else:
-            return error_response("报告不存在")
+            return error_response("NOT_FOUND", "报告不存在")
         
     except Exception as e:
         logger.error(f"获取股票报告失败: {str(e)}")
-        return error_response("获取报告失败", str(e))
+        return error_response("INTERNAL_ERROR", f"获取报告失败: {str(e)}")
 
 @analysis_api_bp.route('/reports/<stock_code>/download', methods=['GET'])
 @login_required
@@ -170,7 +170,7 @@ def download_stock_report(stock_code):
         report = service.get_analysis_report(stock_code, date)
         
         if not report:
-            return error_response("报告不存在")
+            return error_response("NOT_FOUND", "报告不存在")
         
         # 生成下载文件名
         filename = f"{stock_code}_{report['stock_name']}_分析报告_{report['analysis_date']}.txt"
@@ -188,7 +188,7 @@ def download_stock_report(stock_code):
         
     except Exception as e:
         logger.error(f"下载股票报告失败: {str(e)}")
-        return error_response("下载报告失败", str(e))
+        return error_response("INTERNAL_ERROR", f"下载报告失败: {str(e)}")
 
 @analysis_api_bp.route('/reports/analysis-details/<int:report_id>', methods=['GET'])
 @login_required
@@ -205,7 +205,7 @@ def get_analysis_details(report_id):
         report = ReportIndex.query.get(report_id)
         
         if not report:
-            return error_response("报告不存在")
+            return error_response("NOT_FOUND", "报告不存在")
         
         # 检查权限：管理员可以查看所有报告，普通用户只能查看自己的报告
         is_admin = session.get('is_admin', False)
@@ -215,7 +215,7 @@ def get_analysis_details(report_id):
                 from app.models.analysis import AnalysisTask
                 task = AnalysisTask.query.get(report.generated_by_task_id)
                 if not task or task.user_id != user_id:
-                    return error_response("没有权限查看此报告")
+                    return error_response("PERMISSION_DENIED", "没有权限查看此报告")
             else:
                 # 如果没有任务信息，暂时允许访问（可能是旧数据）
                 pass
@@ -227,11 +227,11 @@ def get_analysis_details(report_id):
         if details:
             return success_response(data=details)
         else:
-            return error_response("无法获取分析详情")
+            return error_response("INTERNAL_ERROR", "无法获取分析详情")
         
     except Exception as e:
         logger.error(f"获取分析详情失败: {str(e)}")
-        return error_response("获取分析详情失败", str(e))
+        return error_response("INTERNAL_ERROR", f"获取分析详情失败: {str(e)}")
 
 @analysis_api_bp.route('/batch-analyze', methods=['POST'])
 @login_required
