@@ -1,15 +1,16 @@
-# Docker部署指南
+# EquityCompass Docker 部署指南
 
 ## 概述
 
-本文档详细说明如何使用Docker部署EquityCompass股票分析平台。
+本指南详细说明如何使用Docker部署EquityCompass股票分析平台的最新版本。
 
 ## 系统要求
 
-- Docker 20.10+
-- Docker Compose 2.0+
-- 至少2GB可用内存
-- 至少10GB可用磁盘空间
+- **Docker**: 20.10+ 
+- **Docker Compose**: 2.0+
+- **内存**: 至少2GB可用内存
+- **磁盘**: 至少10GB可用磁盘空间
+- **网络**: 稳定的互联网连接（用于AI模型API调用）
 
 ## 快速部署
 
@@ -30,16 +31,41 @@ cp backend/env.example .env
 nano .env
 ```
 
-主要配置项：
+**重要配置项**：
 ```bash
 # Flask配置
-FLASK_SECRET_KEY=your-secret-key-here
+FLASK_SECRET_KEY=your-secret-key-change-in-production
+JWT_SECRET_KEY=your-jwt-secret-key-change-in-production
 FLASK_ENV=production
 
-# AI模型API密钥
-GEMINI_API_KEY=your-gemini-api-key
-QWEN_API_KEY=your-qwen-api-key
-DEEPSEEK_API_KEY=your-deepseek-api-key
+# AI模型API密钥（至少配置一个）
+DEEPSEEK_API_KEY=your-deepseek-api-key-here
+DEEPSEEK_MODEL=deepseek-reasoner
+DEFAULT_AI_PROVIDER=deepseek
+
+# 可选的其他AI模型
+OPENAI_API_KEY=your-openai-api-key-here
+OPENAI_MODEL=gpt-3.5-turbo
+QWEN_API_KEY=your-qwen-api-key-here
+QWEN_MODEL=qwen-deep-research
+GEMINI_API_KEY=your-gemini-api-key-here
+GEMINI_MODEL=gemini-2.5-pro
+
+# 管理员配置
+ADMIN_USERNAME=admin
+ADMIN_EMAIL=admin@equitycompass.com
+ADMIN_PASSWORD=admin123456
+ADMIN_NICKNAME=系统管理员
+
+# 数据库配置
+DATABASE_URL=sqlite:///dev.db
+
+# 邮件配置（可选）
+SEND_EMAIL=False
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
 ```
 
 ### 3. 启动服务
@@ -52,57 +78,55 @@ docker-compose up -d --build
 docker-compose ps
 ```
 
-### 4. 初始化数据
+### 4. 查看启动日志
 
 ```bash
-# 进入容器
-docker exec -it equitycompass-app bash
+# 查看实时日志
+docker-compose logs -f equitycompass
 
-# 初始化数据库
-python app.py init-db
-
-# 导入股票数据
-python scripts/import_stocks.py
-
-# 退出容器
-exit
+# 查看容器状态
+docker-compose ps
 ```
 
 ### 5. 访问应用
 
-打开浏览器访问：http://localhost:5002
+打开浏览器访问：**http://localhost:5002**
+
+**默认登录信息**：
+- 用户名：`admin`
+- 密码：`admin123456`
+- 邮箱：`admin@equitycompass.com`
 
 ## 生产环境部署
 
 ### 1. 服务器准备
 
-#### 安装Docker
+#### 安装Docker和Docker Compose
+
 ```bash
 # Ubuntu/Debian
 curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER
 
-# CentOS/RHEL
-sudo yum install -y docker
-sudo systemctl start docker
-sudo systemctl enable docker
-```
-
-#### 安装Docker Compose
-```bash
+# 安装Docker Compose
 sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
+
+# 验证安装
+docker --version
+docker-compose --version
 ```
 
-### 2. 安全配置
-
 #### 创建专用用户
+
 ```bash
 sudo useradd -m -s /bin/bash equitycompass
 sudo usermod -aG docker equitycompass
+sudo su - equitycompass
 ```
 
 #### 配置防火墙
+
 ```bash
 # 开放必要端口
 sudo ufw allow 5002/tcp
@@ -110,27 +134,25 @@ sudo ufw allow 22/tcp
 sudo ufw enable
 ```
 
-### 3. 部署应用
+### 2. 部署应用
 
 ```bash
-# 切换到专用用户
-sudo su - equitycompass
-
 # 克隆项目
 git clone https://github.com/your-username/EquityCompass.git
 cd EquityCompass
 
 # 配置环境变量
 cp backend/env.example .env
-nano .env
+nano .env  # 编辑配置文件
 
 # 启动服务
 docker-compose up -d --build
 ```
 
-### 4. 配置反向代理（可选）
+### 3. 配置反向代理（推荐）
 
 #### 使用Nginx
+
 ```bash
 # 安装Nginx
 sudo apt update
@@ -140,7 +162,7 @@ sudo apt install nginx
 sudo nano /etc/nginx/sites-available/equitycompass
 ```
 
-Nginx配置示例：
+**Nginx配置示例**：
 ```nginx
 server {
     listen 80;
@@ -152,6 +174,11 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # WebSocket支持（如果需要）
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 }
 ```
@@ -185,26 +212,31 @@ docker exec -it equitycompass-app bash
 
 # 查看容器资源使用
 docker stats equitycompass-app
+
+# 更新代码后重新构建
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
 ```
 
 ### 数据备份
 
 ```bash
 # 备份数据卷
-docker run --rm -v equitycompass_data:/data -v $(pwd):/backup alpine tar czf /backup/data_backup.tar.gz -C /data .
+docker run --rm -v equitycompass_data:/data -v $(pwd):/backup alpine tar czf /backup/data_backup_$(date +%Y%m%d).tar.gz -C /data .
 
 # 备份日志
-docker run --rm -v equitycompass_logs:/logs -v $(pwd):/backup alpine tar czf /backup/logs_backup.tar.gz -C /logs .
+docker run --rm -v equitycompass_logs:/logs -v $(pwd):/backup alpine tar czf /backup/logs_backup_$(date +%Y%m%d).tar.gz -C /logs .
 ```
 
 ### 数据恢复
 
 ```bash
 # 恢复数据
-docker run --rm -v equitycompass_data:/data -v $(pwd):/backup alpine tar xzf /backup/data_backup.tar.gz -C /data
+docker run --rm -v equitycompass_data:/data -v $(pwd):/backup alpine tar xzf /backup/data_backup_20240101.tar.gz -C /data
 
 # 恢复日志
-docker run --rm -v equitycompass_logs:/logs -v $(pwd):/backup alpine tar xzf /backup/logs_backup.tar.gz -C /logs
+docker run --rm -v equitycompass_logs:/logs -v $(pwd):/backup alpine tar xzf /backup/logs_backup_20240101.tar.gz -C /logs
 ```
 
 ## 监控和维护
@@ -228,7 +260,7 @@ EOF
 
 chmod +x /home/equitycompass/monitor.sh
 
-# 添加到crontab
+# 添加到crontab（每5分钟检查一次）
 echo "*/5 * * * * /home/equitycompass/monitor.sh" | crontab -
 ```
 
@@ -248,7 +280,8 @@ docker system prune -f
 ### 性能优化
 
 #### 资源限制
-在docker-compose.yml中添加资源限制：
+
+在`docker-compose.yml`中添加资源限制：
 
 ```yaml
 services:
@@ -265,6 +298,7 @@ services:
 ```
 
 #### 数据库优化
+
 ```bash
 # 进入容器优化数据库
 docker exec -it equitycompass-app bash
@@ -284,6 +318,7 @@ with app.app_context():
 ### 常见问题
 
 #### 1. 容器启动失败
+
 ```bash
 # 查看详细错误信息
 docker-compose logs equitycompass
@@ -293,33 +328,68 @@ netstat -tlnp | grep 5002
 
 # 检查磁盘空间
 df -h
+
+# 检查Docker服务状态
+sudo systemctl status docker
 ```
 
 #### 2. 数据库连接失败
+
 ```bash
 # 检查数据库文件权限
 docker exec -it equitycompass-app ls -la instance/
 
 # 重新初始化数据库
 docker exec -it equitycompass-app python app.py init-db
+
+# 检查数据库文件
+docker exec -it equitycompass-app sqlite3 instance/dev.db ".tables"
 ```
 
 #### 3. AI模型调用失败
+
 ```bash
 # 检查API密钥配置
 docker exec -it equitycompass-app env | grep API_KEY
 
 # 查看AI调用日志
 docker exec -it equitycompass-app tail -f logs/app.log
+
+# 测试AI配置
+docker exec -it equitycompass-app python -c "
+from app import create_app
+from app.services.ai.llm_provider import LLMProvider
+app = create_app()
+with app.app_context():
+    provider = LLMProvider()
+    print('Available providers:', provider.get_available_providers())
+"
 ```
 
 #### 4. PDF导出失败
+
 ```bash
 # 检查Playwright安装
 docker exec -it equitycompass-app playwright --version
 
 # 重新安装Playwright
 docker exec -it equitycompass-app playwright install chromium
+
+# 检查Chromium
+docker exec -it equitycompass-app which chromium
+```
+
+#### 5. 任务管理功能异常
+
+```bash
+# 检查任务文件
+docker exec -it equitycompass-app ls -la data/tasks/
+
+# 查看任务管理日志
+docker exec -it equitycompass-app grep -i "task" logs/app.log
+
+# 重启任务管理服务
+docker-compose restart
 ```
 
 ### 日志分析
@@ -333,11 +403,15 @@ docker exec -it equitycompass-app grep "API调用" logs/app.log | wc -l
 
 # 查看性能日志
 docker exec -it equitycompass-app grep "响应时间" logs/app.log
+
+# 查看任务执行日志
+docker exec -it equitycompass-app grep "任务" logs/app.log
 ```
 
 ## 更新部署
 
 ### 代码更新
+
 ```bash
 # 拉取最新代码
 git pull origin main
@@ -352,6 +426,7 @@ docker-compose ps
 ```
 
 ### 配置更新
+
 ```bash
 # 更新环境变量
 nano .env
@@ -360,28 +435,74 @@ nano .env
 docker-compose restart
 ```
 
+### 数据库迁移
+
+```bash
+# 进入容器
+docker exec -it equitycompass-app bash
+
+# 运行数据库迁移
+python -c "
+from app import create_app, db
+app = create_app()
+with app.app_context():
+    db.create_all()
+    print('数据库迁移完成')
+"
+```
+
 ## 安全建议
 
 1. **定期更新**：定期更新Docker镜像和系统包
-2. **密钥管理**：使用安全的密钥管理服务
+2. **密钥管理**：使用安全的密钥管理服务，不要在代码中硬编码API密钥
 3. **网络隔离**：使用Docker网络隔离应用
-4. **访问控制**：限制容器访问权限
+4. **访问控制**：限制容器访问权限，使用非root用户运行
 5. **日志审计**：定期检查安全日志
+6. **备份策略**：定期备份数据和配置
+7. **监控告警**：设置监控告警，及时发现异常
 
 ## 性能基准
 
 ### 推荐配置
-- CPU: 2核心以上
-- 内存: 4GB以上
-- 磁盘: SSD 20GB以上
-- 网络: 100Mbps以上
+
+- **CPU**: 2核心以上
+- **内存**: 4GB以上
+- **磁盘**: SSD 20GB以上
+- **网络**: 100Mbps以上
 
 ### 性能指标
-- 并发用户: 50+
-- 响应时间: <2秒
-- 内存使用: <2GB
-- 磁盘使用: <5GB
+
+- **并发用户**: 50+
+- **响应时间**: <2秒
+- **内存使用**: <2GB
+- **磁盘使用**: <5GB
+
+## 环境变量说明
+
+| 变量名 | 说明 | 默认值 | 必需 |
+|--------|------|--------|------|
+| `FLASK_SECRET_KEY` | Flask密钥 | - | 是 |
+| `JWT_SECRET_KEY` | JWT密钥 | - | 是 |
+| `DEEPSEEK_API_KEY` | DeepSeek API密钥 | - | 是* |
+| `OPENAI_API_KEY` | OpenAI API密钥 | - | 否 |
+| `QWEN_API_KEY` | 通义千问API密钥 | - | 否 |
+| `GEMINI_API_KEY` | Gemini API密钥 | - | 否 |
+| `DEFAULT_AI_PROVIDER` | 默认AI提供商 | deepseek | 否 |
+| `ADMIN_EMAIL` | 管理员邮箱 | admin@equitycompass.com | 否 |
+| `ADMIN_PASSWORD` | 管理员密码 | admin123456 | 否 |
+| `DATABASE_URL` | 数据库URL | sqlite:///dev.db | 否 |
+| `SEND_EMAIL` | 是否发送邮件 | False | 否 |
+
+*至少需要配置一个AI模型的API密钥
+
+## 联系支持
+
+如果在部署过程中遇到问题，请：
+
+1. 查看本文档的故障排除部分
+2. 检查项目的Issues页面
+3. 联系项目维护者
 
 ---
 
-更多部署相关问题，请查看项目Issues或联系维护者。
+**注意**：本指南基于EquityCompass的最新版本编写，请确保使用最新的代码和配置。

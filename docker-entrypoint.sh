@@ -29,8 +29,8 @@ try:
             # 确保所有模型都被导入
             from app.models import (
                 User, UserPlan, Stock, UserWatchlist, AnalysisTask, 
-                ReportIndex, EmailSubscription, PaymentTransaction, 
-                Admin, SystemConfig, AIConfig, Prompt
+                ReportIndex, ReportStatistics, ReportViewLog, ReportDownloadLog,
+                EmailSubscription, PaymentTransaction, Admin, SystemConfig
             )
             print("✅ 模型导入完成")
             

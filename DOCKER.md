@@ -4,7 +4,7 @@
 
 ### 1. 环境准备
 - 安装Docker和Docker Compose
-- 确保端口5001可用
+- 确保端口5002可用
 
 ### 2. 部署步骤
 
@@ -26,7 +26,7 @@ docker exec -it equitycompass-app python scripts/import_stocks.py
 ```
 
 ### 3. 访问应用
-打开浏览器访问: http://localhost:5001
+打开浏览器访问: http://localhost:5002
 
 ## 常用命令
 
@@ -70,7 +70,7 @@ docker-compose logs equitycompass
 2. **端口冲突**
 ```bash
 # 检查端口占用
-netstat -tlnp | grep 5001
+netstat -tlnp | grep 5002
 ```
 
 3. **API调用失败**
