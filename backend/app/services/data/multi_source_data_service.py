@@ -237,7 +237,7 @@ class MultiSourceDataService:
             return None
     
     def _get_hk_stock_data(self, symbol: str) -> Optional[StockData]:
-        """港股专用数据源 - 使用免费的港股API"""
+        """港股专用数据源 - 使用新浪财经API"""
         try:
             # 只处理港股
             if not self._is_hk_stock(symbol):
@@ -246,33 +246,77 @@ class MultiSourceDataService:
             # 清理港股代码格式
             clean_symbol = symbol.replace('.HK', '')
             
-            # 使用免费的港股API (示例)
-            # 注意：这里使用一个模拟的API，实际使用时需要替换为真实的港股数据源
-            url = f"https://api.example.com/hk-stock/{clean_symbol}"
+            # 新浪财经港股API
+            # 港股代码需要转换为新浪格式：00700 -> hk00700
+            sina_symbol = f"hk{clean_symbol}"
+            url = f"https://hq.sinajs.cn/list={sina_symbol}"
             
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Referer': 'https://finance.sina.com.cn/'
             }
             
-            # 由于没有真实的港股API，这里返回模拟数据
-            # 实际部署时，可以集成真实的港股数据源
-            logger.info(f"港股数据源暂未配置，返回模拟数据: {symbol}")
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
             
-            # 返回模拟的港股数据
+            # 解析新浪财经返回的数据，处理编码问题
+            content = response.content.decode('gbk', errors='ignore')
+            if not content or 'var hq_str_' not in content:
+                logger.debug(f"新浪财经API返回空数据: {symbol}")
+                return None
+            
+            # 提取数据部分
+            data_start = content.find('"') + 1
+            data_end = content.rfind('"')
+            if data_start <= 0 or data_end <= data_start:
+                logger.debug(f"新浪财经API数据格式错误: {symbol}")
+                return None
+            
+            data_str = content[data_start:data_end]
+            if not data_str or data_str == '':
+                logger.debug(f"新浪财经API返回空数据: {symbol}")
+                return None
+            
+            # 解析数据字段
+            fields = data_str.split(',')
+            if len(fields) < 6:
+                logger.debug(f"新浪财经API数据字段不足: {symbol}")
+                return None
+            
+            # 新浪财经港股数据格式（实际测试结果）：
+            # 0: TENCENT, 1: 腾讯控股, 2: 599.500(当前价), 3: 592.500(昨收), 4: 609.000(今开), 
+            # 5: 595.500(最低), 6: 605.500(最高), 7: 13.000(涨跌额), 8: 2.194(涨跌幅), 
+            # 9: 605.50000, 10: 606.00000, 11: 11491491838(成交量), 12: 19047729(成交额), 
+            # 13-18: 其他字段, 17: 2025/09/05(日期), 18: 16:08(时间)
+            name = fields[1] if len(fields) > 1 and fields[1] else f"港股{clean_symbol}"
+            current_price = float(fields[2]) if len(fields) > 2 and fields[2] else 0.0
+            change = float(fields[7]) if len(fields) > 7 and fields[7] else 0.0
+            change_percent = float(fields[8]) if len(fields) > 8 and fields[8] else 0.0
+            volume = int(float(fields[11])) if len(fields) > 11 and fields[11] else 0
+            turnover = float(fields[12]) if len(fields) > 12 and fields[12] else 0.0
+            
+            # 计算市值（如果有成交额和价格）
+            market_cap = None
+            if current_price > 0 and volume > 0:
+                # 这是一个粗略估算，实际市值需要更多数据
+                market_cap = turnover / 1000000  # 转换为百万单位
+            
+            logger.info(f"成功获取港股数据: {symbol} - {name} - 价格: {current_price}")
+            
             return StockData(
                 symbol=symbol,
-                name=f"港股{clean_symbol}",
-                price=100.0,  # 模拟价格
-                change=1.5,   # 模拟涨跌
-                change_percent=1.52,  # 模拟涨跌幅
-                volume=1000000,  # 模拟成交量
-                market_cap=1000000000,  # 模拟市值
+                name=name,
+                price=current_price,
+                change=change,
+                change_percent=change_percent,
+                volume=volume,
+                market_cap=market_cap,
                 timestamp=datetime.now(),
-                source="hk_mock"
+                source="sina_hk"
             )
             
         except Exception as e:
-            logger.debug(f"港股数据源失败: {str(e)}")
+            logger.debug(f"新浪财经港股API失败: {str(e)}")
             return None
     
     def get_analysis_ready_data(self, symbol: str) -> Dict[str, Any]:
