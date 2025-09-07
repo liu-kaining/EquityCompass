@@ -595,6 +595,153 @@ flask db migrate -m "Switch to PostgreSQL"
 flask db upgrade
 ```
 
+## 🔧 故障排除
+
+### Docker部署常见问题
+
+#### 1. 数据库只读错误
+**错误信息**: `(sqlite3.OperationalError) attempt to write a readonly database`
+
+**解决方案**:
+```bash
+# 方法1: 在容器内修复权限
+docker exec -it equitycompass-app bash
+chmod 664 /app/instance/*.db
+chmod 755 /app/instance/
+
+# 方法2: 重新创建数据卷
+docker-compose down
+docker volume rm equitycompass_data
+docker-compose up -d
+```
+
+#### 2. 服务器内部错误
+**错误信息**: `{"error":"INTERNAL_ERROR","message":"服务器内部错误","success":false}`
+
+**调试步骤**:
+```bash
+# 查看详细日志
+docker-compose logs --tail=100 equitycompass
+
+# 检查容器状态
+docker-compose ps
+
+# 进入容器调试
+docker exec -it equitycompass-app bash
+cd /app
+python -c "from app import create_app; app = create_app(); print('应用创建成功')"
+```
+
+#### 3. 数据库初始化失败
+**解决方案**:
+```bash
+# 进入容器手动初始化
+docker exec -it equitycompass-app bash
+cd /app
+python scripts/init_db.py
+python scripts/import_stocks.py
+python scripts/setup_admin_user.py
+python scripts/init_ai_configs.py
+```
+
+#### 4. 端口占用问题
+**解决方案**:
+```bash
+# 检查端口占用
+netstat -tlnp | grep 5002
+
+# 修改docker-compose.yml中的端口映射
+# 将 "5002:5002" 改为 "5003:5002"
+```
+
+#### 5. 环境变量配置问题
+**检查方法**:
+```bash
+# 检查环境变量
+docker exec -it equitycompass-app env | grep -E "(FLASK|DATABASE|AI)"
+
+# 检查.env文件
+docker exec -it equitycompass-app cat /app/.env
+```
+
+### 本地开发常见问题
+
+#### 1. 模块导入错误
+**解决方案**:
+```bash
+# 确保在正确的目录
+cd backend
+
+# 激活虚拟环境
+source venv/bin/activate
+
+# 安装依赖
+pip install -r requirements.txt
+```
+
+#### 2. 数据库连接问题
+**解决方案**:
+```bash
+# 重新初始化数据库
+python scripts/clear_all_data.py --force
+python scripts/init_db.py
+python scripts/import_stocks.py
+python scripts/setup_admin_user.py
+```
+
+#### 3. AI模型调用失败
+**检查项目**:
+- 确认API密钥配置正确
+- 检查网络连接
+- 验证模型名称和提供商配置
+
+### 日志查看
+
+#### Docker环境
+```bash
+# 实时查看日志
+docker-compose logs -f equitycompass
+
+# 查看最近100行日志
+docker-compose logs --tail=100 equitycompass
+
+# 查看特定时间段的日志
+docker-compose logs --since="2025-09-07T10:00:00" equitycompass
+```
+
+#### 本地环境
+```bash
+# 查看应用日志
+tail -f app.log
+
+# 查看错误日志
+tail -f error.log
+```
+
+### 性能优化
+
+#### 1. 数据库优化
+```bash
+# 清理旧数据
+python scripts/clear_all_data.py --status
+
+# 重建数据库索引
+python scripts/recreate_tables.py
+```
+
+#### 2. 内存优化
+```bash
+# 清理Docker缓存
+docker system prune -a
+
+# 限制容器内存使用
+# 在docker-compose.yml中添加:
+# deploy:
+#   resources:
+#     limits:
+#       memory: 1G
+```
+
 ## 📚 文档
 
 - [系统架构文档](docs/architecture/)
