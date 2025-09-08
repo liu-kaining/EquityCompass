@@ -1,0 +1,84 @@
+<!-- 自定义确认弹窗 - 从 EquityCompass 项目复用 -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-effect border-0 shadow-lg">
+            <div class="modal-header border-0 bg-transparent">
+                <h5 class="modal-title text-primary" id="confirmTitle">
+                    <i class="fas fa-question-circle text-warning me-2"></i>
+                    <span id="confirmTitle">确认操作</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage" class="mb-0 text-dark">确定要执行此操作吗？</p>
+            </div>
+            <div class="modal-footer border-0 bg-transparent">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>取消
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmBtn">
+                    <i class="fas fa-check me-2"></i>确认
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 自定义确认弹窗函数
+function showConfirmModal(title, message, onConfirm, onCancel = null) {
+    console.log('显示确认弹窗:', title, message);
+    
+    const modalElement = document.getElementById('confirmModal');
+    if (!modalElement) {
+        console.error('确认弹窗元素未找到，使用原生confirm');
+        if (confirm(message)) {
+            if (onConfirm) onConfirm();
+        }
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(modalElement);
+    
+    // 设置内容
+    const titleElement = document.getElementById('confirmTitle');
+    const messageElement = document.getElementById('confirmMessage');
+    
+    if (titleElement) titleElement.textContent = title;
+    if (messageElement) messageElement.textContent = message;
+    
+    // 绑定确认事件
+    const confirmBtn = document.getElementById('confirmBtn');
+    if (confirmBtn) {
+        const handleConfirm = () => {
+            console.log('用户确认操作');
+            modal.hide();
+            confirmBtn.removeEventListener('click', handleConfirm);
+            if (onConfirm) onConfirm();
+        };
+        confirmBtn.addEventListener('click', handleConfirm);
+    }
+    
+    // 绑定取消事件
+    const handleCancel = () => {
+        console.log('用户取消操作');
+        modal.hide();
+        modalElement.removeEventListener('hidden.bs.modal', handleCancel);
+        if (onCancel) onCancel();
+    };
+    modalElement.addEventListener('hidden.bs.modal', handleCancel);
+    
+    // 显示弹窗
+    modal.show();
+}
+
+// 简化的确认函数
+function confirmAction(title, message, onConfirm) {
+    console.log('调用confirmAction:', title, message);
+    showConfirmModal(title, message, onConfirm);
+}
+
+// 确保函数在全局作用域可用
+window.confirmAction = confirmAction;
+window.showConfirmModal = showConfirmModal;
+</script>

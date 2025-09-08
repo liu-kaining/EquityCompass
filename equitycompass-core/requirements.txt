@@ -1,0 +1,35 @@
+# 核心依赖
+Flask>=2.0.0
+PyJWT>=2.0.0
+requests>=2.25.0
+markdown>=3.3.0
+python-dotenv>=0.19.0
+
+# 数据库相关
+SQLAlchemy>=1.4.0
+Flask-SQLAlchemy>=3.0.0
+alembic>=1.7.0
+
+# AI 相关
+openai>=1.0.0
+anthropic>=0.3.0
+
+# 异步任务
+celery>=5.2.0
+redis>=4.0.0
+
+# 工具库
+python-dateutil>=2.8.0
+pytz>=2021.1
+cryptography>=3.4.0
+
+# 前端相关
+Jinja2>=3.0.0
+MarkupSafe>=2.0.0
+
+# 开发工具
+pytest>=6.0.0
+pytest-cov>=2.12.0
+black>=21.0.0
+flake8>=3.9.0
+mypy>=0.910
