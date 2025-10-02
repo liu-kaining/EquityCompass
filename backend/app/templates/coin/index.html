@@ -618,7 +618,9 @@ function payWithWechat() {
                 showAlert('微信支付功能待实现', 'info');
                 $('#paymentModal').modal('hide');
             } else {
-                showAlert('创建订单失败: ' + response.error, 'danger');
+                // 安全显示错误信息，防止XSS
+                const errorMsg = $('<div>').text(response.error || '未知错误').html();
+                showAlert('创建订单失败: ' + errorMsg, 'danger');
             }
         })
         .fail(function() {

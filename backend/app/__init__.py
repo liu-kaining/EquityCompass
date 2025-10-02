@@ -1,7 +1,7 @@
 """
 智策股析 - Flask应用工厂
 """
-from flask import Flask
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -34,6 +34,19 @@ def create_app(config_name='development'):
     
     # 配置日志
     import logging
+    
+    # 创建自定义日志过滤器，过滤敏感信息
+    class SensitiveDataFilter(logging.Filter):
+        def filter(self, record):
+            # 过滤密码、API密钥等敏感信息
+            sensitive_keywords = ['password', 'token', 'key', 'secret', 'api_key']
+            message = record.getMessage().lower()
+            for keyword in sensitive_keywords:
+                if keyword in message:
+                    record.msg = record.msg.replace(record.msg, '[SENSITIVE_DATA_FILTERED]')
+                    record.args = ()
+            return True
+    
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -42,6 +55,10 @@ def create_app(config_name='development'):
             logging.FileHandler('app.log', encoding='utf-8')  # 输出到文件
         ]
     )
+    
+    # 添加敏感信息过滤器
+    for handler in logging.root.handlers:
+        handler.addFilter(SensitiveDataFilter())
     
     # 加载配置
     from app import config as config_module
@@ -59,6 +76,20 @@ def create_app(config_name='development'):
     app.config['SESSION_COOKIE_SECURE'] = False  # 开发环境设为False
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    
+    # 全局错误处理器
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return jsonify({'success': False, 'error': 'NOT_FOUND', 'message': '页面不存在'}), 404
+    
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'INTERNAL_ERROR', 'message': '服务器内部错误'}), 500
+    
+    @app.errorhandler(403)
+    def forbidden_error(error):
+        return jsonify({'success': False, 'error': 'FORBIDDEN', 'message': '访问被拒绝'}), 403
     
     # 初始化扩展
     db.init_app(app)

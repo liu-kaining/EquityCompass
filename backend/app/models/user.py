@@ -33,6 +33,11 @@ class User(UserMixin, db.Model):
     email_subscription = db.relationship('EmailSubscription', backref='user', uselist=False, cascade='all, delete-orphan')
     payment_transactions = db.relationship('PaymentTransaction', backref='user', lazy='dynamic')
     custom_stocks = db.relationship('Stock', backref='creator', lazy='dynamic')
+    # 金币系统关系
+    coin_account = db.relationship('UserCoin', backref='user', uselist=False, cascade='all, delete-orphan')
+    coin_transactions = db.relationship('CoinTransaction', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    coin_orders = db.relationship('CoinOrder', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    daily_bonuses = db.relationship('DailyBonus', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     
     def set_password(self, password):
         """设置密码"""

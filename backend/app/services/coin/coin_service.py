@@ -105,44 +105,53 @@ class CoinService:
     def spend_coins(self, user_id: int, amount: int, description: str, related_id: int = None, related_type: str = None) -> Dict:
         """消耗金币"""
         try:
+            # 使用数据库锁防止并发问题
             user_coin = self.repository.get_user_coin(user_id)
             if not user_coin:
                 return error_response("USER_COIN_NOT_FOUND", "用户金币账户不存在")
             
+            # 检查余额（带锁）
             if user_coin.available_coins < amount:
                 return error_response("INSUFFICIENT_COINS", f"金币不足，需要{amount}金币，当前可用{user_coin.available_coins}金币")
             
-            # 更新金币余额
-            balance_before = user_coin.available_coins
-            user_coin.available_coins -= amount
-            user_coin.total_coins -= amount
+            # 开始事务
+            self.db.begin()
             
-            # 记录交易
-            transaction = self._create_transaction(
-                user_coin_id=user_coin.id,
-                user_id=user_id,
-                transaction_type='SPEND',
-                amount=-amount,
-                balance_before=balance_before,
-                balance_after=user_coin.available_coins,
-                description=description,
-                related_id=related_id,
-                related_type=related_type
-            )
-            
-            self.db.commit()
-            
-            return {
-                'success': True,
-                'data': {
-                    'transaction_id': transaction.id,
-                    'spent_coins': amount,
-                    'remaining_coins': user_coin.available_coins
+            try:
+                # 更新金币余额
+                balance_before = user_coin.available_coins
+                user_coin.available_coins -= amount
+                user_coin.total_coins -= amount
+                
+                # 记录交易
+                transaction = self._create_transaction(
+                    user_coin_id=user_coin.id,
+                    user_id=user_id,
+                    transaction_type='SPEND',
+                    amount=-amount,
+                    balance_before=balance_before,
+                    balance_after=user_coin.available_coins,
+                    description=description,
+                    related_id=related_id,
+                    related_type=related_type
+                )
+                
+                self.db.commit()
+                
+                return {
+                    'success': True,
+                    'data': {
+                        'transaction_id': transaction.id,
+                        'spent_coins': amount,
+                        'remaining_coins': user_coin.available_coins
+                    }
                 }
-            }
+                
+            except Exception as e:
+                self.db.rollback()
+                raise e
             
         except Exception as e:
-            self.db.rollback()
             return error_response("SPEND_COINS_FAILED", f"消耗金币失败: {str(e)}")
     
     def earn_coins(self, user_id: int, amount: int, description: str, transaction_type: str = 'EARN', related_id: int = None, related_type: str = None) -> Dict:
@@ -221,15 +230,20 @@ class CoinService:
             today = date.today()
             current_app.logger.info(f"今日日期: {today}")
             
-            # 检查今天是否已签到
-            existing_bonus = self.repository.get_daily_bonus(user_id, today)
-            current_app.logger.info(f"检查今日签到记录: {existing_bonus}")
+            # 使用数据库锁防止并发签到
+            self.db.begin()
             
-            if existing_bonus:
-                current_app.logger.info("今日已签到，返回错误")
-                return error_response("ALREADY_CHECKED_IN", "今日已签到，请明天再来")
-            
-            # 计算连续签到天数
+            try:
+                # 检查今天是否已签到（带锁）
+                existing_bonus = self.repository.get_daily_bonus(user_id, today)
+                current_app.logger.info(f"检查今日签到记录: {existing_bonus}")
+                
+                if existing_bonus:
+                    self.db.rollback()
+                    current_app.logger.info("今日已签到，返回错误")
+                    return error_response("ALREADY_CHECKED_IN", "今日已签到，请明天再来")
+                
+                # 计算连续签到天数
             streak_days = self._calculate_streak_days(user_id)
             current_app.logger.info(f"连续签到天数: {streak_days}")
             
@@ -270,15 +284,20 @@ class CoinService:
                 streak_days=streak_days
             )
             
-            result = success_response({
-                'earned_coins': total_coins,
-                'streak_days': streak_days,
-                'base_coins': base_coins,
-                'streak_bonus': streak_bonus
-            })
-            
-            current_app.logger.info(f"每日签到完成，返回结果: {result}")
-            return result
+                result = success_response({
+                    'earned_coins': total_coins,
+                    'streak_days': streak_days,
+                    'base_coins': base_coins,
+                    'streak_bonus': streak_bonus
+                })
+                
+                current_app.logger.info(f"每日签到完成，返回结果: {result}")
+                return result
+                
+            except Exception as e:
+                self.db.rollback()
+                current_app.logger.error(f"每日签到处理异常: {str(e)}", exc_info=True)
+                return error_response("DAILY_BONUS_PROCESSING_FAILED", f"每日签到处理失败: {str(e)}")
             
         except Exception as e:
             from flask import current_app

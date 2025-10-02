@@ -119,10 +119,22 @@ def create_coin_order():
     """创建金币订单"""
     try:
         data = request.get_json()
+        if not data:
+            return error_response("INVALID_REQUEST", "请求数据格式错误")
+        
         package_id = data.get('package_id')
         
+        # 输入验证
         if not package_id:
             return error_response("INVALID_PARAMETERS", "套餐ID不能为空")
+        
+        # 验证package_id是否为有效整数
+        try:
+            package_id = int(package_id)
+            if package_id <= 0:
+                return error_response("INVALID_PARAMETERS", "套餐ID必须为正整数")
+        except (ValueError, TypeError):
+            return error_response("INVALID_PARAMETERS", "套餐ID格式错误")
         
         db_session = get_db_session()
         coin_service = CoinService(db_session)
