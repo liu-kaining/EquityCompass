@@ -604,6 +604,17 @@ function loadTaskDetail(taskId) {
             content += '</ul>';
             content += '</div>';
             
+            // 金币消耗信息
+            content += '<div class="col-md-6">';
+            content += '<h6><i class="fas fa-coins me-2"></i>金币消耗</h6>';
+            content += '<ul class="list-unstyled">';
+            const coinCost = task.total_count * 10; // 每个股票消耗10金币
+            content += '<li><strong>消耗金币:</strong> <span class="text-warning">' + coinCost + '金币</span></li>';
+            content += '<li><strong>单价:</strong> 10金币/股票</li>';
+            content += '<li><strong>说明:</strong> 每次分析消耗10金币</li>';
+            content += '</ul>';
+            content += '</div>';
+            
             // 进度信息
             content += '<div class="col-md-6">';
             content += '<h6><i class="fas fa-chart-line me-2"></i>进度信息</h6>';

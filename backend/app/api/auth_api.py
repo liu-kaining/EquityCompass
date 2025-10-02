@@ -101,6 +101,18 @@ def register():
             session['is_admin'] = user.is_admin()
             session['access_token'] = token_result['data']['access_token']
             
+            # 初始化用户金币账户
+            try:
+                from app.services.coin.coin_service import CoinService
+                coin_service = CoinService(db.session)
+                coin_init_result = coin_service.initialize_user_coins(user.id, initial_coins=20)
+                if coin_init_result['success']:
+                    current_app.logger.info(f"用户 {user.id} 金币账户初始化成功")
+                else:
+                    current_app.logger.warning(f"用户 {user.id} 金币账户初始化失败: {coin_init_result.get('error')}")
+            except Exception as e:
+                current_app.logger.warning(f"初始化用户金币账户失败: {e}")
+            
             # 发送欢迎邮件（可选）
             try:
                 email_service = EmailService()

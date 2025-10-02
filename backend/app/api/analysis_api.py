@@ -38,22 +38,22 @@ def analyze_stock():
         if not user_id:
             return error_response("请先登录", "UNAUTHORIZED")
         
-        # 检查每日分析次数限制（管理员不受限制）
+        # 金币系统检查（管理员不受限制）
         if not is_admin:
-            usage_service = UsageTrackingService(db.session)
-            daily_limit = 10  # 每日最多10次分析
-            limit_check = usage_service.check_daily_limit(user_id, daily_limit)
+            # 先检查金币余额
+            from app.services.coin.coin_service import CoinService
+            coin_service = CoinService(db.session)
             
-            if not limit_check['can_analyze']:
-                return error_response(
-                    f"今日分析次数已达上限（{daily_limit}次），请明天再试",
-                    "DAILY_LIMIT_REACHED",
-                    data={
-                        'current_count': limit_check['current_count'],
-                        'daily_limit': limit_check['daily_limit'],
-                        'remaining': limit_check['remaining']
-                    }
-                )
+            # 获取用户金币信息
+            coin_info_result = coin_service.get_user_coin_info(user_id)
+            if not coin_info_result['success']:
+                return error_response("COIN_ACCOUNT_ERROR", "获取金币账户失败")
+            
+            coin_info = coin_info_result['data']
+            available_coins = coin_info.get('available_coins', 0)
+            
+            if available_coins < 10:
+                return error_response("INSUFFICIENT_COINS", f"金币不足，需要10金币，当前余额：{available_coins}金币")
         
         # 获取请求数据
         data = request.get_json()
@@ -82,6 +82,8 @@ def analyze_stock():
         # 立即增加使用次数（管理员不计入）
         if not is_admin:
             try:
+                from app.services.data.usage_service import UsageService
+                usage_service = UsageService(db.session)
                 usage_service.increment_analysis_count(user_id)
             except Exception as e:
                 logger.warning(f"增加使用次数失败: {str(e)}")
@@ -252,6 +254,28 @@ def batch_analyze():
         
         user_id = session.get('user_id')
         user_email = session.get('user_email', '')
+        is_admin = session.get('is_admin', False)
+        
+        # 金币系统检查（管理员不受限制）
+        if not is_admin:
+            # 计算所需金币数量
+            required_coins = len(stocks) * 10  # 每个股票10金币
+            
+            # 检查用户金币余额
+            from app.services.coin.coin_service import CoinService
+            coin_service = CoinService(db.session)
+            
+            # 获取用户金币信息
+            coin_info_result = coin_service.get_user_coin_info(user_id)
+            if not coin_info_result['success']:
+                return error_response("COIN_ACCOUNT_ERROR", "获取金币账户失败")
+            
+            coin_info = coin_info_result['data']
+            available_coins = coin_info.get('available_coins', 0)
+            
+            if available_coins < required_coins:
+                return error_response("INSUFFICIENT_COINS", 
+                    f"金币不足，需要{required_coins}金币进行批量分析，当前余额：{available_coins}金币。请前往金币中心充值。")
         
         # 创建分析服务
         analysis_service = AnalysisService(db.session)

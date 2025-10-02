@@ -687,11 +687,45 @@ body {
     border-bottom: 1px solid rgba(102, 126, 234, 0.15);
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
     padding: 0.75rem 0;
+    position: relative;
+    z-index: 1000;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
 }
 
 .navbar-brand {
     font-size: 1.5rem;
     font-weight: 700;
+}
+
+.navbar .container {
+    position: relative;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.navbar-collapse {
+    position: relative;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-nav {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar-nav .nav-item {
+    display: flex;
+    align-items: center;
 }
 
 .navbar-nav .nav-link {
@@ -702,6 +736,10 @@ body {
     margin: 0 0.25rem;
     transition: all 0.3s ease;
     position: relative;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    white-space: nowrap;
 }
 
 .navbar-nav .nav-link:hover {
@@ -720,19 +758,21 @@ body {
     font-size: 0.9rem;
     opacity: 0.8;
     transition: opacity 0.3s ease;
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+    line-height: 1;
 }
 
 .navbar-nav .nav-link:hover i {
     opacity: 1;
 }
 
-/* 导航栏图标优化 */
-.navbar-nav .nav-link i {
-    display: inline-block;
-    width: 16px;
-    text-align: center;
-    margin-right: 0.25rem;
-    font-size: 0.9rem;
+.navbar-nav .nav-link span {
+    vertical-align: middle;
+    line-height: 1;
 }
 
 /* 确保Font Awesome图标正确显示 */
@@ -783,6 +823,8 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     padding: 0.5rem 0;
     margin-top: 0.5rem;
+    z-index: 1050;
+    position: absolute;
 }
 
 .dropdown-item {
@@ -819,7 +861,52 @@ body {
         border: none;
         box-shadow: none;
         background: rgba(102, 126, 234, 0.05);
+        position: static !important;
+        z-index: 1050;
     }
+}
+
+/* 确保导航栏始终可见 */
+.navbar-nav {
+    position: relative;
+    z-index: 1002;
+}
+
+.navbar-nav .nav-item {
+    position: relative;
+    z-index: 1002;
+}
+
+.navbar-nav .dropdown {
+    position: relative;
+    z-index: 1002;
+}
+
+/* 修复可能的遮挡问题 */
+.navbar .navbar-nav .nav-link {
+    position: relative;
+    z-index: 1003;
+    display: block;
+    overflow: visible;
+}
+
+.navbar .navbar-nav .dropdown-toggle {
+    position: relative;
+    z-index: 1003;
+}
+
+/* 确保登录按钮可见 */
+.navbar-nav .nav-item:last-child {
+    position: relative;
+    z-index: 1004;
+}
+
+.navbar-nav .nav-item:last-child .nav-link {
+    position: relative;
+    z-index: 1004;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 0.5rem 1rem !important;
 }
 
 /* 卡片样式 */
@@ -859,6 +946,7 @@ body {
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     background: rgba(102, 126, 234, 0.03);
     padding: 0.6rem;
@@ -1157,7 +1245,8 @@ a:hover {
 
 /* 快速操作区域样式 - 使用表格结构 */
 .quick-actions {
-    /* 移除所有样式，使用默认的card样式 */
+    /* 使用默认的card样式 */
+    display: block;
 }
 
 /* 表格响应式优化 */
@@ -1550,6 +1639,45 @@ a:hover {
     background-color: #4f46e5;
     border-color: #4f46e5;
     box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+}
+
+/* 响应式导航栏 */
+@media (max-width: 991.98px) {
+    .navbar {
+        min-height: auto;
+        padding: 0.5rem 0;
+    }
+    
+    .navbar .container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .navbar-collapse {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+    
+    .navbar-nav {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .navbar-nav .nav-item {
+        width: 100%;
+    }
+    
+    .navbar-nav .nav-link {
+        padding: 0.75rem 1rem !important;
+        margin: 0.25rem 0;
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .navbar-nav .nav-link:hover {
+        transform: none;
+    }
 }
 
 .report-checkbox .form-check-input:focus {

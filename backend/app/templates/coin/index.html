@@ -1,0 +1,709 @@
+{% extends "base.html" %}
+
+{% block title %}金币中心 - 智策股析{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 现代化金币中心样式 */
+    .coin-center-container {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    .coin-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .coin-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+    
+    .coin-amount {
+        font-size: 4rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .coin-label {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        font-weight: 500;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    }
+    
+    .stats-card h5 {
+        color: #2d3748;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        font-size: 1.1rem;
+    }
+    
+    .stats-card h5 i {
+        color: #667eea;
+        margin-right: 0.5rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-item:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: scale(1.05);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #718096;
+        font-weight: 500;
+    }
+    
+    .package-card {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .package-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .package-card:hover::before {
+        left: 100%;
+    }
+    
+    .package-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.15);
+        transform: translateY(-3px);
+    }
+    
+    .package-card.featured {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.2);
+    }
+    
+    .package-card.featured .package-price {
+        color: white;
+    }
+    
+    .package-card.featured .package-description {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .package-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #2d3748;
+    }
+    
+    .package-description {
+        font-size: 0.9rem;
+        color: #718096;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+    
+    .package-price {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1976d2;
+        margin-bottom: 0.5rem;
+    }
+    
+    .package-coins {
+        font-size: 1rem;
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .transaction-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+        border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+    
+    .transaction-card h5 {
+        color: #2d3748;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        font-size: 1.1rem;
+    }
+    
+    .transaction-card h5 i {
+        color: #667eea;
+        margin-right: 0.5rem;
+    }
+    
+    .transaction-item {
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .transaction-item:hover {
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        transform: translateX(5px);
+    }
+    
+    .transaction-item.earn {
+        border-left-color: #48bb78;
+        background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+    }
+    
+    .transaction-item.spend {
+        border-left-color: #f56565;
+        background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    }
+    
+    .btn-daily-bonus {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        border: none;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(72, 187, 120, 0.3);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .btn-daily-bonus:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(72, 187, 120, 0.4);
+    }
+    
+    .btn-daily-bonus:disabled {
+        background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+        transform: none;
+        box-shadow: 0 4px 15px rgba(160, 174, 192, 0.3);
+        cursor: not-allowed;
+    }
+    
+    .btn-daily-bonus:disabled:hover {
+        transform: none;
+        box-shadow: 0 4px 15px rgba(160, 174, 192, 0.3);
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+        .coin-amount {
+            font-size: 3rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+        
+        .package-card {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="coin-center-container">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- 左侧：金币信息 -->
+            <div class="col-md-4">
+                <div class="coin-card">
+                    <div class="text-center">
+                        <div class="coin-amount" id="coin-amount">--</div>
+                        <div class="coin-label">可用金币</div>
+                        <button class="btn btn-daily-bonus mt-3" id="daily-bonus-btn" onclick="claimDailyBonus()">
+                            <i class="fas fa-gift"></i> 每日签到
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 签到统计 -->
+                <div class="stats-card">
+                    <h5><i class="fas fa-chart-line"></i> 签到统计</h5>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <div class="stat-number" id="streak-days">0</div>
+                                <div class="stat-label">连续签到</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <div class="stat-number" id="total-days">0</div>
+                                <div class="stat-label">总签到</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <div class="stat-number" id="month-days">0</div>
+                                <div class="stat-label">本月签到</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        <!-- 中间：金币套餐 -->
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-shopping-cart"></i> 金币套餐</h5>
+                </div>
+                <div class="card-body">
+                    <div id="packages-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="sr-only">加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧：交易记录 -->
+        <div class="col-md-3">
+            <div class="transaction-card" style="max-height: 400px; overflow-y: auto;">
+                <h5><i class="fas fa-history"></i> 最近交易</h5>
+                <div id="transactions-container">
+                    <div class="text-center">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="sr-only">加载中...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 支付模态框 -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">确认购买</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <h4 id="package-name">套餐名称</h4>
+                    <div class="h2 text-primary" id="package-price">¥0.00</div>
+                    <div class="text-muted" id="package-coins">0 金币</div>
+                    <hr>
+                    <p>请选择支付方式：</p>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary" onclick="payWithAlipay()">
+                            <i class="fab fa-alipay"></i> 支付宝
+                        </button>
+                        <button type="button" class="btn btn-outline-success" onclick="payWithWechat()">
+                            <i class="fab fa-weixin"></i> 微信支付
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentOrder = null;
+
+// 页面加载时初始化
+$(document).ready(function() {
+    loadCoinInfo();
+    loadPackages();
+    loadTransactions();
+    loadBonusStats();
+});
+
+// 加载金币信息
+function loadCoinInfo() {
+    $.ajax({
+        url: '/api/coin/info',
+        type: 'GET',
+        xhrFields: {
+            withCredentials: true
+        },
+        crossDomain: false
+    })
+        .done(function(response) {
+            console.log('金币信息响应:', response); // 调试信息
+            if (response.success) {
+                $('#coin-amount').text(response.data.available_coins);
+                // 检查今日是否已签到
+                checkDailyBonusStatus();
+            } else {
+                showAlert('获取金币信息失败: ' + (response.message || response.error), 'danger');
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.log('获取金币信息失败:', xhr.responseText); // 调试信息
+            let errorMsg = '获取金币信息失败';
+            try {
+                const response = JSON.parse(xhr.responseText);
+                errorMsg = response.message || response.error || errorMsg;
+            } catch (e) {
+                errorMsg = xhr.status === 401 ? '请先登录' : errorMsg;
+            }
+            showAlert(errorMsg, 'danger');
+        });
+}
+
+// 检查每日签到状态
+function checkDailyBonusStatus() {
+    $.ajax({
+        url: '/api/coin/daily-bonus-status',
+        type: 'GET',
+        xhrFields: {
+            withCredentials: true
+        },
+        crossDomain: false
+    })
+        .done(function(response) {
+            if (response.success) {
+                const btn = $('#daily-bonus-btn');
+                if (response.data.checked_in_today) {
+                    btn.prop('disabled', true);
+                    btn.html('<i class="fas fa-check"></i> 今日已签到');
+                    btn.removeClass('btn-success').addClass('btn-secondary');
+                } else {
+                    btn.prop('disabled', false);
+                    btn.html('<i class="fas fa-gift"></i> 每日签到');
+                    btn.removeClass('btn-secondary').addClass('btn-success');
+                }
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.log('检查签到状态失败:', xhr.responseText);
+        });
+}
+
+// 加载签到统计
+function loadBonusStats() {
+    $.ajax({
+        url: '/api/coin/bonus-stats',
+        type: 'GET',
+        xhrFields: {
+            withCredentials: true
+        },
+        crossDomain: false
+    })
+        .done(function(response) {
+            if (response.success) {
+                $('#streak-days').text(response.data.streak_days || 0);
+                $('#total-days').text(response.data.total_days || 0);
+                $('#month-days').text(response.data.month_days || 0);
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.log('获取签到统计失败:', xhr.responseText);
+        });
+}
+
+// 每日签到
+function claimDailyBonus() {
+    const btn = $('#daily-bonus-btn');
+    btn.prop('disabled', true);
+    btn.html('<i class="fas fa-spinner fa-spin"></i> 签到中...');
+    
+    $.ajax({
+        url: '/api/coin/daily-bonus',
+        type: 'POST',
+        xhrFields: {
+            withCredentials: true
+        },
+        crossDomain: false
+    })
+        .done(function(response) {
+            console.log('签到响应:', response); // 调试信息
+            if (response.success) {
+                const earnedCoins = response.data ? response.data.earned_coins : response.data;
+                const streakDays = response.data ? response.data.streak_days : 0;
+                showAlert(`签到成功！获得 ${earnedCoins} 金币（连续签到 ${streakDays} 天）`, 'success');
+                
+                // 更新按钮状态
+                btn.prop('disabled', true);
+                btn.html('<i class="fas fa-check"></i> 今日已签到');
+                btn.removeClass('btn-success').addClass('btn-secondary');
+                
+                loadCoinInfo(); // 重新加载金币信息
+                loadTransactions(); // 重新加载交易记录
+                loadBonusStats(); // 重新加载签到统计
+            } else {
+                showAlert('签到失败: ' + (response.message || response.error), 'danger');
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.log('签到请求失败:', xhr.responseText); // 调试信息
+            let errorMsg = '签到失败';
+            try {
+                const response = JSON.parse(xhr.responseText);
+                errorMsg = response.message || response.error || errorMsg;
+            } catch (e) {
+                errorMsg = xhr.status === 401 ? '请先登录' : errorMsg;
+            }
+            showAlert(errorMsg, 'danger');
+        })
+        .always(function() {
+            btn.prop('disabled', false);
+            btn.html('<i class="fas fa-gift"></i> 每日签到');
+        });
+}
+
+// 加载金币套餐
+function loadPackages() {
+    $.ajax({
+        url: '/api/coin/packages',
+        type: 'GET',
+        xhrFields: {
+            withCredentials: true
+        },
+        crossDomain: false
+    })
+        .done(function(response) {
+            if (response.success) {
+                displayPackages(response.data);
+            } else {
+                showAlert('获取套餐失败: ' + response.error, 'danger');
+            }
+        })
+        .fail(function() {
+            showAlert('获取套餐失败', 'danger');
+        });
+}
+
+// 显示套餐
+function displayPackages(packages) {
+    const container = $('#packages-container');
+    container.empty();
+    
+    packages.forEach(function(package) {
+        const packageHtml = `
+            <div class="package-card ${package.package_type === 'SUBSCRIPTION' ? 'featured' : ''}" 
+                 onclick="selectPackage(${package.id}, '${package.name}', ${package.price}, ${package.coins})">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="package-name">${package.name}</div>
+                        <div class="package-description">${package.description}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="package-price">¥${package.price}</div>
+                        <div class="package-coins">${package.coins} 金币</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.append(packageHtml);
+    });
+}
+
+// 选择套餐
+function selectPackage(packageId, name, price, coins) {
+    currentOrder = { packageId, name, price, coins };
+    $('#package-name').text(name);
+    $('#package-price').text('¥' + price);
+    $('#package-coins').text(coins + ' 金币');
+    $('#paymentModal').modal('show');
+}
+
+// 支付宝支付
+function payWithAlipay() {
+    if (!currentOrder) return;
+    
+    // 创建订单
+    $.post('/api/coin/order', { package_id: currentOrder.packageId })
+        .done(function(response) {
+            if (response.success) {
+                // 这里应该调用支付宝支付接口
+                showAlert('支付宝支付功能待实现', 'info');
+                $('#paymentModal').modal('hide');
+            } else {
+                showAlert('创建订单失败: ' + response.error, 'danger');
+            }
+        })
+        .fail(function() {
+            showAlert('创建订单失败', 'danger');
+        });
+}
+
+// 微信支付
+function payWithWechat() {
+    if (!currentOrder) return;
+    
+    // 创建订单
+    $.post('/api/coin/order', { package_id: currentOrder.packageId })
+        .done(function(response) {
+            if (response.success) {
+                // 这里应该调用微信支付接口
+                showAlert('微信支付功能待实现', 'info');
+                $('#paymentModal').modal('hide');
+            } else {
+                showAlert('创建订单失败: ' + response.error, 'danger');
+            }
+        })
+        .fail(function() {
+            showAlert('创建订单失败', 'danger');
+        });
+}
+
+// 加载交易记录
+function loadTransactions() {
+    $.ajax({
+        url: '/api/coin/transactions?per_page=10',
+        type: 'GET',
+        xhrFields: {
+            withCredentials: true
+        },
+        crossDomain: false
+    })
+        .done(function(response) {
+            console.log('交易记录响应:', response); // 调试信息
+            if (response.success) {
+                displayTransactions(response.data.transactions);
+            } else {
+                showAlert('获取交易记录失败: ' + (response.message || response.error), 'danger');
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.log('获取交易记录失败:', xhr.responseText); // 调试信息
+            let errorMsg = '获取交易记录失败';
+            try {
+                const response = JSON.parse(xhr.responseText);
+                errorMsg = response.message || response.error || errorMsg;
+            } catch (e) {
+                errorMsg = xhr.status === 401 ? '请先登录' : errorMsg;
+            }
+            showAlert(errorMsg, 'danger');
+        });
+}
+
+// 显示交易记录
+function displayTransactions(transactions) {
+    const container = $('#transactions-container');
+    container.empty();
+    
+    if (transactions.length === 0) {
+        container.html('<div class="text-center text-muted">暂无交易记录</div>');
+        return;
+    }
+    
+    transactions.forEach(function(transaction) {
+        const typeClass = transaction.amount > 0 ? 'earn' : 'spend';
+        const typeIcon = transaction.amount > 0 ? 'fa-plus' : 'fa-minus';
+        const typeText = transaction.amount > 0 ? '获得' : '消耗';
+        
+        const transactionHtml = `
+            <div class="transaction-item ${typeClass}">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <i class="fas ${typeIcon}"></i>
+                        <strong>${typeText} ${Math.abs(transaction.amount)} 金币</strong>
+                    </div>
+                    <small class="text-muted">${new Date(transaction.created_at).toLocaleDateString()}</small>
+                </div>
+                <div class="small text-muted">${transaction.description}</div>
+            </div>
+        `;
+        container.append(transactionHtml);
+    });
+}
+
+// 显示提示信息
+function showAlert(message, type) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `;
+    $('body').prepend(alertHtml);
+    
+    // 3秒后自动消失
+    setTimeout(function() {
+        $('.alert').fadeOut();
+    }, 3000);
+}
+</script>
+{% endblock %}

@@ -151,6 +151,55 @@ def check_report_view_permission(report_user_id):
     return True
 
 
+def require_permission(permission):
+    """权限验证装饰器"""
+    def decorator(f):
+        @wraps(f)
+        @login_required
+        def decorated_function(*args, **kwargs):
+            user = get_current_user()
+            if not user:
+                if request.is_json:
+                    return jsonify({
+                        'success': False,
+                        'error': 'LOGIN_REQUIRED',
+                        'message': '请先登录'
+                    }), 401
+                return redirect(url_for('auth.login'))
+            
+            # 检查权限
+            if permission == 'SUPER_ADMIN' and not user.is_super_admin():
+                if request.is_json:
+                    return jsonify({
+                        'success': False,
+                        'error': 'SUPER_ADMIN_REQUIRED',
+                        'message': '需要超级管理员权限'
+                    }), 403
+                return redirect(url_for('dashboard.index'))
+            
+            if permission == 'SITE_ADMIN' and not user.is_site_admin():
+                if request.is_json:
+                    return jsonify({
+                        'success': False,
+                        'error': 'SITE_ADMIN_REQUIRED',
+                        'message': '需要网站管理员权限'
+                    }), 403
+                return redirect(url_for('dashboard.index'))
+            
+            if permission == 'ADMIN' and not user.is_admin():
+                if request.is_json:
+                    return jsonify({
+                        'success': False,
+                        'error': 'ADMIN_REQUIRED',
+                        'message': '需要管理员权限'
+                    }), 403
+                return redirect(url_for('dashboard.index'))
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
 def get_user_context():
     """获取用户上下文信息"""
     user = get_current_user()

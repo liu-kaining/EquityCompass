@@ -5,9 +5,10 @@ from app import db
 from datetime import datetime
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     """用户表"""
     __tablename__ = 'users'
     

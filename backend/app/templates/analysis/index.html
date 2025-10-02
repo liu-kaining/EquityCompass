@@ -13,9 +13,9 @@
         </div>
     </div>
 
-    <!-- 使用量显示 -->
+    <!-- 使用量和金币显示 -->
     <div class="row mb-3">
-        <div class="col-12">
+        <div class="col-md-8">
             <div class="card border-0 shadow-sm" id="usageCard">
                 <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center">
@@ -30,6 +30,26 @@
                                 <div class="progress-bar" id="usageProgress" role="progressbar" style="width: 0%"></div>
                             </div>
                             <small class="text-muted mt-1 d-block" id="usageHint">每日限额：10次</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm" id="coinCard">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 text-muted">
+                                <i class="fas fa-coins me-2"></i>金币余额
+                            </h6>
+                            <span class="h5 mb-0" id="coinDisplay">加载中...</span>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted mt-1 d-block">每次分析消耗10金币</small>
+                            <a href="{{ url_for('coin.coin_center') }}" class="btn btn-sm btn-outline-primary mt-1">
+                                <i class="fas fa-plus me-1"></i>充值
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -306,6 +326,12 @@
                 <div class="alert alert-warning">
                     <i class="fas fa-info-circle me-2"></i>
                     <strong>剩余次数：</strong><span id="confirmRemaining">9次</span>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-coins me-2"></i>
+                    <strong>金币消耗：</strong><span id="confirmCoinCost">10金币</span>
+                    <br>
+                    <small class="text-muted">每次分析将消耗10金币，请确保您的金币余额充足</small>
                 </div>
             </div>
             <div class="modal-footer border-0 justify-content-center">
@@ -634,6 +660,49 @@ function previewSelectedPrompt() {
         });
     }
     
+    // 获取用户金币信息
+    function loadUserCoinInfo() {
+        $.ajax({
+            url: '/api/coin/info',
+            method: 'GET',
+            xhrFields: {
+                withCredentials: true
+            },
+            crossDomain: false,
+            success: function(response) {
+                if (response.success) {
+                    const coinInfo = response.data;
+                    const availableCoins = coinInfo.available_coins || 0;
+                    const coinCost = 10;
+                    
+                    // 更新页面金币显示
+                    $('#coinDisplay').text(`${availableCoins}金币`);
+                    if (availableCoins < coinCost) {
+                        $('#coinDisplay').addClass('text-danger');
+                    } else {
+                        $('#coinDisplay').removeClass('text-danger');
+                    }
+                    
+                    // 更新确认弹窗中的金币消耗显示
+                    if (availableCoins >= coinCost) {
+                        $('#confirmCoinCost').html(`<span class="text-success">10金币</span><br><small class="text-muted">当前余额：${availableCoins}金币</small>`);
+                    } else {
+                        $('#confirmCoinCost').html(`<span class="text-danger">10金币</span><br><small class="text-danger">余额不足！当前余额：${availableCoins}金币</small>`);
+                    }
+                } else {
+                    console.error('获取金币信息失败:', response.message);
+                    $('#coinDisplay').text('获取失败');
+                    $('#confirmCoinCost').text('10金币（无法获取余额）');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('获取金币信息失败:', error);
+                $('#coinDisplay').text('获取失败');
+                $('#confirmCoinCost').text('10金币（无法获取余额）');
+            }
+        });
+    }
+    
 // 更新使用量显示 - 全局函数
     function updateUsageDisplay(usage) {
         const current = usage.current_count;
@@ -661,8 +730,9 @@ function previewSelectedPrompt() {
     }
 
 $(document).ready(function() {
-    // 页面加载时获取使用量
+    // 页面加载时获取使用量和金币信息
     loadUsageData();
+    loadUserCoinInfo();
     
     
     // 单个股票分析
@@ -690,11 +760,17 @@ $(document).ready(function() {
         
         if (currentUsageData && currentUsageData.is_admin) {
             $('#confirmRemaining').text('无限制');
+            $('#confirmCoinCost').text('免费（管理员）');
         } else if (currentUsageData) {
             $('#confirmRemaining').text(`${currentUsageData.remaining}次`);
+            $('#confirmCoinCost').text('10金币');
         } else {
             $('#confirmRemaining').text('加载中...');
+            $('#confirmCoinCost').text('10金币');
         }
+        
+        // 获取用户金币余额
+        loadUserCoinInfo();
         
         $('#confirmAnalysisModal').modal('show');
     }
@@ -741,7 +817,7 @@ $(document).ready(function() {
             success: function(response) {
                 console.log('分析请求成功:', response);
                 if (response.success) {
-                    showToast('success', `${stockCode} 分析任务已提交！请稍后查看结果。`);
+                    showToast('success', `${stockCode} 分析任务已提交！消耗10金币，请稍后查看结果。`);
                     
                     // 更新使用量
                     loadUsageData();
@@ -749,7 +825,12 @@ $(document).ready(function() {
                     // 显示任务提交成功提示
                     showTaskSubmittedModal(stockCode, response.data.task_id);
                 } else {
-                    showToast('error', `${stockCode} 分析失败: ${response.message}`);
+                    // 检查是否是金币不足错误
+                    if (response.message && response.message.includes('金币不足')) {
+                        showToast('error', `分析失败: ${response.message}，请前往金币中心充值。`);
+                    } else {
+                        showToast('error', `${stockCode} 分析失败: ${response.message}`);
+                    }
                 }
             },
             error: function(xhr, status, error) {

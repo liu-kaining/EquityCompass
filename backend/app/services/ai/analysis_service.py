@@ -29,6 +29,58 @@ class AnalysisService:
         os.makedirs('data', exist_ok=True)
         os.makedirs(self.reports_dir, exist_ok=True)
     
+    def _check_and_spend_coins(self, user_id: int, stock_code: str) -> Dict[str, Any]:
+        """检查并消耗金币"""
+        try:
+            # 导入金币服务
+            from app.services.coin.coin_service import CoinService
+            
+            # 检查用户是否为管理员（管理员不消耗金币）
+            from app.models.user import User
+            user = self.session.query(User).get(user_id)
+            if user and user.user_role in ['SUPER_ADMIN', 'SITE_ADMIN']:
+                logger.info(f"管理员用户 {user_id} 跳过金币检查")
+                return {'success': True}
+            
+            # 创建金币服务实例
+            coin_service = CoinService(self.session)
+            
+            # 检查用户是否有金币账户，如果没有则初始化
+            user_coin_info = coin_service.get_user_coin_info(user_id)
+            if not user_coin_info['success']:
+                # 用户没有金币账户，初始化一个
+                init_result = coin_service.initialize_user_coins(user_id, initial_coins=20)
+                if not init_result['success']:
+                    return {
+                        'success': False,
+                        'error': '初始化用户金币账户失败'
+                    }
+                logger.info(f"为用户 {user_id} 初始化金币账户")
+            
+            # 消耗金币（每次分析消耗10金币）
+            spend_result = coin_service.spend_coins(
+                user_id=user_id,
+                amount=10,
+                description=f'股票分析：{stock_code}',
+                related_type='ANALYSIS'
+            )
+            
+            if not spend_result['success']:
+                return {
+                    'success': False,
+                    'error': spend_result.get('error', '金币不足')
+                }
+            
+            logger.info(f"用户 {user_id} 消耗10金币进行股票 {stock_code} 分析")
+            return {'success': True}
+            
+        except Exception as e:
+            logger.error(f"金币检查失败: {str(e)}")
+            return {
+                'success': False,
+                'error': f'金币检查失败: {str(e)}'
+            }
+    
     def _get_analysis_prompt(self, prompt_type: str = 'default', prompt_id: int = None) -> str:
         """获取分析提示词模板"""
         try:
@@ -74,9 +126,15 @@ class AnalysisService:
         logger.info(f"创建分析任务: {task_id}")
         return task_id
     
-    def run_analysis(self, stock_code: str, user_id: int, analysis_type: str = 'fundamental', ai_provider: str = 'qwen', prompt_id: int = None) -> Dict[str, Any]:
+    def run_analysis(self, stock_code: str, user_id: int, analysis_type: str = 'fundamental', ai_provider: str = 'qwen', prompt_id: int = None, skip_coin_check: bool = False) -> Dict[str, Any]:
         """运行分析（同步版本）"""
         try:
+            # 检查并消耗金币（除非跳过）
+            if not skip_coin_check:
+                coin_check_result = self._check_and_spend_coins(user_id, stock_code)
+                if not coin_check_result['success']:
+                    return coin_check_result
+            
             # 获取股票信息
             stock = self.stock_repo.get_by_code(stock_code)
             if not stock:
@@ -122,7 +180,7 @@ class AnalysisService:
                 
                 # 执行分析
                 prompt_id = task_data.get('prompt_id')
-                result = self.run_analysis(stock_code, user_id, analysis_type, ai_provider, prompt_id)
+                result = self.run_analysis(stock_code, user_id, analysis_type, ai_provider, prompt_id, skip_coin_check=True)
                 
                 if result['success']:
                     logger.info(f"股票 {stock_code} 分析成功")
@@ -210,7 +268,7 @@ class AnalysisService:
                 
                 # 执行分析
                 prompt_id = task_data.get('prompt_id')
-                result = self.run_analysis(stock_code, user_id, analysis_type, ai_provider, prompt_id)
+                result = self.run_analysis(stock_code, user_id, analysis_type, ai_provider, prompt_id, skip_coin_check=True)
                 
                 if result['success']:
                     logger.info(f"股票 {stock_code} 分析成功")
@@ -885,7 +943,11 @@ class AnalysisService:
                             return
                         
                         # 执行分析（带重试机制）
-                        result = self._run_analysis_with_retry(stock_code, user_id, analysis_type, ai_provider, task_data, task_file)
+                        # 在新应用上下文中重新创建服务实例
+                        from app.services.ai.analysis_service import AnalysisService
+                        from app import db
+                        analysis_service = AnalysisService(db.session)
+                        result = analysis_service._run_analysis_with_retry(stock_code, user_id, analysis_type, ai_provider, task_data, task_file)
                         
                         if result['success']:
                             task_data['completed_count'] = 1
@@ -981,6 +1043,36 @@ class AnalysisService:
                     
                     with app.app_context():
                         logger.info(f"开始执行批量分析任务: {task_id}")
+                        
+                        # 检查用户是否为管理员（管理员不消耗金币）
+                        from app.models.user import User
+                        from app import db
+                        user = db.session.query(User).get(user_id)
+                        if not user or user.user_role not in ['SUPER_ADMIN', 'SITE_ADMIN']:
+                            # 非管理员用户需要扣除金币
+                            from app.services.coin.coin_service import CoinService
+                            coin_service = CoinService(db.session)
+                            
+                            # 计算总金币数量
+                            total_coins = len(stocks) * 10
+                            
+                            # 扣除金币
+                            spend_result = coin_service.spend_coins(
+                                user_id=user_id,
+                                amount=total_coins,
+                                description=f'批量分析：{len(stocks)}个股票',
+                                related_type='BATCH_ANALYSIS'
+                            )
+                            
+                            if not spend_result['success']:
+                                logger.error(f"批量分析金币扣除失败: {spend_result.get('error')}")
+                                task_data['status'] = 'failed'
+                                task_data['error'] = f"金币不足: {spend_result.get('error')}"
+                                with open(task_file, 'w', encoding='utf-8') as f:
+                                    json.dump(task_data, f, ensure_ascii=False, indent=2)
+                                return
+                            
+                            logger.info(f"用户 {user_id} 消耗{total_coins}金币进行批量分析")
                         
                         # 更新任务状态为进行中
                         task_data['status'] = 'running'
