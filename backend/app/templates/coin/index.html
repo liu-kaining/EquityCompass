@@ -413,7 +413,9 @@ function loadCoinInfo() {
                 // 检查今日是否已签到
                 checkDailyBonusStatus();
             } else {
-                showAlert('获取金币信息失败: ' + (response.message || response.error), 'danger');
+                // 安全显示错误信息，防止XSS
+                const errorMsg = $('<div>').text(response.message || response.error || '未知错误').html();
+                showAlert('获取金币信息失败: ' + errorMsg, 'danger');
             }
         })
         .fail(function(xhr, status, error) {
@@ -421,7 +423,9 @@ function loadCoinInfo() {
             let errorMsg = '获取金币信息失败';
             try {
                 const response = JSON.parse(xhr.responseText);
-                errorMsg = response.message || response.error || errorMsg;
+                // 安全处理错误信息，防止XSS
+                const safeErrorMsg = $('<div>').text(response.message || response.error || errorMsg).html();
+                errorMsg = safeErrorMsg;
             } catch (e) {
                 errorMsg = xhr.status === 401 ? '请先登录' : errorMsg;
             }

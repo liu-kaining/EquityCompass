@@ -84,7 +84,10 @@ def create_app(config_name='development'):
     
     @app.errorhandler(500)
     def internal_error(error):
-        db.session.rollback()
+        try:
+            db.session.rollback()
+        except:
+            pass  # 如果db还没有初始化，忽略错误
         return jsonify({'success': False, 'error': 'INTERNAL_ERROR', 'message': '服务器内部错误'}), 500
     
     @app.errorhandler(403)

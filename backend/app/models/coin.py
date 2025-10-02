@@ -2,7 +2,7 @@
 金币系统数据模型
 """
 from datetime import datetime
-from sqlalchemy import Index
+from sqlalchemy import Index, UniqueConstraint
 from app import db
 
 
@@ -110,7 +110,7 @@ class DailyBonus(db.Model):
     
     # 唯一约束：每个用户每天只能签到一次
     __table_args__ = (
-        db.UniqueConstraint('user_id', 'bonus_date', name='unique_daily_bonus'),
+        UniqueConstraint('user_id', 'bonus_date', name='unique_daily_bonus'),
         Index('idx_user_bonus_date', 'user_id', 'bonus_date'),
     )
     

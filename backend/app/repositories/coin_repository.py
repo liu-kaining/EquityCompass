@@ -133,7 +133,7 @@ class CoinRepository(SQLAlchemyRepository):
         """创建每日签到记录"""
         bonus = DailyBonus(**kwargs)
         self.session.add(bonus)
-        self.session.commit()
+        self.session.flush()  # 只flush，不commit，让上层事务控制
         return bonus
     
     def get_user_bonus_stats(self, user_id: int) -> dict:
