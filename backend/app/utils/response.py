@@ -45,3 +45,27 @@ def paginated_response(items, page, per_page, total, data_key='items'):
         'timestamp': datetime.utcnow().isoformat() + 'Z'
     }
     return jsonify(response_data), 200
+
+
+# 服务层响应函数（返回字典，不返回Flask响应对象）
+def service_success_response(data=None, message="Success"):
+    """服务层成功响应格式（返回字典）"""
+    return {
+        'success': True,
+        'data': data,
+        'message': message,
+        'timestamp': datetime.utcnow().isoformat() + 'Z'
+    }
+
+
+def service_error_response(error_code, message, data=None):
+    """服务层错误响应格式（返回字典）"""
+    response_data = {
+        'success': False,
+        'error': error_code,
+        'message': message,
+        'timestamp': datetime.utcnow().isoformat() + 'Z'
+    }
+    if data:
+        response_data['data'] = data
+    return response_data

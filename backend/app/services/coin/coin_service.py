@@ -10,7 +10,7 @@ from sqlalchemy import and_, desc
 from app.models.coin import UserCoin, CoinTransaction, CoinPackage, CoinOrder, DailyBonus
 from app.models.user import User
 from app.repositories.coin_repository import CoinRepository
-from app.utils.response import success_response, error_response
+from app.utils.response import success_response, error_response, service_success_response, service_error_response
 
 
 class CoinService:
@@ -72,7 +72,7 @@ class CoinService:
         try:
             user_coin = self.repository.get_user_coin(user_id)
             if not user_coin:
-                return error_response("USER_COIN_NOT_FOUND", "用户金币账户不存在")
+                return service_error_response("USER_COIN_NOT_FOUND", "用户金币账户不存在")
             
             # 获取最近交易记录
             recent_transactions = self.repository.get_user_transactions(
@@ -100,7 +100,7 @@ class CoinService:
             }
             
         except Exception as e:
-            return error_response("GET_USER_COIN_INFO_FAILED", f"获取用户金币信息失败: {str(e)}")
+            return service_error_response("GET_USER_COIN_INFO_FAILED", f"获取用户金币信息失败: {str(e)}")
     
     def spend_coins(self, user_id: int, amount: int, description: str, related_id: int = None, related_type: str = None) -> Dict:
         """消耗金币"""
@@ -108,11 +108,11 @@ class CoinService:
             # 使用数据库锁防止并发问题
             user_coin = self.repository.get_user_coin(user_id)
             if not user_coin:
-                return error_response("USER_COIN_NOT_FOUND", "用户金币账户不存在")
+                return service_error_response("USER_COIN_NOT_FOUND", "用户金币账户不存在")
             
             # 检查余额（带锁）
             if user_coin.available_coins < amount:
-                return error_response("INSUFFICIENT_COINS", f"金币不足，需要{amount}金币，当前可用{user_coin.available_coins}金币")
+                return service_error_response("INSUFFICIENT_COINS", f"金币不足，需要{amount}金币，当前可用{user_coin.available_coins}金币")
             
             # 开始事务
             self.db.begin()
@@ -152,14 +152,14 @@ class CoinService:
                 raise e
             
         except Exception as e:
-            return error_response("SPEND_COINS_FAILED", f"消耗金币失败: {str(e)}")
+            return service_error_response("SPEND_COINS_FAILED", f"消耗金币失败: {str(e)}")
     
     def earn_coins(self, user_id: int, amount: int, description: str, transaction_type: str = 'EARN', related_id: int = None, related_type: str = None) -> Dict:
         """获得金币"""
         try:
             user_coin = self.repository.get_user_coin(user_id)
             if not user_coin:
-                return error_response("USER_COIN_NOT_FOUND", "用户金币账户不存在")
+                return service_error_response("USER_COIN_NOT_FOUND", "用户金币账户不存在")
             
             # 更新金币余额
             balance_before = user_coin.available_coins
@@ -181,7 +181,7 @@ class CoinService:
             
             self.db.commit()
             
-            return success_response({
+            return service_success_response({
                 'transaction_id': transaction.id,
                 'earned_coins': amount,
                 'total_coins': user_coin.available_coins
@@ -189,7 +189,7 @@ class CoinService:
             
         except Exception as e:
             self.db.rollback()
-            return error_response("EARN_COINS_FAILED", f"获得金币失败: {str(e)}")
+            return service_error_response("EARN_COINS_FAILED", f"获得金币失败: {str(e)}")
     
     def check_daily_bonus_status(self, user_id: int) -> Dict:
         """检查每日签到状态"""
@@ -203,23 +203,23 @@ class CoinService:
             # 计算连续签到天数
             streak_days = self._calculate_streak_days(user_id)
             
-            return success_response({
+            return service_success_response({
                 'checked_in_today': checked_in_today,
                 'streak_days': streak_days,
                 'last_checkin_date': existing_bonus.bonus_date.isoformat() if existing_bonus else None
             })
             
         except Exception as e:
-            return error_response("CHECK_STATUS_FAILED", f"检查签到状态失败: {str(e)}")
+            return service_error_response("CHECK_STATUS_FAILED", f"检查签到状态失败: {str(e)}")
     
     def get_bonus_stats(self, user_id: int) -> Dict:
         """获取签到统计"""
         try:
             stats = self.repository.get_user_bonus_stats(user_id)
-            return success_response(stats)
+            return service_success_response(stats)
             
         except Exception as e:
-            return error_response("GET_BONUS_STATS_FAILED", f"获取签到统计失败: {str(e)}")
+            return service_error_response("GET_BONUS_STATS_FAILED", f"获取签到统计失败: {str(e)}")
     
     def daily_bonus(self, user_id: int) -> Dict:
         """每日签到奖励"""
@@ -241,7 +241,7 @@ class CoinService:
                 if existing_bonus:
                     self.db.rollback()
                     current_app.logger.info("今日已签到，返回错误")
-                    return error_response("ALREADY_CHECKED_IN", "今日已签到，请明天再来")
+                    return service_error_response("ALREADY_CHECKED_IN", "今日已签到，请明天再来")
                 
                 # 计算连续签到天数
                 streak_days = self._calculate_streak_days(user_id)
@@ -302,19 +302,19 @@ class CoinService:
             except Exception as e:
                 self.db.rollback()
                 current_app.logger.error(f"每日签到处理异常: {str(e)}", exc_info=True)
-                return error_response("DAILY_BONUS_PROCESSING_FAILED", f"每日签到处理失败: {str(e)}")
+                return service_error_response("DAILY_BONUS_PROCESSING_FAILED", f"每日签到处理失败: {str(e)}")
             
         except Exception as e:
             from flask import current_app
             current_app.logger.error(f"每日签到异常: {str(e)}", exc_info=True)
-            return error_response("DAILY_BONUS_FAILED", f"每日签到失败: {str(e)}")
+            return service_error_response("DAILY_BONUS_FAILED", f"每日签到失败: {str(e)}")
     
     def get_coin_packages(self) -> Dict:
         """获取金币套餐列表"""
         try:
             packages = self.repository.get_active_packages()
             
-            return success_response([
+            return service_success_response([
                 {
                     'id': p.id,
                     'name': p.name,
@@ -328,7 +328,7 @@ class CoinService:
             ])
             
         except Exception as e:
-            return error_response("GET_PACKAGES_FAILED", f"获取金币套餐失败: {str(e)}")
+            return service_error_response("GET_PACKAGES_FAILED", f"获取金币套餐失败: {str(e)}")
     
     def create_coin_order(self, user_id: int, package_id: int) -> Dict:
         """创建金币订单"""
@@ -336,7 +336,7 @@ class CoinService:
             # 获取套餐信息
             package = self.repository.get_package(package_id)
             if not package or not package.is_active:
-                return error_response("PACKAGE_NOT_FOUND", "套餐不存在或已下架")
+                return service_error_response("PACKAGE_NOT_FOUND", "套餐不存在或已下架")
             
             # 生成订单号
             order_no = f"COIN_{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:8]}"
@@ -350,7 +350,7 @@ class CoinService:
                 coins=package.coins
             )
             
-            return success_response({
+            return service_success_response({
                 'order_id': order.id,
                 'order_no': order.order_no,
                 'amount': order.amount,
@@ -359,17 +359,36 @@ class CoinService:
             })
             
         except Exception as e:
-            return error_response("CREATE_ORDER_FAILED", f"创建订单失败: {str(e)}")
+            return service_error_response("CREATE_ORDER_FAILED", f"创建订单失败: {str(e)}")
     
+    def get_order_status(self, order_no: str) -> Dict:
+        """获取订单状态"""
+        try:
+            order = self.repository.get_coin_order_by_no(order_no)
+            if not order:
+                return service_error_response("ORDER_NOT_FOUND", "订单不存在")
+            
+            return service_success_response({
+                'order_no': order.order_no,
+                'status': order.status,
+                'amount': order.amount,
+                'coins': order.coins,
+                'created_at': order.created_at.isoformat() if order.created_at else None,
+                'paid_at': order.paid_at.isoformat() if order.paid_at else None
+            })
+            
+        except Exception as e:
+            return service_error_response("GET_ORDER_STATUS_FAILED", f"获取订单状态失败: {str(e)}")
+
     def complete_coin_order(self, order_id: int, payment_method: str, payment_id: str) -> Dict:
         """完成金币订单（支付成功）"""
         try:
             order = self.repository.get_coin_order(order_id)
             if not order:
-                return error_response("ORDER_NOT_FOUND", "订单不存在")
+                return service_error_response("ORDER_NOT_FOUND", "订单不存在")
             
             if order.status != 'PENDING':
-                return error_response("INVALID_ORDER_STATUS", "订单状态不正确")
+                return service_error_response("INVALID_ORDER_STATUS", "订单状态不正确")
             
             # 更新订单状态
             order.status = 'PAID'
@@ -392,7 +411,7 @@ class CoinService:
             
             self.db.commit()
             
-            return success_response({
+            return service_success_response({
                 'order_id': order.id,
                 'coins_added': order.coins,
                 'total_coins': earn_result['data']['total_coins']
@@ -400,7 +419,7 @@ class CoinService:
             
         except Exception as e:
             self.db.rollback()
-            return error_response("COMPLETE_ORDER_FAILED", f"完成订单失败: {str(e)}")
+            return service_error_response("COMPLETE_ORDER_FAILED", f"完成订单失败: {str(e)}")
     
     def get_user_transactions(self, user_id: int, page: int = 1, per_page: int = 20) -> Dict:
         """获取用户交易记录"""
@@ -411,7 +430,7 @@ class CoinService:
                 per_page=per_page
             )
             
-            return success_response({
+            return service_success_response({
                 'transactions': [
                     {
                         'id': t.id,
@@ -433,7 +452,7 @@ class CoinService:
             })
             
         except Exception as e:
-            return error_response("GET_TRANSACTIONS_FAILED", f"获取交易记录失败: {str(e)}")
+            return service_error_response("GET_TRANSACTIONS_FAILED", f"获取交易记录失败: {str(e)}")
     
     def _create_transaction(self, user_coin_id: int, user_id: int, transaction_type: str, 
                           amount: int, balance_before: int, balance_after: int, 

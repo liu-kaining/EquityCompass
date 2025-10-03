@@ -170,6 +170,10 @@ def create_app(config_name='development'):
     app.register_blueprint(models_bp)
     app.register_blueprint(coin_api_bp, url_prefix='/api/coin', name='coin_api')
     
+    # 支付API路由
+    from app.api.payment_api import payment_bp
+    app.register_blueprint(payment_bp, url_prefix='/api/payment')
+    
 
     
     # 错误处理

@@ -123,6 +123,7 @@ def create_coin_order():
             return error_response("INVALID_REQUEST", "请求数据格式错误")
         
         package_id = data.get('package_id')
+        payment_method = data.get('payment_method', 'ALIPAY')  # 默认支付宝
         
         # 输入验证
         if not package_id:
@@ -136,16 +137,63 @@ def create_coin_order():
         except (ValueError, TypeError):
             return error_response("INVALID_PARAMETERS", "套餐ID格式错误")
         
+        # 验证支付方式
+        if payment_method not in ['ALIPAY', 'WECHAT', 'STRIPE']:
+            return error_response("INVALID_PAYMENT_METHOD", "不支持的支付方式")
+        
         db_session = get_db_session()
         coin_service = CoinService(db_session)
         
         user_id = session.get('user_id')
         result = coin_service.create_coin_order(user_id, package_id)
+        
+        if result.get('success'):
+            # 创建订单成功，现在创建支付订单
+            from app.services.payment.payment_service import PaymentService, MockPaymentService
+            
+            # 检查是否为开发环境，使用模拟支付
+            if current_app.config.get('ENV') == 'development':
+                payment_service = MockPaymentService(db_session)
+            else:
+                payment_service = PaymentService(db_session)
+            
+            order_id = result.get('data', {}).get('order_id')
+            payment_result = payment_service.create_payment_order(order_id, payment_method)
+            
+            if payment_result.get('success'):
+                # 合并结果
+                result['data'].update(payment_result.get('data', {}))
+                result['data']['payment_method'] = payment_method
+            else:
+                # 支付订单创建失败，删除金币订单
+                from app.models.coin import CoinOrder
+                order = db_session.query(CoinOrder).filter(CoinOrder.id == order_id).first()
+                if order:
+                    db_session.delete(order)
+                    db_session.commit()
+                return payment_result
+        
         return result
         
     except Exception as e:
         current_app.logger.error(f"创建订单失败: {str(e)}")
         return error_response("CREATE_ORDER_FAILED", "创建订单失败")
+
+
+@coin_bp.route('/order/status/<order_no>', methods=['GET'])
+@login_required
+def get_order_status(order_no):
+    """获取订单状态"""
+    try:
+        db_session = get_db_session()
+        coin_service = CoinService(db_session)
+        
+        result = coin_service.get_order_status(order_no)
+        return result
+        
+    except Exception as e:
+        current_app.logger.error(f"获取订单状态失败: {str(e)}")
+        return error_response("GET_ORDER_STATUS_FAILED", "获取订单状态失败")
 
 
 @coin_bp.route('/order/<int:order_id>/complete', methods=['POST'])

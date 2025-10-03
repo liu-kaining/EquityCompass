@@ -598,41 +598,308 @@ function selectPackage(packageId, name, price, coins) {
 function payWithAlipay() {
     if (!currentOrder) return;
     
-    // 创建订单
-    $.post('/api/coin/order', { package_id: currentOrder.packageId })
-        .done(function(response) {
-            if (response.success) {
-                // 这里应该调用支付宝支付接口
-                showAlert('支付宝支付功能待实现', 'info');
+    // 显示加载状态
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+    btn.disabled = true;
+    
+    // 创建订单并支付
+    $.ajax({
+        url: '/api/coin/order',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            package_id: currentOrder.packageId,
+            payment_method: 'ALIPAY'
+        }),
+        xhrFields: {
+            withCredentials: true
+        }
+    })
+    .done(function(response) {
+        if (response.success) {
+            const data = response.data;
+            if (data.payment_url) {
+                // 跳转到支付宝支付页面
+                window.open(data.payment_url, '_blank');
+                showAlert('正在跳转到支付宝支付页面...', 'info');
                 $('#paymentModal').modal('hide');
+                
+                // 开始轮询支付状态
+                pollPaymentStatus(data.order_no);
+            } else if (data.mock_payment_id) {
+                // 开发环境模拟支付
+                showMockPaymentDialog(data.mock_payment_id, 'ALIPAY');
             } else {
-                showAlert('创建订单失败: ' + response.error, 'danger');
+                showAlert('支付信息获取失败', 'danger');
             }
-        })
-        .fail(function() {
-            showAlert('创建订单失败', 'danger');
-        });
+        } else {
+            const errorMsg = $('<div>').text(response.message || response.error || '未知错误').html();
+            showAlert('创建订单失败: ' + errorMsg, 'danger');
+        }
+    })
+    .fail(function() {
+        showAlert('创建订单失败', 'danger');
+    })
+    .always(function() {
+        // 恢复按钮状态
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
 }
 
 // 微信支付
 function payWithWechat() {
     if (!currentOrder) return;
     
-    // 创建订单
-    $.post('/api/coin/order', { package_id: currentOrder.packageId })
-        .done(function(response) {
-            if (response.success) {
-                // 这里应该调用微信支付接口
-                showAlert('微信支付功能待实现', 'info');
+    // 显示加载状态
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+    btn.disabled = true;
+    
+    // 创建订单并支付
+    $.ajax({
+        url: '/api/coin/order',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            package_id: currentOrder.packageId,
+            payment_method: 'WECHAT'
+        }),
+        xhrFields: {
+            withCredentials: true
+        }
+    })
+    .done(function(response) {
+        if (response.success) {
+            const data = response.data;
+            if (data.qr_code) {
+                // 显示微信支付二维码
+                showWechatQRCode(data.qr_code, data.order_no);
                 $('#paymentModal').modal('hide');
+            } else if (data.mock_payment_id) {
+                // 开发环境模拟支付
+                showMockPaymentDialog(data.mock_payment_id, 'WECHAT');
             } else {
-                // 安全显示错误信息，防止XSS
-                const errorMsg = $('<div>').text(response.error || '未知错误').html();
-                showAlert('创建订单失败: ' + errorMsg, 'danger');
+                showAlert('支付信息获取失败', 'danger');
+            }
+        } else {
+            const errorMsg = $('<div>').text(response.message || response.error || '未知错误').html();
+            showAlert('创建订单失败: ' + errorMsg, 'danger');
+        }
+    })
+    .fail(function() {
+        showAlert('创建订单失败', 'danger');
+    })
+    .always(function() {
+        // 恢复按钮状态
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+// 轮询支付状态
+function pollPaymentStatus(orderNo) {
+    let attempts = 0;
+    const maxAttempts = 30; // 最多轮询30次，每次5秒，总共2.5分钟
+    
+    const poll = () => {
+        attempts++;
+        if (attempts > maxAttempts) {
+            showAlert('支付超时，请检查支付状态', 'warning');
+            return;
+        }
+        
+        $.ajax({
+            url: `/api/coin/order/status/${orderNo}`,
+            type: 'GET',
+            xhrFields: {
+                withCredentials: true
+            }
+        })
+            .done(function(response) {
+                if (response.success && response.data.status === 'PAID') {
+                    showAlert('支付成功！金币已到账', 'success');
+                    loadCoinInfo(); // 刷新金币信息
+                    loadTransactions(); // 刷新交易记录
+                } else if (response.data.status === 'FAILED') {
+                    showAlert('支付失败', 'danger');
+                } else {
+                    // 继续轮询
+                    setTimeout(poll, 5000);
+                }
+            })
+            .fail(function() {
+                // 网络错误，继续轮询
+                setTimeout(poll, 5000);
+            });
+    };
+    
+    // 开始轮询
+    setTimeout(poll, 5000);
+}
+
+// 显示微信支付二维码
+function showWechatQRCode(qrCode, orderNo) {
+    const modal = `
+        <div class="modal fade" id="wechatQRModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">微信支付</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div class="mb-3">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCode)}" 
+                                 alt="微信支付二维码" class="img-fluid">
+                        </div>
+                        <p class="text-muted">请使用微信扫描二维码完成支付</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            支付完成后页面将自动刷新
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消支付</button>
+                        <button type="button" class="btn btn-primary" onclick="checkWechatPayment('${orderNo}')">
+                            我已支付
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 移除旧的模态框
+    $('#wechatQRModal').remove();
+    
+    // 添加新的模态框
+    $('body').append(modal);
+    
+    // 显示模态框
+    $('#wechatQRModal').modal('show');
+    
+    // 开始轮询支付状态
+    pollPaymentStatus(orderNo);
+}
+
+// 检查微信支付状态
+function checkWechatPayment(orderNo) {
+    $.ajax({
+        url: `/api/coin/order/status/${orderNo}`,
+        type: 'GET',
+        xhrFields: {
+            withCredentials: true
+        }
+    })
+        .done(function(response) {
+            if (response.success && response.data.status === 'PAID') {
+                showAlert('支付成功！金币已到账', 'success');
+                $('#wechatQRModal').modal('hide');
+                loadCoinInfo();
+                loadTransactions();
+            } else {
+                showAlert('支付尚未完成，请稍后再试', 'warning');
             }
         })
         .fail(function() {
-            showAlert('创建订单失败', 'danger');
+            showAlert('检查支付状态失败', 'danger');
+        });
+}
+
+// 显示模拟支付对话框（开发环境）
+function showMockPaymentDialog(mockPaymentId, paymentMethod) {
+    const methodNames = {
+        'ALIPAY': '支付宝',
+        'WECHAT': '微信支付',
+        'STRIPE': 'Stripe'
+    };
+    
+    const modal = `
+        <div class="modal fade" id="mockPaymentModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">模拟支付 - ${methodNames[paymentMethod]}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-credit-card fa-3x text-primary"></i>
+                        </div>
+                        <p>这是开发环境的模拟支付</p>
+                        <p class="text-muted">请选择支付结果进行测试</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-danger" onclick="simulatePaymentFailure('${mockPaymentId}')">
+                            支付失败
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="simulatePaymentSuccess('${mockPaymentId}')">
+                            支付成功
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 移除旧的模态框
+    $('#mockPaymentModal').remove();
+    
+    // 添加新的模态框
+    $('body').append(modal);
+    
+    // 显示模态框
+    $('#mockPaymentModal').modal('show');
+}
+
+// 模拟支付成功
+function simulatePaymentSuccess(mockPaymentId) {
+    $.ajax({
+        url: `/api/payment/mock/success/${mockPaymentId}`,
+        type: 'POST',
+        xhrFields: {
+            withCredentials: true
+        }
+    })
+        .done(function(response) {
+            if (response.success) {
+                showAlert('模拟支付成功！金币已到账', 'success');
+                $('#mockPaymentModal').modal('hide');
+                loadCoinInfo();
+                loadTransactions();
+            } else {
+                showAlert('模拟支付失败: ' + response.message, 'danger');
+            }
+        })
+        .fail(function() {
+            showAlert('模拟支付失败', 'danger');
+        });
+}
+
+// 模拟支付失败
+function simulatePaymentFailure(mockPaymentId) {
+    $.ajax({
+        url: `/api/payment/mock/failure/${mockPaymentId}`,
+        type: 'POST',
+        xhrFields: {
+            withCredentials: true
+        }
+    })
+        .done(function(response) {
+            if (response.success) {
+                showAlert('模拟支付失败', 'warning');
+                $('#mockPaymentModal').modal('hide');
+            } else {
+                showAlert('模拟支付失败: ' + response.message, 'danger');
+            }
+        })
+        .fail(function() {
+            showAlert('模拟支付失败', 'danger');
         });
 }
 
