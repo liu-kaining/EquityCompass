@@ -33,11 +33,9 @@ class User(UserMixin, db.Model):
     email_subscription = db.relationship('EmailSubscription', backref='user', uselist=False, cascade='all, delete-orphan')
     payment_transactions = db.relationship('PaymentTransaction', backref='user', lazy='dynamic')
     custom_stocks = db.relationship('Stock', backref='creator', lazy='dynamic')
-    # 金币系统关系
-    coin_account = db.relationship('UserCoin', backref='user', uselist=False, cascade='all, delete-orphan')
-    coin_transactions = db.relationship('CoinTransaction', backref='user', lazy='dynamic', cascade='all, delete-orphan')
-    coin_orders = db.relationship('CoinOrder', backref='user', lazy='dynamic', cascade='all, delete-orphan')
-    daily_bonuses = db.relationship('DailyBonus', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    # 金币系统关系（通过backref自动创建，不需要重复定义）
+    # coin_account 通过 UserCoin 模型的 backref 自动创建
+    # coin_transactions, coin_orders, daily_bonuses 通过各自模型的 backref 自动创建
     
     def set_password(self, password):
         """设置密码"""

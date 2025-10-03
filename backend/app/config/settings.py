@@ -15,13 +15,7 @@ class Config:
     
     # 数据库连接池配置（仅对非SQLite数据库有效）
     # SQLite不支持连接池，这些配置对SQLite无效
-    if not SQLALCHEMY_DATABASE_URI.startswith('sqlite'):
-        SQLALCHEMY_ENGINE_OPTIONS = {
-            'pool_size': 10,
-            'pool_recycle': 3600,
-            'pool_pre_ping': True,
-            'max_overflow': 20
-        }
+    # 注意：这里使用默认配置，实际使用时会在应用初始化时根据数据库类型设置
     
     # JWT配置
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', SECRET_KEY)

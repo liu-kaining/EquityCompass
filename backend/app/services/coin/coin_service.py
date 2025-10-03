@@ -115,7 +115,7 @@ class CoinService:
                 return error_response("INSUFFICIENT_COINS", f"金币不足，需要{amount}金币，当前可用{user_coin.available_coins}金币")
             
             # 开始事务
-            self.db.session.begin()
+            self.db.begin()
             
             try:
                 # 更新金币余额
@@ -136,7 +136,7 @@ class CoinService:
                     related_type=related_type
                 )
                 
-                self.db.session.commit()
+                self.db.commit()
                 
                 return {
                     'success': True,
@@ -148,7 +148,7 @@ class CoinService:
                 }
                 
             except Exception as e:
-                self.db.session.rollback()
+                self.db.rollback()
                 raise e
             
         except Exception as e:
@@ -231,7 +231,7 @@ class CoinService:
             current_app.logger.info(f"今日日期: {today}")
             
             # 使用数据库锁防止并发签到
-            self.db.session.begin()
+            self.db.begin()
             
             try:
                 # 检查今天是否已签到（带锁）
@@ -239,65 +239,70 @@ class CoinService:
                 current_app.logger.info(f"检查今日签到记录: {existing_bonus}")
                 
                 if existing_bonus:
-                    self.db.session.rollback()
+                    self.db.rollback()
                     current_app.logger.info("今日已签到，返回错误")
                     return error_response("ALREADY_CHECKED_IN", "今日已签到，请明天再来")
                 
                 # 计算连续签到天数
                 streak_days = self._calculate_streak_days(user_id)
                 current_app.logger.info(f"连续签到天数: {streak_days}")
-            
-            # 计算奖励金币（基础20金币 + 连续签到奖励）
-            base_coins = 20
-            streak_bonus = min(streak_days * 2, 50)  # 连续签到每天额外2金币，最多50金币
-            total_coins = base_coins + streak_bonus
-            current_app.logger.info(f"奖励计算 - 基础: {base_coins}, 连续奖励: {streak_bonus}, 总计: {total_coins}")
-            
-            # 发放奖励
-            earn_result = self.earn_coins(
-                user_id=user_id,
-                amount=total_coins,
-                description=f'每日签到奖励（连续{streak_days}天）',
-                transaction_type='DAILY_BONUS'
-            )
-            
-            current_app.logger.info(f"发放奖励结果: {earn_result}")
-            
-            # 检查earn_result是否是tuple（Flask Response对象）
-            if isinstance(earn_result, tuple):
-                # 如果是tuple，说明是Flask Response对象，需要检查响应内容
-                response_obj, status_code = earn_result
-                if status_code != 200:
-                    current_app.logger.error(f"发放奖励失败，状态码: {status_code}")
-                    return earn_result
-            else:
-                # 如果是字典，检查success字段
-                if not earn_result.get('success', False):
-                    current_app.logger.error(f"发放奖励失败: {earn_result}")
-                    return earn_result
-            
-            # 记录签到记录
-            self.repository.create_daily_bonus(
-                user_id=user_id,
-                bonus_date=today,
-                coins_earned=total_coins,
-                streak_days=streak_days
-            )
-            
-            result = success_response({
-                'earned_coins': total_coins,
-                'streak_days': streak_days,
-                'base_coins': base_coins,
-                'streak_bonus': streak_bonus
-            })
-            
-            current_app.logger.info(f"每日签到完成，返回结果: {result}")
-            return result
                 
-        except Exception as e:
-            self.db.session.rollback()
-            current_app.logger.error(f"每日签到处理异常: {str(e)}", exc_info=True)
-            return error_response("DAILY_BONUS_PROCESSING_FAILED", f"每日签到处理失败: {str(e)}")
+                # 计算奖励金币（基础20金币 + 连续签到奖励）
+                base_coins = 20
+                streak_bonus = min(streak_days * 2, 50)  # 连续签到每天额外2金币，最多50金币
+                total_coins = base_coins + streak_bonus
+                current_app.logger.info(f"奖励计算 - 基础: {base_coins}, 连续奖励: {streak_bonus}, 总计: {total_coins}")
+            
+                # 发放奖励
+                earn_result = self.earn_coins(
+                    user_id=user_id,
+                    amount=total_coins,
+                    description=f'每日签到奖励（连续{streak_days}天）',
+                    transaction_type='DAILY_BONUS'
+                )
+                
+                current_app.logger.info(f"发放奖励结果: {earn_result}")
+                
+                # 检查earn_result是否是tuple（Flask Response对象）
+                if isinstance(earn_result, tuple):
+                    # 如果是tuple，说明是Flask Response对象，需要检查响应内容
+                    response_obj, status_code = earn_result
+                    if status_code != 200:
+                        current_app.logger.error(f"发放奖励失败，状态码: {status_code}")
+                        self.db.rollback()
+                        return earn_result
+                else:
+                    # 如果是字典，检查success字段
+                    if not earn_result.get('success', False):
+                        current_app.logger.error(f"发放奖励失败: {earn_result}")
+                        self.db.rollback()
+                        return earn_result
+                
+                # 记录签到记录
+                self.repository.create_daily_bonus(
+                    user_id=user_id,
+                    bonus_date=today,
+                    coins_earned=total_coins,
+                    streak_days=streak_days
+                )
+                
+                # 提交事务
+                self.db.commit()
+                
+                result = success_response({
+                    'earned_coins': total_coins,
+                    'streak_days': streak_days,
+                    'base_coins': base_coins,
+                    'streak_bonus': streak_bonus
+                })
+                
+                current_app.logger.info(f"每日签到完成，返回结果: {result}")
+                return result
+                
+            except Exception as e:
+                self.db.rollback()
+                current_app.logger.error(f"每日签到处理异常: {str(e)}", exc_info=True)
+                return error_response("DAILY_BONUS_PROCESSING_FAILED", f"每日签到处理失败: {str(e)}")
             
         except Exception as e:
             from flask import current_app

@@ -108,6 +108,9 @@ class DailyBonus(db.Model):
     streak_days = db.Column(db.Integer, default=1)  # 连续签到天数
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # 关系
+    user = db.relationship('User', backref='daily_bonuses')
+    
     # 唯一约束：每个用户每天只能签到一次
     __table_args__ = (
         UniqueConstraint('user_id', 'bonus_date', name='unique_daily_bonus'),

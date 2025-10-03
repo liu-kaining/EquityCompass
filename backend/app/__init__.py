@@ -43,8 +43,9 @@ def create_app(config_name='development'):
             message = record.getMessage().lower()
             for keyword in sensitive_keywords:
                 if keyword in message:
-                    record.msg = record.msg.replace(record.msg, '[SENSITIVE_DATA_FILTERED]')
+                    record.msg = '[SENSITIVE_DATA_FILTERED]'
                     record.args = ()
+                    break
             return True
     
     logging.basicConfig(
