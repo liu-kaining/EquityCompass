@@ -373,6 +373,30 @@ body {
                 <div class="invalid-feedback"></div>
             </div>
 
+            <div class="form-group">
+                <label for="invitation_code" class="form-label">
+                    <i class="fas fa-ticket-alt"></i>
+                    邀请码 <span class="text-danger">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="invitation_code" 
+                    name="invitation_code" 
+                    class="form-control" 
+                    placeholder="请输入18位邀请码（可带分隔符：XXXXXX-XXXXXX-XXXXXX）"
+                    required
+                    autocomplete="off"
+                    maxlength="21"
+                    style="letter-spacing: 1px; font-family: monospace;"
+                    value="{{ request.form.get('invitation_code', '') }}"
+                >
+                <small class="form-text text-muted">
+                    <i class="fas fa-info-circle"></i> 邀请码为必填项，请联系管理员获取
+                </small>
+                <div class="invalid-feedback"></div>
+                <div id="invitationCodeStatus" class="mt-2"></div>
+            </div>
+
             <button type="submit" class="btn btn-primary btn-lg w-100 position-relative" id="registerBtn">
                 <span class="btn-text">创建账户</span>
                 <span class="btn-spinner d-none">
@@ -422,11 +446,39 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirm_password');
+    const invitationCodeInput = document.getElementById('invitation_code');
+    const invitationCodeStatus = document.getElementById('invitationCodeStatus');
     const registerBtn = document.getElementById('registerBtn');
     const btnText = registerBtn.querySelector('.btn-text');
     const btnSpinner = registerBtn.querySelector('.btn-spinner');
     
     let isRegistering = false;
+    let invitationCodeValid = false;
+    
+    // 邀请码格式化（自动添加分隔符）
+    invitationCodeInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/[^a-zA-Z0-9]/g, ''); // 只保留字母和数字
+        if (value.length > 18) {
+            value = value.substring(0, 18);
+        }
+        
+        // 格式化为 6-6-6 格式
+        if (value.length > 12) {
+            value = value.substring(0, 6) + '-' + value.substring(6, 12) + '-' + value.substring(12);
+        } else if (value.length > 6) {
+            value = value.substring(0, 6) + '-' + value.substring(6);
+        }
+        
+        e.target.value = value;
+        
+        // 如果输入了18个字符，验证邀请码
+        const normalizedCode = value.replace(/[^a-zA-Z0-9]/g, '');
+        if (normalizedCode.length === 18) {
+            validateInvitationCode(value);
+        } else {
+            clearInvitationCodeStatus();
+        }
+    });
     
     // 密码强度检查
     passwordInput.addEventListener('input', function() {
@@ -449,7 +501,8 @@ document.addEventListener('DOMContentLoaded', function() {
             email: emailInput.value.trim().toLowerCase(),
             password: passwordInput.value,
             confirm_password: confirmPasswordInput.value,
-            nickname: document.getElementById('nickname').value.trim()
+            nickname: document.getElementById('nickname').value.trim(),
+            invitation_code: invitationCodeInput.value.trim()
         };
         
         // 验证表单
@@ -511,6 +564,21 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (data.password !== data.confirm_password) {
             showError(confirmPasswordInput, '两次输入的密码不一致');
             isValid = false;
+        }
+        
+        // 验证邀请码
+        if (!data.invitation_code) {
+            showError(invitationCodeInput, '请输入邀请码');
+            isValid = false;
+        } else {
+            const normalizedCode = data.invitation_code.replace(/[^a-zA-Z0-9]/g, '');
+            if (normalizedCode.length !== 18) {
+                showError(invitationCodeInput, '邀请码格式不正确，应为18个字符');
+                isValid = false;
+            } else if (!invitationCodeValid) {
+                showError(invitationCodeInput, '邀请码验证失败，请检查后重试');
+                isValid = false;
+            }
         }
         
         return isValid;
@@ -649,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function clearAllErrors() {
-        [usernameInput, emailInput, passwordInput, confirmPasswordInput].forEach(clearError);
+        [usernameInput, emailInput, passwordInput, confirmPasswordInput, invitationCodeInput].forEach(clearError);
     }
     
     function showSuccess(message) {
@@ -659,6 +727,28 @@ document.addEventListener('DOMContentLoaded', function() {
         feedback.style.fontWeight = '600';
         feedback.textContent = message;
         feedback.innerHTML = '<i class="fas fa-check me-2"></i>' + message;
+    }
+    
+    // 验证邀请码（格式验证，实际验证在提交时）
+    function validateInvitationCode(code) {
+        const normalizedCode = code.replace(/[^a-zA-Z0-9]/g, '');
+        if (normalizedCode.length !== 18) {
+            clearInvitationCodeStatus();
+            invitationCodeValid = false;
+            return;
+        }
+        
+        // 格式验证通过
+        invitationCodeInput.classList.remove('is-invalid');
+        invitationCodeInput.classList.add('is-valid');
+        invitationCodeStatus.innerHTML = '<small class="text-success"><i class="fas fa-check-circle"></i> 邀请码格式正确</small>';
+        invitationCodeValid = true;
+    }
+    
+    function clearInvitationCodeStatus() {
+        invitationCodeStatus.innerHTML = '';
+        invitationCodeInput.classList.remove('is-invalid', 'is-valid');
+        invitationCodeValid = false;
     }
     
     function isValidEmail(email) {

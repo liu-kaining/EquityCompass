@@ -10,32 +10,6 @@
     </div>
 </div>
 
-<!-- 用户计划状态 -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card glass-effect">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title mb-2">当前计划</h5>
-                        <div class="d-flex align-items-center gap-3">
-                            <span class="badge bg-{% if user.plan_type == 'ADMIN' %}danger{% else %}primary{% endif %} fs-6 px-3 py-2">
-                                {% if user.plan_type == 'ADMIN' %}管理员账户
-                                {% elif user.plan_type == 'TRIAL' %}试用计划
-                                {% elif user.plan_type == 'FREE' %}免费计划
-                                {% elif user.plan_type == 'SUBSCRIPTION' %}订阅计划
-                                {% else %}按次付费{% endif %}
-                            </span>
-                            <span class="text-muted">剩余 <strong class="text-primary">{{ user.remaining_quota }}</strong> 次分析机会</span>
-                        </div>
-                    </div>
-                    <a href="#" class="btn btn-outline-primary px-4">升级计划</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- 统计卡片 -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
@@ -81,11 +55,10 @@
         <div class="card glass-effect card-hover">
             <div class="card-body text-center">
                 <div class="mb-3">
-                    <i class="fas fa-wallet fa-2x text-info"></i>
+                    <i class="fas fa-rocket fa-2x text-info"></i>
                 </div>
-                <h3 class="card-title">{{ user.remaining_quota }}</h3>
-                <p class="card-text text-muted">剩余额度</p>
-                <a href="#" class="btn btn-sm btn-info">购买</a>
+                <h3 class="card-title">无限制</h3>
+                <p class="card-text text-muted">分析权限</p>
             </div>
         </div>
     </div>

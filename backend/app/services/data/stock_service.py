@@ -80,9 +80,7 @@ class StockDataService:
         
         return {
             'watchlist': watchlist,
-            'count': len(watchlist),
-            'max_count': 20,
-            'remaining_slots': 20 - len(watchlist)
+            'count': len(watchlist)
         }
     
     def add_to_watchlist(self, user_id: int, stock_code: str) -> Dict[str, Any]:

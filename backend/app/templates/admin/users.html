@@ -134,6 +134,7 @@
                                     <th>角色</th>
                                     <th>计划</th>
                                     <th>状态</th>
+                                    <th>邀请码</th>
                                     <th>注册时间</th>
                                     <th>最后登录</th>
                                     <th>操作</th>
@@ -161,8 +162,15 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <span class="badge bg-primary">{{ user.plan_type }}</span>
-                                        <small class="text-muted d-block">剩余: {{ user.remaining_quota }}</small>
+                                        <span class="badge bg-success">无限制</span>
+                                        <small class="text-muted d-block">登录后可直接使用</small>
+                                    </td>
+                                    <td>
+                                        {% if user.invitation_code_display %}
+                                        <code class="text-success" style="font-size: 0.85em;">{{ user.invitation_code_display }}</code>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if user.is_active %}
@@ -173,6 +181,15 @@
                                         <span class="status-inactive">
                                             <i class="fas fa-times-circle"></i> 禁用
                                         </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.invitation_code_display %}
+                                        <code class="text-success" style="font-size: 0.85em; letter-spacing: 1px;">{{ user.invitation_code_display }}</code>
+                                        {% elif user.invitation_code %}
+                                        <code class="text-success" style="font-size: 0.85em;">{{ user.invitation_code }}</code>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -313,9 +330,9 @@ function showUserDetails(userId) {
                                 <tr><td>邮箱:</td><td>${user.email}</td></tr>
                                 <tr><td>昵称:</td><td>${user.nickname || '-'}</td></tr>
                                 <tr><td>角色:</td><td><span class="badge bg-primary">${user.user_role}</span></td></tr>
-                                <tr><td>计划:</td><td>${user.plan_type}</td></tr>
-                                <tr><td>剩余额度:</td><td>${user.remaining_quota}</td></tr>
+                                <tr><td>使用权限:</td><td>无限制</td></tr>
                                 <tr><td>状态:</td><td>${user.is_active ? '<span class="text-success">启用</span>' : '<span class="text-danger">禁用</span>'}</td></tr>
+                                <tr><td>邀请码:</td><td>${user.invitation_code_display || user.invitation_code || '<span class="text-muted">-</span>'}</td></tr>
                                 <tr><td>注册时间:</td><td>${user.created_at || '-'}</td></tr>
                                 <tr><td>最后登录:</td><td>${user.last_login || '从未登录'}</td></tr>
                             </table>

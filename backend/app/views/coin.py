@@ -121,28 +121,12 @@ def coin_transactions():
                              pagination={})
 
 
-@coin_bp.route('/coin/packages')
-@login_required
-def coin_packages():
-    """金币套餐页面"""
-    try:
-        db_session = get_db_session()
-        coin_service = CoinService(db_session)
-        
-        # 获取金币套餐
-        result = coin_service.get_coin_packages()
-        
-        if result['success']:
-            return render_template('coin/packages.html',
-                                 packages=result['data'])
-        else:
-            return render_template('coin/packages.html',
-                                 packages=[])
-        
-    except Exception as e:
-        current_app.logger.error(f"加载金币套餐失败: {str(e)}")
-        return render_template('coin/packages.html',
-                             packages=[])
+# 注意：套餐购买功能已移除，以下路由已禁用
+# @coin_bp.route('/coin/packages')
+# @login_required
+# def coin_packages():
+#     """金币套餐页面"""
+#     # 功能已移除
 
 
 # 管理员页面

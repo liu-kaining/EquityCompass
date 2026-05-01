@@ -12,6 +12,18 @@ from app import db
 admin_bp = Blueprint('admin', __name__)
 
 
+@admin_bp.route('/invitation-codes')
+@super_admin_required
+def invitation_code_management():
+    """邀请码管理页面（仅超级管理员）"""
+    try:
+        return render_template('admin/invitation_codes.html')
+    except Exception as e:
+        from flask import current_app
+        current_app.logger.error(f"加载邀请码管理页面失败: {str(e)}")
+        return render_template('admin/invitation_codes.html', error=str(e))
+
+
 @admin_bp.route('/users')
 @user_management_required
 def user_management():

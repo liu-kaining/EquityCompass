@@ -19,19 +19,15 @@
         <div class="card glass-effect">
             <div class="card-body">
                 <div class="row text-center">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <h4 class="text-primary">{{ watchlist_summary.count }}</h4>
                         <small class="text-muted">已关注</small>
                     </div>
-                    <div class="col-md-3">
-                        <h4 class="text-success">{{ watchlist_summary.remaining_slots }}</h4>
-                        <small class="text-muted">剩余额度</small>
+                    <div class="col-md-4">
+                        <h4 class="text-success">无限制</h4>
+                        <small class="text-muted">关注上限</small>
                     </div>
-                    <div class="col-md-3">
-                        <h4 class="text-info">{{ watchlist_summary.max_count }}</h4>
-                        <small class="text-muted">最大关注数</small>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <a href="{{ url_for('stocks.watchlist') }}" class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-bookmark me-1"></i>查看关注列表
                         </a>

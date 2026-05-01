@@ -53,11 +53,6 @@ class WatchlistRepository(SQLAlchemyRepository):
         if existing:
             return existing
         
-        # 检查关注数量限制（最多20支）
-        count = self.count(user_id=user_id)
-        if count >= 20:
-            raise ValueError("关注列表已满，最多只能关注20支股票")
-        
         # 添加到关注列表
         watchlist_data = {
             'user_id': user_id,

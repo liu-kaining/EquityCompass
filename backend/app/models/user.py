@@ -25,13 +25,14 @@ class User(UserMixin, db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True, comment='账户是否激活')
     email_verified = db.Column(db.Boolean, default=False, comment='邮箱是否已验证')
+    invitation_code_id = db.Column(db.Integer, db.ForeignKey('invitation_codes.id'), nullable=True, comment='注册时使用的邀请码ID')
     
     # 关系
     plans = db.relationship('UserPlan', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     watchlist = db.relationship('UserWatchlist', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     analysis_tasks = db.relationship('AnalysisTask', backref='user', lazy='dynamic')
     email_subscription = db.relationship('EmailSubscription', backref='user', uselist=False, cascade='all, delete-orphan')
-    payment_transactions = db.relationship('PaymentTransaction', backref='user', lazy='dynamic')
+    # 注意：payment_transactions关系已删除（支付功能已移除）
     custom_stocks = db.relationship('Stock', backref='creator', lazy='dynamic')
     # 金币系统关系（通过backref自动创建，不需要重复定义）
     # coin_account 通过 UserCoin 模型的 backref 自动创建

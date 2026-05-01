@@ -118,7 +118,7 @@ def create_app(config_name='development'):
     from app.models import (
         User, UserPlan, Stock, UserWatchlist, AnalysisTask, 
         PromptTemplate, ReportIndex, ReportStatistics, ReportViewLog, ReportDownloadLog,
-        EmailSubscription, PaymentTransaction, Admin, SystemConfig
+        EmailSubscription, Admin, SystemConfig, InvitationCode
     )
     
     # 导入金币系统模型
@@ -134,7 +134,6 @@ def create_app(config_name='development'):
     from app.views.admin import admin_bp
     from app.views.ai_config import ai_config_bp
     from app.views.prompt import prompt_bp
-    from app.views.coin import coin_bp
     
     # 注册API蓝图
     from app.api.auth_api import auth_api_bp
@@ -145,7 +144,7 @@ def create_app(config_name='development'):
     from app.api.ai_config_api import ai_config_api_bp
     from app.api.prompt_api import prompt_api_bp
     from app.api.models_api import models_bp
-    from app.api.coin_api import coin_bp as coin_api_bp
+    from app.api.invitation_code_api import invitation_code_bp
     
     # Web页面路由
     app.register_blueprint(main_bp)
@@ -157,7 +156,6 @@ def create_app(config_name='development'):
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(ai_config_bp, url_prefix='/admin')
     app.register_blueprint(prompt_bp, url_prefix='/admin')
-    app.register_blueprint(coin_bp)
     
     # API路由 (保留一些API供Ajax使用)
     app.register_blueprint(auth_api_bp, url_prefix='/api/auth')
@@ -168,11 +166,7 @@ def create_app(config_name='development'):
     app.register_blueprint(ai_config_api_bp, url_prefix='/api/ai-config')
     app.register_blueprint(prompt_api_bp, url_prefix='/api/prompt')
     app.register_blueprint(models_bp)
-    app.register_blueprint(coin_api_bp, url_prefix='/api/coin', name='coin_api')
-    
-    # 支付API路由
-    from app.api.payment_api import payment_bp
-    app.register_blueprint(payment_bp, url_prefix='/api/payment')
+    app.register_blueprint(invitation_code_bp, url_prefix='/api/admin/invitation-codes', name='invitation_code_api')
     
 
     

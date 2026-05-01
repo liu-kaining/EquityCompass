@@ -51,8 +51,6 @@ def index():
         'user_role': user_context['user_role'],
         'watchlist_count': watchlist_count,
         'reports_count': reports_count,
-        'plan_type': 'ADMIN' if is_admin else 'TRIAL',
-        'remaining_quota': 999 if is_admin else 1,
         'is_admin': is_admin,
         'is_super_admin': user_context['is_super_admin'],
         'is_site_admin': user_context['is_site_admin'],

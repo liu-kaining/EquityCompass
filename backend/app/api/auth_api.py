@@ -38,6 +38,30 @@ def register():
         password = data.get('password', '')
         confirm_password = data.get('confirm_password', '')
         nickname = data.get('nickname', '').strip()
+        invitation_code = data.get('invitation_code', '').strip()  # 新增：邀请码
+        
+        # 验证邀请码（必须在所有其他验证之前）
+        if not invitation_code:
+            return jsonify({
+                'success': False,
+                'error': 'INVITATION_CODE_REQUIRED',
+                'message': '邀请码为必填项'
+            }), 400
+        
+        # 验证邀请码有效性
+        from app.services.invitation_code_service import InvitationCodeService
+        invitation_service = InvitationCodeService(db.session)
+        code_validation = invitation_service.validate_code(invitation_code, code_type='INVITATION')
+        
+        if not code_validation['success']:
+            return jsonify({
+                'success': False,
+                'error': code_validation.get('error', 'INVITATION_CODE_INVALID'),
+                'message': code_validation.get('message', '邀请码无效')
+            }), 400
+        
+        # 保存有效的邀请码ID，稍后使用
+        valid_code_id = code_validation['data']['id']
         
         # 验证注册数据
         validation_result = UserValidator.validate_registration_data(
@@ -68,14 +92,23 @@ def register():
                 'message': '邮箱已被注册，请使用其他邮箱'
             }), 400
         
-        # 创建用户
+        # 创建用户（关联邀请码ID）
         try:
             user = user_repo.create_user(
                 username=username,
                 email=email,
                 password=password,
-                nickname=nickname or username
+                nickname=nickname or username,
+                invitation_code_id=valid_code_id  # 关联邀请码
             )
+            
+            # 只有在用户创建成功后，才标记邀请码为已使用
+            use_result = invitation_service.use_code(valid_code_id, user.id)
+            if not use_result['success']:
+                # 如果标记失败，记录警告但不清除用户（因为邀请码可能已经被其他进程使用）
+                current_app.logger.warning(f"用户 {user.id} 注册成功，但标记邀请码失败: {use_result.get('message')}")
+            else:
+                db.session.commit()
             
             # 生成JWT Token
             jwt_service = JWTService()
@@ -99,19 +132,8 @@ def register():
             session['username'] = user.username
             session['user_role'] = user.user_role
             session['is_admin'] = user.is_admin()
+            session['is_active'] = user.is_active  # 添加用户状态到session
             session['access_token'] = token_result['data']['access_token']
-            
-            # 初始化用户金币账户
-            try:
-                from app.services.coin.coin_service import CoinService
-                coin_service = CoinService(db.session)
-                coin_init_result = coin_service.initialize_user_coins(user.id, initial_coins=20)
-                if coin_init_result['success']:
-                    current_app.logger.info(f"用户 {user.id} 金币账户初始化成功")
-                else:
-                    current_app.logger.warning(f"用户 {user.id} 金币账户初始化失败: {coin_init_result.get('error')}")
-            except Exception as e:
-                current_app.logger.warning(f"初始化用户金币账户失败: {e}")
             
             # 发送欢迎邮件（可选）
             try:
@@ -128,8 +150,6 @@ def register():
                         'username': user.username,
                         'email': user.email,
                         'nickname': user.nickname,
-                        'plan_type': user.plan_type,
-                        'remaining_quota': user.remaining_quota,
                         'user_role': user.user_role,
                         'email_verified': user.email_verified
                     },
@@ -198,13 +218,8 @@ def login():
             user_repo.update_user_role(user.id, 'SUPER_ADMIN')
             user.user_role = 'SUPER_ADMIN'
         
-        # 检查用户状态
-        if not user.is_active:
-            return jsonify({
-                'success': False,
-                'error': 'USER_DISABLED',
-                'message': '用户账户已被禁用'
-            }), 403
+        # 注意：允许禁用用户登录查看，但不能生成报告
+        # 用户状态检查在创建分析报告时进行（analysis_api.py）
         
         # 更新最后登录时间
         user.last_login = datetime.utcnow()
@@ -232,6 +247,7 @@ def login():
         session['username'] = user.username
         session['user_role'] = user.user_role
         session['is_admin'] = user.is_admin()
+        session['is_active'] = user.is_active  # 添加用户状态到session
         session['access_token'] = token_result['data']['access_token']
         
         return jsonify({
@@ -242,10 +258,9 @@ def login():
                     'username': user.username,
                     'email': user.email,
                     'nickname': user.nickname,
-                    'plan_type': user.plan_type,
-                    'remaining_quota': user.remaining_quota,
                     'user_role': user.user_role,
-                    'email_verified': user.email_verified
+                    'email_verified': user.email_verified,
+                    'is_active': user.is_active  # 添加用户状态，前端可以据此判断
                 },
                 'tokens': token_result['data']
             },
@@ -306,6 +321,7 @@ def send_verification_code():
                 session['user_id'] = admin_user.id
                 session['user_email'] = email
                 session['is_admin'] = True
+                session['is_active'] = admin_user.is_active  # 添加用户状态到session
                 session['access_token'] = 'admin_token'
                 
                 return jsonify({
@@ -424,13 +440,8 @@ def verify_code():
                 'message': '用户创建失败'
             }), 500
         
-        # 检查用户状态
-        if not user.is_active:
-            return jsonify({
-                'success': False,
-                'error': 'USER_DISABLED',
-                'message': '用户账户已被禁用'
-            }), 403
+        # 注意：允许禁用用户登录查看，但不能生成报告
+        # 用户状态检查在创建分析报告时进行（analysis_api.py）
         
         # 更新最后登录时间
         user.last_login = datetime.utcnow()
@@ -464,11 +475,22 @@ def verify_code():
         session['user_id'] = user.id
         session['user_email'] = user.email
         session['is_admin'] = user.is_admin if hasattr(user, 'is_admin') else False
+        session['is_active'] = user.is_active  # 添加用户状态到session
         session['access_token'] = token_result['data']['access_token']
+        
+        # 在响应中添加用户信息（包括is_active状态）
+        token_data = token_result['data'].copy()
+        token_data['user'] = {
+            'id': user.id,
+            'username': getattr(user, 'username', None),
+            'email': user.email,
+            'nickname': getattr(user, 'nickname', None),
+            'is_active': user.is_active  # 添加用户状态
+        }
         
         return jsonify({
             'success': True,
-            'data': token_result['data'],
+            'data': token_data,
             'message': '登录成功',
             'timestamp': datetime.utcnow().isoformat()
         }), 200

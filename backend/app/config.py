@@ -68,10 +68,7 @@ class Config:
     ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123456')
     ADMIN_NICKNAME = os.getenv('ADMIN_NICKNAME', '系统管理员')
     
-    # 支付网关配置
-    STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
-    STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
-    STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
+    # 注意：支付功能已移除，支付网关配置已删除
     
     # 金融数据API配置
     ALPHA_VANTAGE_API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')

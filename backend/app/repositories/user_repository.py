@@ -21,7 +21,8 @@ class UserRepository(SQLAlchemyRepository):
         """根据用户名获取用户"""
         return self.session.query(User).filter(User.username == username).first()
     
-    def create_user(self, username: str, email: str, password: str, nickname: str = None, user_role: str = 'USER') -> User:
+    def create_user(self, username: str, email: str, password: str, nickname: str = None, 
+                    user_role: str = 'USER', invitation_code_id: int = None) -> User:
         """创建新用户"""
         user = User(
             username=username,
@@ -31,7 +32,8 @@ class UserRepository(SQLAlchemyRepository):
             remaining_quota=1,
             user_role=user_role,
             is_active=True,
-            email_verified=False
+            email_verified=False,
+            invitation_code_id=invitation_code_id  # 关联邀请码
         )
         user.set_password(password)
         self.session.add(user)

@@ -18,7 +18,7 @@ def get_current_user():
 
 
 def login_required(f):
-    """登录验证装饰器"""
+    """登录验证装饰器（检查登录状态，但不检查is_active，允许禁用用户查看）"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
@@ -29,6 +29,34 @@ def login_required(f):
                     'message': '请先登录'
                 }), 401
             return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def active_user_required(f):
+    """活跃用户验证装饰器（检查登录状态和is_active状态）"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            if request.is_json:
+                return jsonify({
+                    'success': False,
+                    'error': 'LOGIN_REQUIRED',
+                    'message': '请先登录'
+                }), 401
+            return redirect(url_for('auth.login'))
+        
+        # 检查用户状态
+        user = get_current_user()
+        if user and not user.is_active:
+            if request.is_json:
+                return jsonify({
+                    'success': False,
+                    'error': 'USER_DISABLED',
+                    'message': '用户账户已被禁用，无法执行此操作'
+                }), 403
+            return redirect(url_for('dashboard.index'))
+        
         return f(*args, **kwargs)
     return decorated_function
 

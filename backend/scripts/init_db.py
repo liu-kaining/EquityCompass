@@ -28,8 +28,9 @@ def init_database():
             from app.models import (
                 User, UserPlan, Stock, UserWatchlist, AnalysisTask, 
                 PromptTemplate, ReportIndex, EmailSubscription, 
-                PaymentTransaction, Admin, SystemConfig
+                Admin, SystemConfig
             )
+            # 注意：PaymentTransaction模型已删除（支付功能已移除）
             print("✅ 模型导入完成")
             
             # 创建所有表

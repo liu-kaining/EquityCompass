@@ -13,16 +13,10 @@ def check_environment():
     """检查环境配置"""
     print("🔍 检查生产环境配置...")
     
+    # 注意：支付功能已移除，不再检查支付相关环境变量
     required_vars = [
-        'ALIPAY_APP_ID',
-        'ALIPAY_PRIVATE_KEY', 
-        'ALIPAY_PUBLIC_KEY',
-        'WECHAT_APP_ID',
-        'WECHAT_MCH_ID',
-        'WECHAT_API_KEY',
-        'STRIPE_PUBLISHABLE_KEY',
-        'STRIPE_SECRET_KEY',
-        'STRIPE_WEBHOOK_SECRET'
+        'SECRET_KEY',
+        'DATABASE_URL'
     ]
     
     missing_vars = []
@@ -32,7 +26,6 @@ def check_environment():
     
     if missing_vars:
         print(f"❌ 缺少环境变量: {', '.join(missing_vars)}")
-        print("请设置所有支付相关的环境变量")
         return False
     
     print("✅ 环境变量检查通过")
@@ -58,9 +51,9 @@ def install_dependencies():
     print("📦 安装生产环境依赖...")
     
     try:
-        # 安装支付SDK
-        subprocess.run([sys.executable, "-m", "pip", "install", "alipay-sdk-python"], check=True)
-        subprocess.run([sys.executable, "-m", "pip", "install", "stripe"], check=True)
+        # 注意：支付功能已移除，不再安装支付SDK
+        # 所有依赖在requirements.txt中管理
+        subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], check=True)
         print("✅ 依赖安装完成")
     except subprocess.CalledProcessError as e:
         print(f"❌ 依赖安装失败: {e}")

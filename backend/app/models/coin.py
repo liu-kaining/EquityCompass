@@ -83,9 +83,10 @@ class CoinOrder(db.Model):
     amount = db.Column(db.Float, nullable=False)  # 订单金额
     coins = db.Column(db.Integer, nullable=False)  # 金币数量
     status = db.Column(db.String(20), default='PENDING')  # PENDING, PAID, CANCELLED, REFUNDED
-    payment_method = db.Column(db.String(20))  # ALIPAY, WECHAT, STRIPE
-    payment_id = db.Column(db.String(100))  # 第三方支付ID
-    paid_at = db.Column(db.DateTime)  # 支付时间
+    # 注意：支付功能已移除，以下字段保留但不使用
+    # payment_method = db.Column(db.String(20))  # ALIPAY, WECHAT, STRIPE
+    # payment_id = db.Column(db.String(100))  # 第三方支付ID
+    paid_at = db.Column(db.DateTime)  # 支付时间（保留用于历史数据）
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
